@@ -15,12 +15,13 @@ type Filter = 'all' | 'favorites' | 'private' | 'videos';
 
 export default function CollectionMediaPage({ params }: { params: { collectionId: string } }) {
   const c = COLLECTIONS.find(x => x.id === params.collectionId);
-  if (!c) return notFound();
   const router = useRouter();
   const [media, setMedia] = React.useState<Media[]>(ALL_MEDIA);
   const [filter, setFilter] = React.useState<Filter>('all');
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
   const [lightbox, setLightbox] = React.useState<{ items: Media[]; index: number } | null>(null);
+
+  if (!c) return notFound();
 
   const visible = media.filter(m =>
     filter === 'all' ? true :

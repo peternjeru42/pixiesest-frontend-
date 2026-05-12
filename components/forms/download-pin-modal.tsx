@@ -11,7 +11,7 @@ export function DownloadPinModal({ open, onOpenChange, onConfirm }: { open: bool
       <DialogContent size="sm" onClose={() => onOpenChange(false)}>
         <DialogHeader>
           <DialogTitle>Enter download PIN</DialogTitle>
-          <DialogDescription>Your photographer set a 4-digit PIN. Ask them if you don't have it.</DialogDescription>
+          <DialogDescription>Your photographer set a 4-digit PIN. Ask them if you don&apos;t have it.</DialogDescription>
         </DialogHeader>
         <DialogBody>
           <Input

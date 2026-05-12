@@ -13,11 +13,12 @@ import { cn } from '@/lib/utils';
 export default function PublicSetPage({ params }: { params: { collectionSlug: string; setSlug: string } }) {
   const c = COLLECTIONS.find(x => x.slug === params.collectionSlug);
   const s = SETS[params.setSlug];
-  if (!c || !s) return notFound();
   const [favorites, setFavorites] = React.useState<Set<string>>(new Set());
+  const [lightbox, setLightbox] = React.useState<{ items: Media[]; index: number } | null>(null);
   const items = (SET_MEDIA[params.setSlug] ?? []).map(m => ({ ...m, faved: favorites.has(m.id) }));
   const toggleFav = (id: string) => setFavorites(p => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; });
-  const [lightbox, setLightbox] = React.useState<{ items: Media[]; index: number } | null>(null);
+
+  if (!c || !s) return notFound();
   return (
     <div className="bg-bg min-h-screen text-ink">
       <PublicGalleryNav favCount={favorites.size} onOpenFavorites={()=>{}} onOpenDownload={()=>{}} adminHref={`/collections/${c.id}`}/>

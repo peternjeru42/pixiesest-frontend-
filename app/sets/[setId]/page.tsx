@@ -14,11 +14,12 @@ import type { Media } from '@/lib/types';
 
 export default function SetDetailPage({ params }: { params: { setId: string } }) {
   const s = SETS[params.setId];
-  if (!s) return notFound();
   const router = useRouter();
   const [media, setMedia] = React.useState<Media[]>(SET_MEDIA[params.setId] ?? []);
   const [lightbox, setLightbox] = React.useState<{ items: Media[]; index: number } | null>(null);
   const toggleFav = (id: string) => setMedia(arr => arr.map(m => m.id === id ? { ...m, faved: !m.faved } : m));
+
+  if (!s) return notFound();
 
   return (
     <AdminLayout crumbs={[{ label: 'Studio' }, { label: 'Sets' }, { label: s.title }]}>

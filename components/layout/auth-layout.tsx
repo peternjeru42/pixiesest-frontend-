@@ -7,7 +7,7 @@ export function AuthLayout({ children, image, quote }: { children: React.ReactNo
         <img src={image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-55"/>
         {quote && (
           <div className="absolute bottom-14 left-12 right-12 z-10 serif italic text-3xl leading-tight text-bg/95">
-            "{quote.text}"
+            &quot;{quote.text}&quot;
             <cite className="block mono not-italic text-[11px] tracking-[0.14em] uppercase mt-4 opacity-75">— {quote.cite}</cite>
           </div>
         )}

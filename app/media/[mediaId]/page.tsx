@@ -12,9 +12,10 @@ import { ACTIVITY } from '@/lib/mock-data';
 
 export default function MediaDetailPage({ params }: { params: { mediaId: string } }) {
   const m = ALL_MEDIA.find(x => x.id === params.mediaId);
+  const [isPrivate, setPrivate] = React.useState(m?.private ?? false);
+  const [downloadable, setDownloadable] = React.useState(m?.downloadable ?? false);
+
   if (!m) return notFound();
-  const [isPrivate, setPrivate] = React.useState(m.private);
-  const [downloadable, setDownloadable] = React.useState(m.downloadable);
 
   return (
     <AdminLayout crumbs={[{ label: 'Studio' }, { label: 'Media', href: '/media' }, { label: m.filename }]}>

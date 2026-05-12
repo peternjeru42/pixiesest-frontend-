@@ -20,7 +20,7 @@ export default function FavoritesShareLinkPage({ params }: { params: { shareToke
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8">
           <div>
             <div className="eyebrow mb-2">Favorite list · {f.collectionTitle}</div>
-            <h1 className="serif text-5xl font-medium tracking-tight">{f.clientName}'s selection</h1>
+            <h1 className="serif text-5xl font-medium tracking-tight">{f.clientName}&apos;s selection</h1>
             <div className="text-sm text-muted mt-2">{f.clientEmail} · <span className="mono text-xs uppercase tracking-wider">{f.mediaIds.length} photos · {f.notes.length} notes</span></div>
           </div>
           <div className="flex gap-2">
@@ -40,7 +40,7 @@ export default function FavoritesShareLinkPage({ params }: { params: { shareToke
                     {m && <img src={m.thumb} className="w-14 h-14 rounded object-cover" alt=""/>}
                     <div>
                       <div className="mono text-[10.5px] uppercase tracking-wider text-muted">{m?.filename}</div>
-                      <div className="text-sm mt-1 serif italic">"{n.text}"</div>
+                      <div className="text-sm mt-1 serif italic">&quot;{n.text}&quot;</div>
                     </div>
                   </div>
                 );

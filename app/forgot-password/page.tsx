@@ -13,7 +13,7 @@ export default function ForgotPage() {
         <span className="serif text-2xl">Lumen</span>
       </div>
       <h1 className="serif text-4xl font-medium tracking-tight mb-1.5">Reset password</h1>
-      <div className="text-muted mb-7">We'll email you a reset link.</div>
+      <div className="text-muted mb-7">We&apos;ll email you a reset link.</div>
       <form className="flex flex-col gap-4" action="/verify-email">
         <div className="flex flex-col gap-1.5">
           <Label>Email</Label>

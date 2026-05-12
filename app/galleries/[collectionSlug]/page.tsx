@@ -134,7 +134,7 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
                 <div className="w-12 h-12 rounded-full bg-accent-soft text-accent grid place-items-center"><Check size={22}/></div>
                 <div>
                   <div className="text-sm font-medium">{favorites.size} photo{favorites.size === 1 ? '' : 's'} sent</div>
-                  <div className="text-muted text-xs mt-0.5">You can keep adding favorites — we'll let Mara know each time you submit.</div>
+                  <div className="text-muted text-xs mt-0.5">You can keep adding favorites — we&apos;ll let Mara know each time you submit.</div>
                 </div>
               </div>
             </DialogBody>

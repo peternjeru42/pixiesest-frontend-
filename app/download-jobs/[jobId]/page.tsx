@@ -63,7 +63,7 @@ export default function DownloadJobPage({ params }: { params: { jobId: string } 
           <>
             <div className="w-16 h-16 rounded-full bg-panel text-danger grid place-items-center mx-auto mb-6"><AlertCircle size={28}/></div>
             <h1 className="serif text-4xl font-medium mb-2">Something went wrong</h1>
-            <p className="text-muted mb-7">We couldn't prepare your archive. Retry or contact your photographer.</p>
+            <p className="text-muted mb-7">We couldn&apos;t prepare your archive. Retry or contact your photographer.</p>
             <Button size="lg" className="w-full" onClick={() => { setStage('preparing'); setProgress(0); }}>Retry</Button>
           </>
         )}
