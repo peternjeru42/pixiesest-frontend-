@@ -1,4 +1,20 @@
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api/v1').replace(/\/$/, '');
+const PRODUCTION_API_BASE_URL = 'https://pixiesest-backend-production.up.railway.app/api/v1';
+
+function getApiBaseUrl() {
+  const configuredUrl = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL;
+  const fallbackUrl = process.env.NODE_ENV === 'production' ? PRODUCTION_API_BASE_URL : 'http://localhost:8000/api/v1';
+  return (configuredUrl ?? fallbackUrl).replace(/\/$/, '');
+}
+
+export class DashboardApiError extends Error {
+  status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = 'DashboardApiError';
+    this.status = status;
+  }
+}
 
 export type DashboardOverview = {
   user: {
@@ -52,7 +68,7 @@ export type DashboardOverview = {
 };
 
 export async function getDashboardOverview(accessToken: string): Promise<DashboardOverview> {
-  const response = await fetch(`${API_BASE_URL}/dashboard/overview/`, {
+  const response = await fetch(`${getApiBaseUrl()}/dashboard/overview/`, {
     headers: {
       Authorization: `Bearer ${accessToken}`,
     },
@@ -60,7 +76,7 @@ export async function getDashboardOverview(accessToken: string): Promise<Dashboa
   });
 
   if (!response.ok) {
-    throw new Error(`Dashboard request failed with status ${response.status}`);
+    throw new DashboardApiError(response.status, `Dashboard request failed with status ${response.status}`);
   }
 
   return response.json();

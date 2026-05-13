@@ -7,7 +7,7 @@ import { PageHeader, SectionHeader } from '@/components/layout/page-header';
 import { Button } from '@/components/ui/button';
 import { StatsCard } from '@/components/data-display/stats-card';
 import { Badge } from '@/components/ui/badge';
-import { getDashboardOverview } from '@/lib/api/dashboard';
+import { DashboardApiError, getDashboardOverview } from '@/lib/api/dashboard';
 
 const AUTH_COOKIE = 'lumen.accessToken';
 
@@ -18,7 +18,33 @@ export default async function DashboardPage() {
     redirect('/login?next=/dashboard');
   }
 
-  const dashboard = await getDashboardOverview(token);
+  let dashboard;
+
+  try {
+    dashboard = await getDashboardOverview(token);
+  } catch (error) {
+    if (error instanceof DashboardApiError && error.status === 401) {
+      redirect('/login?next=/dashboard');
+    }
+
+    return (
+      <AdminLayout crumbs={[{ label: 'Studio' }, { label: 'Dashboard' }]}>
+        <div className="px-6 lg:px-10 py-8 pb-20 max-w-[1600px] mx-auto">
+          <PageHeader
+            eyebrow="Dashboard unavailable"
+            title="Dashboard data could not be loaded."
+            sub="The backend API did not return the dashboard overview. Check the frontend API base URL and backend deployment status."
+          />
+          <div className="bg-surface border border-line rounded-md p-5 text-sm text-muted">
+            {error instanceof DashboardApiError
+              ? `Backend responded with status ${error.status}.`
+              : 'The dashboard request failed before a response was received.'}
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
+
   const { stats, latest_collection: latestCollection } = dashboard;
   const firstName = dashboard.user.first_name || dashboard.user.display_name || 'there';
   const storageLimit = stats.storage_limit_bytes;
