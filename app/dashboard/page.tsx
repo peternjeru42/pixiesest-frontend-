@@ -46,7 +46,6 @@ export default async function DashboardPage() {
   }
 
   const { stats, latest_collection: latestCollection } = dashboard;
-  const firstName = dashboard.user.first_name || dashboard.user.display_name || 'there';
   const storageLimit = stats.storage_limit_bytes;
   const storageProgress = storageLimit > 0 ? stats.storage_used_bytes / storageLimit : 0;
 
@@ -54,7 +53,7 @@ export default async function DashboardPage() {
     <AdminLayout crumbs={[{ label: 'Studio' }, { label: 'Dashboard' }]}>
       <div className="px-6 lg:px-10 py-8 pb-20 max-w-[1600px] mx-auto">
         <PageHeader
-          title={`Welcome back: Good morning, ${firstName}.`}
+          title="Dashboard"
           sub={`${stats.active_collections} active galleries and ${stats.pending_favorite_lists} client favorite lists awaiting review.`}
         />
 

@@ -14,7 +14,7 @@ export default function DownloadSettingsPage({ params }: { params: { collectionI
         <h2 className="serif text-2xl mb-1">Downloads</h2>
         <div className="text-sm text-muted mb-6">What clients can save and at what quality.</div>
         <div className="bg-surface border border-line rounded-md p-6">
-          <DownloadSettingsForm/>
+          <DownloadSettingsForm collection={c}/>
         </div>
       </div>
     </AdminLayout>

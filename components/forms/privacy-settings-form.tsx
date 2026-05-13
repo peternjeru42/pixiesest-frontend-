@@ -34,14 +34,14 @@ export function PrivacySettingsForm({ c }: { c: Collection }) {
   );
 }
 
-export function FormSwitch({ label, sub, checked, onCheckedChange }: { label: string; sub?: string; checked: boolean; onCheckedChange: (v: boolean) => void }) {
+export function FormSwitch({ label, sub, checked, disabled, onCheckedChange }: { label: string; sub?: string; checked: boolean; disabled?: boolean; onCheckedChange: (v: boolean) => void }) {
   return (
-    <label className="flex items-start justify-between gap-4 cursor-pointer">
+    <label className={disabled ? 'flex items-start justify-between gap-4 cursor-default' : 'flex items-start justify-between gap-4 cursor-pointer'}>
       <div>
         <div className="text-[13.5px] font-medium">{label}</div>
         {sub && <div className="text-xs text-muted mt-0.5">{sub}</div>}
       </div>
-      <Switch checked={checked} onCheckedChange={onCheckedChange}/>
+      <Switch checked={checked} disabled={disabled} onCheckedChange={onCheckedChange}/>
     </label>
   );
 }

@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { PublicGalleryNav, PublicGalleryFooter } from '@/components/layout/public-gallery-layout';
 import { EmptyState } from '@/components/data-display/empty-state';
 import { MediaLightbox } from '@/components/media/media-lightbox';
+import { DownloadPinModal } from '@/components/forms/download-pin-modal';
 import { COLLECTIONS, SET_MEDIA, ALL_MEDIA } from '@/lib/mock-data';
 import { cn } from '@/lib/utils';
 import type { Media } from '@/lib/types';
@@ -24,6 +25,8 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
   const [dlModal, setDlModal] = React.useState(false);
   const [submitModal, setSubmitModal] = React.useState(false);
   const [lightbox, setLightbox] = React.useState<{ items: Media[]; index: number } | null>(null);
+  const [singleDownload, setSingleDownload] = React.useState<Media | null>(null);
+  const [singleDownloadError, setSingleDownloadError] = React.useState('');
 
   if (!c) return notFound();
 
@@ -152,8 +155,27 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
           onClose={() => setLightbox(null)}
           onIndex={(i) => setLightbox(lb => lb && { ...lb, index: i })}
           onToggleFavorite={toggleFav}
+          onDownload={(media) => {
+            setSingleDownload(media);
+            setSingleDownloadError('');
+          }}
         />
       )}
+
+      <DownloadPinModal
+        open={!!singleDownload}
+        error={singleDownloadError}
+        onOpenChange={(open) => {
+          if (!open) setSingleDownload(null);
+        }}
+        onConfirm={(pin) => {
+          if (pin !== c.downloadPin) {
+            setSingleDownloadError('Enter the 4-digit PIN shared by the photographer.');
+            return;
+          }
+          setSingleDownload(null);
+        }}
+      />
     </div>
   );
 }
@@ -210,8 +232,14 @@ function DownloadModal({ c, onClose }: { c: any; onClose: () => void }) {
   const [stage, setStage] = React.useState<'choose' | 'preparing' | 'ready'>('choose');
   const [progress, setProgress] = React.useState(0);
   const [type, setType] = React.useState('originals');
+  const [pin, setPin] = React.useState('');
+  const [pinError, setPinError] = React.useState('');
 
   const start = () => {
+    if (pin !== c.downloadPin) {
+      setPinError('Enter the 4-digit PIN shared by the photographer.');
+      return;
+    }
     setStage('preparing'); setProgress(0);
     const iv = setInterval(() => {
       setProgress(p => {
@@ -247,6 +275,20 @@ function DownloadModal({ c, onClose }: { c: any; onClose: () => void }) {
                   </div>
                 </label>
               ))}
+              <div className="mt-1.5 flex flex-col gap-1.5">
+                <Label>Download PIN</Label>
+                <Input
+                  value={pin}
+                  onChange={(event) => {
+                    setPin(event.target.value.replace(/[^0-9]/g, '').slice(0, 4));
+                    setPinError('');
+                  }}
+                  inputMode="numeric"
+                  maxLength={4}
+                  className="max-w-[140px]"
+                />
+                {pinError && <div className="text-xs text-danger">{pinError}</div>}
+              </div>
             </div>
           )}
           {stage === 'preparing' && (
@@ -268,7 +310,7 @@ function DownloadModal({ c, onClose }: { c: any; onClose: () => void }) {
         <DialogFooter>
           {stage === 'choose' && <>
             <Button variant="outline" onClick={onClose}>Cancel</Button>
-            <Button onClick={start}><Download size={14}/>Prepare ZIP</Button>
+            <Button disabled={pin.length !== 4} onClick={start}><Download size={14}/>Prepare ZIP</Button>
           </>}
           {stage === 'preparing' && <Button variant="outline" onClick={onClose}>Cancel</Button>}
           {stage === 'ready' && <>

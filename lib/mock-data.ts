@@ -91,15 +91,16 @@ export const COLLECTIONS: Collection[] = [
     folderId: 'f1', folderName: 'Weddings 2026',
     status: 'published',
     password: 'amelia26',
+    downloadPin: '4827',
     counts: { photos: 412, videos: 4, videoDurationSec: 142, favorites: 38, downloads: 142, views: 1284, sets: 4 },
     sets: Object.values(SETS),
     createdAt: '2026-05-04',
   },
-  { id: 'c2', slug: 'rosa-david', title: 'Rosa & David', date: 'April 19, 2026', cover: unsplash(PHOTOS.portraits[1], 1600), folderId: 'f1', folderName: 'Weddings 2026', status: 'published', password: 'rosa26', counts: { photos: 386, videos: 2, videoDurationSec: 64, favorites: 21, downloads: 88, views: 612, sets: 4 }, sets: [], createdAt: '2026-04-19' },
-  { id: 'c3', slug: 'noor-ben', title: 'Noor & Ben', date: 'March 28, 2026', cover: unsplash(PHOTOS.reception[3], 1600), folderId: 'f1', folderName: 'Weddings 2026', status: 'published', counts: { photos: 298, videos: 1, videoDurationSec: 32, favorites: 14, downloads: 32, views: 412, sets: 3 }, sets: [], createdAt: '2026-03-28' },
-  { id: 'c4', slug: 'isabel-marco', title: 'Isabel & Marco', date: 'Feb 14, 2026', cover: unsplash(PHOTOS.details[0], 1600), folderId: 'f2', folderName: 'Engagements', status: 'published', counts: { photos: 184, videos: 0, videoDurationSec: 0, favorites: 8, downloads: 11, views: 244, sets: 2 }, sets: [], createdAt: '2026-02-14' },
-  { id: 'c5', slug: 'olive-sebastian', title: 'Olive & Sebastian', date: 'June 22, 2026', cover: unsplash(PHOTOS.portraits[3], 1600), folderId: 'f1', folderName: 'Weddings 2026', status: 'draft', counts: { photos: 0, videos: 0, videoDurationSec: 0, favorites: 0, downloads: 0, views: 0, sets: 0 }, sets: [], createdAt: '2026-05-08' },
-  { id: 'c6', slug: 'june-mei', title: 'June & Mei', date: 'Jan 11, 2026', cover: unsplash(PHOTOS.ceremony[5], 1600), folderId: 'f1', folderName: 'Weddings 2026', status: 'archived', counts: { photos: 322, videos: 3, videoDurationSec: 88, favorites: 47, downloads: 198, views: 1840, sets: 4 }, sets: [], createdAt: '2026-01-11' },
+  { id: 'c2', slug: 'rosa-david', title: 'Rosa & David', date: 'April 19, 2026', cover: unsplash(PHOTOS.portraits[1], 1600), folderId: 'f1', folderName: 'Weddings 2026', status: 'published', password: 'rosa26', downloadPin: '1936', counts: { photos: 386, videos: 2, videoDurationSec: 64, favorites: 21, downloads: 88, views: 612, sets: 4 }, sets: [], createdAt: '2026-04-19' },
+  { id: 'c3', slug: 'noor-ben', title: 'Noor & Ben', date: 'March 28, 2026', cover: unsplash(PHOTOS.reception[3], 1600), folderId: 'f1', folderName: 'Weddings 2026', status: 'published', downloadPin: '7054', counts: { photos: 298, videos: 1, videoDurationSec: 32, favorites: 14, downloads: 32, views: 412, sets: 3 }, sets: [], createdAt: '2026-03-28' },
+  { id: 'c4', slug: 'isabel-marco', title: 'Isabel & Marco', date: 'Feb 14, 2026', cover: unsplash(PHOTOS.details[0], 1600), folderId: 'f2', folderName: 'Engagements', status: 'published', downloadPin: '6281', counts: { photos: 184, videos: 0, videoDurationSec: 0, favorites: 8, downloads: 11, views: 244, sets: 2 }, sets: [], createdAt: '2026-02-14' },
+  { id: 'c5', slug: 'olive-sebastian', title: 'Olive & Sebastian', date: 'June 22, 2026', cover: unsplash(PHOTOS.portraits[3], 1600), folderId: 'f1', folderName: 'Weddings 2026', status: 'draft', downloadPin: '9140', counts: { photos: 0, videos: 0, videoDurationSec: 0, favorites: 0, downloads: 0, views: 0, sets: 0 }, sets: [], createdAt: '2026-05-08' },
+  { id: 'c6', slug: 'june-mei', title: 'June & Mei', date: 'Jan 11, 2026', cover: unsplash(PHOTOS.ceremony[5], 1600), folderId: 'f1', folderName: 'Weddings 2026', status: 'archived', downloadPin: '3562', counts: { photos: 322, videos: 3, videoDurationSec: 88, favorites: 47, downloads: 198, views: 1840, sets: 4 }, sets: [], createdAt: '2026-01-11' },
 ];
 
 export const FAVORITE_LISTS: FavoriteList[] = [

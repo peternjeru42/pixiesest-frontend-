@@ -16,7 +16,7 @@ export async function getCollection(id: string): Promise<Collection | null> {
 }
 export async function createCollection(input: Partial<Collection>) {
   await wait(400);
-  return { ...COLLECTIONS[0], ...input, id: 'new-' + Date.now() };
+  return { ...COLLECTIONS[0], ...input, id: 'new-' + Date.now(), downloadPin: String(Math.floor(Math.random() * 10000)).padStart(4, '0') };
 }
 export async function updateCollection(id: string, patch: Partial<Collection>) {
   await wait(); return { ...COLLECTIONS.find(c => c.id === id)!, ...patch };

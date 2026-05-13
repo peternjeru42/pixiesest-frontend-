@@ -53,6 +53,7 @@ export interface Collection {
   folderName: string;
   status: CollectionStatus;
   password?: string;
+  downloadPin: string;
   counts: CollectionCounts;
   sets: Set[];
   createdAt: string;

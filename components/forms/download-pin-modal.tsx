@@ -4,8 +4,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody, DialogFoo
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-export function DownloadPinModal({ open, onOpenChange, onConfirm }: { open: boolean; onOpenChange: (v: boolean) => void; onConfirm: (pin: string) => void }) {
+export function DownloadPinModal({ open, error, onOpenChange, onConfirm }: { open: boolean; error?: string; onOpenChange: (v: boolean) => void; onConfirm: (pin: string) => void }) {
   const [pin, setPin] = React.useState('');
+
+  React.useEffect(() => {
+    if (open) setPin('');
+  }, [open]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent size="sm" onClose={() => onOpenChange(false)}>
@@ -23,6 +28,7 @@ export function DownloadPinModal({ open, onOpenChange, onConfirm }: { open: bool
             maxLength={4}
             className="text-center text-2xl tracking-[0.5em] py-4 h-auto"
           />
+          {error && <div className="mt-2 text-xs text-danger">{error}</div>}
         </DialogBody>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>

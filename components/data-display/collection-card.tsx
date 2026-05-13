@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { Copy, Eye, FolderInput, Heart, Lock, MoreHorizontal, Send, Trash2 } from 'lucide-react';
+import { Copy, Eye, FolderInput, Heart, MoreHorizontal, Send, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -44,11 +44,6 @@ export function CollectionCard({ c }: { c: Collection }) {
       <div className="relative aspect-[4/3] bg-panel overflow-hidden">
         <Link href={`/collections/${c.id}`} className="block h-full">
           <img src={c.cover} alt="" className="w-full h-full object-cover transition-transform group-hover:scale-[1.02]"/>
-          {c.password && (
-            <span className="absolute top-2.5 left-2.5 mono text-[10px] uppercase tracking-wider bg-bg/90 backdrop-blur px-2 py-1 rounded-full flex items-center gap-1.5 border border-line">
-              <Lock size={9}/>Password
-            </span>
-          )}
           <span className="absolute bottom-2.5 left-2.5">
             <Badge tone={c.status as any}>{c.status}</Badge>
           </span>
@@ -199,7 +194,7 @@ function ShareCollectionDialog({
   const publicUrl = typeof window === 'undefined'
     ? `/galleries/${collection.slug}`
     : `${window.location.origin}/galleries/${collection.slug}`;
-  const password = collection.password || 'No password required';
+  const downloadPin = collection.downloadPin || 'No PIN available';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -215,8 +210,8 @@ function ShareCollectionDialog({
           />
           <CopyBlock
             label="Gallery password"
-            value={password}
-            helper={collection.password ? 'Share this password with your client to access the collection.' : 'This collection does not require a password.'}
+            value={downloadPin}
+            helper="Share this 4-digit PIN with your client for single-photo and full-gallery downloads."
           />
           <div className="flex gap-3 text-muted">
             <span className="grid h-6 w-6 place-items-center rounded-full bg-panel text-xs font-semibold">f</span>

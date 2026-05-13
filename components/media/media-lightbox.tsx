@@ -4,12 +4,13 @@ import { X, ChevronLeft, ChevronRight, Heart, Download, Info, Play } from 'lucid
 import { cn } from '@/lib/utils';
 import type { Media } from '@/lib/types';
 
-export function MediaLightbox({ items, index, onClose, onIndex, onToggleFavorite, allowFavorite = true, allowDownload = true }: {
+export function MediaLightbox({ items, index, onClose, onIndex, onToggleFavorite, onDownload, allowFavorite = true, allowDownload = true }: {
   items: Media[];
   index: number;
   onClose: () => void;
   onIndex: (i: number) => void;
   onToggleFavorite?: (id: string) => void;
+  onDownload?: (media: Media) => void;
   allowFavorite?: boolean;
   allowDownload?: boolean;
 }) {
@@ -41,7 +42,7 @@ export function MediaLightbox({ items, index, onClose, onIndex, onToggleFavorite
               <Heart size={14} fill={cur.faved ? 'currentColor' : 'none'}/>
             </LbButton>
           )}
-          {allowDownload && <LbButton><Download size={14}/></LbButton>}
+          {allowDownload && <LbButton onClick={() => onDownload?.(cur)}><Download size={14}/></LbButton>}
           <LbButton><Info size={14}/></LbButton>
         </div>
       </div>
