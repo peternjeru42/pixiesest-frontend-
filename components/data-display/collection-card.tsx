@@ -13,13 +13,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { FOLDERS } from '@/lib/mock-data';
+import { listFolders } from '@/lib/api/folders';
+import { moveCollectionToFolder } from '@/lib/api/collections';
 import { cn } from '@/lib/utils';
-import type { Collection } from '@/lib/types';
+import type { Collection, Folder } from '@/lib/types';
 
 const MENU_WIDTH = 190;
 
-export function CollectionCard({ c }: { c: Collection }) {
+export function CollectionCard({ c, onCollectionChange }: { c: Collection; onCollectionChange?: (collection: Collection) => void }) {
   const triggerRef = React.useRef<HTMLButtonElement>(null);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [shareOpen, setShareOpen] = React.useState(false);
@@ -89,7 +90,7 @@ export function CollectionCard({ c }: { c: Collection }) {
       />
 
       <ShareCollectionDialog collection={c} open={shareOpen} onOpenChange={setShareOpen}/>
-      <MoveToFolderDialog collection={c} open={moveOpen} onOpenChange={setMoveOpen}/>
+      <MoveToFolderDialog collection={c} open={moveOpen} onOpenChange={setMoveOpen} onMoved={onCollectionChange}/>
     </article>
   );
 }
@@ -249,18 +250,48 @@ function MoveToFolderDialog({
   collection,
   open,
   onOpenChange,
+  onMoved,
 }: {
   collection: Collection;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onMoved?: (collection: Collection) => void;
 }) {
   const [folderId, setFolderId] = React.useState(collection.folderId);
+  const [folders, setFolders] = React.useState<Folder[]>([]);
+  const [moving, setMoving] = React.useState(false);
 
   React.useEffect(() => {
     if (open) setFolderId(collection.folderId);
   }, [collection.folderId, open]);
 
-  const selectedFolder = FOLDERS.find(folder => folder.id === folderId);
+  React.useEffect(() => {
+    if (!open) return;
+    let mounted = true;
+    listFolders().then(items => {
+      if (mounted) setFolders(items);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, [open]);
+
+  const selectedFolder = folders.find(folder => folder.id === folderId);
+
+  async function moveCollection() {
+    if (!folderId || folderId === collection.folderId) {
+      onOpenChange(false);
+      return;
+    }
+    setMoving(true);
+    try {
+      const updated = await moveCollectionToFolder(collection.id, folderId);
+      onMoved?.(updated);
+      onOpenChange(false);
+    } finally {
+      setMoving(false);
+    }
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -270,7 +301,7 @@ function MoveToFolderDialog({
           <DialogDescription>Choose where to organize {collection.title}.</DialogDescription>
         </DialogHeader>
         <DialogBody className="gap-2 px-7 pb-3 sm:px-9">
-          {FOLDERS.map(folder => (
+          {folders.map(folder => (
             <button
               key={folder.id}
               type="button"
@@ -294,7 +325,7 @@ function MoveToFolderDialog({
           </div>
           <div className="flex gap-2">
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="button" variant="default" onClick={() => onOpenChange(false)}>Move</Button>
+            <Button type="button" variant="default" disabled={!folderId || moving} onClick={moveCollection}>{moving ? 'Moving...' : 'Move'}</Button>
           </div>
         </DialogFooter>
       </DialogContent>

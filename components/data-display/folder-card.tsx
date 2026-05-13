@@ -1,10 +1,9 @@
 import Link from 'next/link';
 import { Lock, MoreHorizontal } from 'lucide-react';
-import { COLLECTIONS } from '@/lib/mock-data';
-import type { Folder } from '@/lib/types';
+import type { Collection, Folder } from '@/lib/types';
 
-export function FolderCard({ f }: { f: Folder }) {
-  const previews = COLLECTIONS.filter(collection => collection.folderId === f.id).slice(0, 4);
+export function FolderCard({ f, collections = [] }: { f: Folder; collections?: Collection[] }) {
+  const previews = collections.filter(collection => collection.folderId === f.id).slice(0, 4);
   const tiles = Array.from({ length: 4 }, (_, index) => previews[index]?.cover ?? f.cover);
 
   return (
