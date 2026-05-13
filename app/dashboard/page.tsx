@@ -1,12 +1,11 @@
 import Link from 'next/link';
-import { Upload, Plus, ArrowRight, Eye, Link2 } from 'lucide-react';
+import { ArrowRight, Eye, Link2 } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/admin-layout';
 import { PageHeader, SectionHeader } from '@/components/layout/page-header';
 import { Button } from '@/components/ui/button';
 import { StatsCard } from '@/components/data-display/stats-card';
 import { Badge } from '@/components/ui/badge';
-import { ActivityTimeline } from '@/components/data-display/activity-timeline';
-import { STUDIO_STATS, ACTIVITY, COLLECTIONS, SET_MEDIA } from '@/lib/mock-data';
+import { STUDIO_STATS, COLLECTIONS, SET_MEDIA } from '@/lib/mock-data';
 
 export default function DashboardPage() {
   const recent = SET_MEDIA.ceremony.slice(0, 8);
@@ -18,12 +17,6 @@ export default function DashboardPage() {
           eyebrow="Welcome back"
           title="Good morning, Mara"
           sub="You have 3 active galleries and 4 client favorite lists awaiting your review."
-          actions={
-            <>
-              <Button variant="outline"><Upload size={14}/>Upload</Button>
-              <Button asChild variant="default"><Link href="/collections/new"><Plus size={14}/>New collection</Link></Button>
-            </>
-          }
         />
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-3.5">
@@ -41,7 +34,7 @@ export default function DashboardPage() {
 
         <div className="h-px bg-line my-7"/>
 
-        <div className="grid lg:grid-cols-[1.65fr_1fr] gap-7">
+        <div>
           <section>
             <SectionHeader
               title="Recent uploads"
@@ -75,11 +68,6 @@ export default function DashboardPage() {
                 <Button size="sm" variant="outline"><Link2 size={12}/>Copy link</Button>
               </div>
             </div>
-          </section>
-          <section>
-            <SectionHeader title="Activity"/>
-            <ActivityTimeline events={ACTIVITY.slice(0, 6)}/>
-            <Button asChild size="sm" variant="ghost" className="mt-3"><Link href="/activity">View all activity <ArrowRight size={12}/></Link></Button>
           </section>
         </div>
       </div>
