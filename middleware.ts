@@ -4,10 +4,15 @@ const AUTH_COOKIE = 'lumen.accessToken';
 
 export function middleware(request: NextRequest) {
   const token = request.cookies.get(AUTH_COOKIE)?.value;
+  const pathname = request.nextUrl.pathname;
 
-  if (!token) {
+  if (token && (pathname === '/login' || pathname === '/register')) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
+  }
+
+  if (!token && pathname.startsWith('/dashboard')) {
     const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('next', request.nextUrl.pathname);
+    loginUrl.searchParams.set('next', pathname);
     return NextResponse.redirect(loginUrl);
   }
 
@@ -15,5 +20,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*'],
+  matcher: ['/dashboard/:path*', '/login', '/register'],
 };

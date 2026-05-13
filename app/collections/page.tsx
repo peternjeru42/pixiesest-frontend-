@@ -7,16 +7,10 @@ import { PageHeader } from '@/components/layout/page-header';
 import { Button } from '@/components/ui/button';
 import { CollectionCard } from '@/components/data-display/collection-card';
 import { listCollections, subscribeToCollectionChanges } from '@/lib/api/collections';
-import { cn } from '@/lib/utils';
 import type { Collection } from '@/lib/types';
 
-const STATUSES = ['all', 'published', 'draft', 'archived'] as const;
-type StatusF = typeof STATUSES[number];
-
 export default function CollectionsPage() {
-  const [filter, setFilter] = React.useState<StatusF>('all');
   const [collections, setCollections] = React.useState<Collection[]>([]);
-  const list = collections.filter(c => filter === 'all' ? true : c.status === filter);
 
   React.useEffect(() => {
     let mounted = true;
@@ -47,18 +41,8 @@ export default function CollectionsPage() {
             <Button asChild variant="default"><Link href="/collections/new"><Plus size={14}/>New collection</Link></Button>
           </>}
         />
-        <div className="inline-flex bg-surface border border-line rounded-lg p-0.5 mb-7">
-          {STATUSES.map(s => (
-            <button key={s} onClick={() => setFilter(s)} className={cn(
-              'px-2.5 py-1 text-xs rounded-md capitalize transition-colors',
-              filter === s ? 'bg-panel text-ink font-medium' : 'text-muted hover:text-ink',
-            )}>
-              {s} {s !== 'all' && <span className="opacity-50 ml-1">{collections.filter(c => c.status === s).length}</span>}
-            </button>
-          ))}
-        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {list.map(c => <CollectionCard key={c.id} c={c} onCollectionChange={updateCollection}/>)}
+          {collections.map(c => <CollectionCard key={c.id} c={c} onCollectionChange={updateCollection}/>)}
         </div>
       </div>
     </AdminLayout>
