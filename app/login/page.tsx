@@ -6,16 +6,19 @@ export default function LoginPage() {
   return (
     <AuthLayout
       image="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1400&q=80"
-      quote={{ text: 'Lumen finally makes delivering wedding galleries feel like a finished print, not a folder.', cite: 'Studio Aster · Featured photographer' }}
+      eyebrow="Client gallery workspace"
+      title="Deliver beautiful galleries without slowing the studio down."
+      text="Access collections, favorites, print orders and client delivery tools from one calm account area."
     >
-      <div className="flex items-center gap-2.5 mb-9">
-        <span className="w-8 h-8 grid place-items-center rounded-full bg-ink text-bg serif italic text-base">L</span>
-        <span className="serif text-2xl">Lumen</span>
-      </div>
-      <h1 className="serif text-4xl font-medium tracking-tight mb-1.5">Welcome back</h1>
-      <div className="text-muted mb-7">Sign in to your studio.</div>
-      <LoginForm/>
-      <div className="mono text-[10.5px] tracking-[0.14em] text-muted text-center mt-12">© 2026 LUMEN STUDIO · <Link href="#">PRIVACY</Link> · <Link href="#">TERMS</Link></div>
+      <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#786f61]">Log in</p>
+      <h1 className="font-display text-5xl font-medium leading-none tracking-normal">Log in to Lumen</h1>
+      <p className="mt-3 text-sm leading-6 text-[#625c52]">
+        Do not have an account?{' '}
+        <Link href="/register" className="font-semibold text-[#171512] underline underline-offset-4">
+          Sign up
+        </Link>
+      </p>
+      <LoginForm />
     </AuthLayout>
   );
 }
