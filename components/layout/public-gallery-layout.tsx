@@ -13,12 +13,6 @@ export function PublicGalleryNav({ favCount, onOpenFavorites, onOpenDownload, ad
         <span className="w-6 h-6 grid place-items-center rounded-full bg-ink text-bg serif italic text-[12px]">L</span>
         <span className="serif text-[18px] uppercase tracking-[0.05em]">Lumen</span>
       </Link>
-      <div className="hidden md:flex gap-6 text-[12.5px] text-ink-2">
-        <a className="hover:text-ink">Gallery</a>
-        <a className="hover:text-ink">Sets</a>
-        <a className="hover:text-ink">About</a>
-        <a className="hover:text-ink">Contact</a>
-      </div>
       <div className="flex items-center gap-2">
         <Button variant="outline" size="icon" onClick={onOpenFavorites} className="relative">
           <Heart size={14}/>

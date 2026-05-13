@@ -1,7 +1,7 @@
 'use client';
 import * as React from 'react';
 import Link from 'next/link';
-import { Menu, X, Home, Grid3x3, FolderOpen, User, ExternalLink } from 'lucide-react';
+import { Menu, X, Home, Grid3x3, FolderOpen, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const NAV = [
@@ -9,7 +9,6 @@ const NAV = [
   { href: '/collections', label: 'Collections', icon: Grid3x3 },
   { href: '/folders', label: 'Folders', icon: FolderOpen },
   { href: '/profile', label: 'Profile', icon: User },
-  { href: '/galleries/amelia-james', label: 'Client view', icon: ExternalLink },
 ];
 
 export function MobileNav() {
