@@ -3,8 +3,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Home, Grid3x3, FolderOpen, Image as ImageIcon, Heart, Download,
-  Activity, User, BarChart3, ExternalLink, ChevronDown,
+  Home, Grid3x3, FolderOpen, User, ExternalLink, ChevronDown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -12,14 +11,9 @@ const STUDIO = [
   { href: '/dashboard',   label: 'Dashboard',  icon: Home },
   { href: '/collections', label: 'Collections', icon: Grid3x3, count: 12 },
   { href: '/folders',     label: 'Folders',    icon: FolderOpen, count: 4 },
-  { href: '/media',       label: 'Media',      icon: ImageIcon },
-  { href: '/favorites',   label: 'Favorites',  icon: Heart, count: 28 },
-  { href: '/downloads',   label: 'Downloads',  icon: Download },
-  { href: '/activity',    label: 'Activity',   icon: Activity },
 ];
 const ACCOUNT = [
   { href: '/profile',       label: 'Profile', icon: User },
-  { href: '/profile/stats', label: 'Stats',   icon: BarChart3 },
 ];
 
 export function Sidebar() {
