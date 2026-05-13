@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,6 +18,7 @@ export function RegisterForm() {
     email: '',
     password: '',
   });
+  const [showPassword, setShowPassword] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [err, setErr] = React.useState('');
 
@@ -28,7 +29,7 @@ export function RegisterForm() {
 
     try {
       await api.register(form);
-      router.push('/verify-email');
+      router.push('/dashboard');
     } catch (error) {
       setErr(error instanceof Error ? error.message : 'Account creation failed');
       setLoading(false);
@@ -100,14 +101,24 @@ export function RegisterForm() {
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="registerPassword">Password</Label>
-          <Input
-            id="registerPassword"
-            type="password"
-            value={form.password}
-            onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-            required
-            className="rounded-[4px] bg-white"
-          />
+          <div className="relative">
+            <Input
+              id="registerPassword"
+              type={showPassword ? 'text' : 'password'}
+              value={form.password}
+              onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+              required
+              className="rounded-[4px] bg-white pr-10"
+            />
+            <button
+              type="button"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              onClick={() => setShowPassword((value) => !value)}
+              className="absolute right-2 top-1/2 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-[4px] text-[#786f61] hover:bg-[#efebe3] hover:text-[#171512]"
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
         </div>
         {err && <div className="text-xs text-danger">{err}</div>}
         <Button size="lg" disabled={loading} className="mt-1 rounded-[4px]">
