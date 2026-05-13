@@ -66,11 +66,21 @@ function persistAuthTokens(auth: AuthResponse) {
   window.localStorage.setItem('lumen.accessToken', auth.access);
   window.localStorage.setItem('lumen.refreshToken', auth.refresh);
   window.localStorage.setItem('lumen.user', JSON.stringify(auth.user));
+  setAuthCookie(auth.access);
 }
 
 function getStoredAccessToken() {
   if (typeof window === 'undefined') return null;
   return window.localStorage.getItem('lumen.accessToken');
+}
+
+function setAuthCookie(accessToken: string) {
+  const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+  document.cookie = `lumen.accessToken=${encodeURIComponent(accessToken)}; Path=/; Max-Age=1800; SameSite=Lax${secure}`;
+}
+
+function clearAuthCookie() {
+  document.cookie = 'lumen.accessToken=; Path=/; Max-Age=0; SameSite=Lax';
 }
 
 export async function login(email: string, password: string) {
@@ -147,6 +157,7 @@ export async function logout() {
     window.localStorage.removeItem('lumen.accessToken');
     window.localStorage.removeItem('lumen.refreshToken');
     window.localStorage.removeItem('lumen.user');
+    clearAuthCookie();
   }
 
   return { ok: true };
