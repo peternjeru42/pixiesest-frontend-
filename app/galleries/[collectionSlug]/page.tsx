@@ -1,8 +1,8 @@
 'use client';
 import * as React from 'react';
 import Link from 'next/link';
-import { notFound, useRouter } from 'next/navigation';
-import { LayoutGrid, Download, Send, Heart, X, ArrowRight, Check } from 'lucide-react';
+import { notFound } from 'next/navigation';
+import { LayoutGrid, Download, Send, Heart, X, ArrowDown, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogBody, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
@@ -18,7 +18,7 @@ import type { Media } from '@/lib/types';
 
 export default function PublicGalleryPage({ params }: { params: { collectionSlug: string } }) {
   const c = COLLECTIONS.find(x => x.slug === params.collectionSlug);
-  const router = useRouter();
+  const galleryRef = React.useRef<HTMLDivElement>(null);
   const [setId, setSetId] = React.useState('ceremony');
   const [favorites, setFavorites] = React.useState<Set<string>>(new Set());
   const [favPanel, setFavPanel] = React.useState(false);
@@ -32,6 +32,7 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
 
   const items = (SET_MEDIA[setId] ?? []).map(m => ({ ...m, faved: favorites.has(m.id) }));
   const toggleFav = (id: string) => setFavorites(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const scrollToGallery = () => galleryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   return (
     <div className="bg-bg min-h-screen text-ink">
@@ -42,19 +43,27 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
         adminHref={`/collections/${c.id}`}
       />
 
-      <header className="relative h-[64vh] min-h-[480px] bg-panel overflow-hidden">
+      <header className="relative h-[calc(100dvh-61px)] min-h-[520px] bg-panel overflow-hidden">
         <img src={c.cover} alt="" className="w-full h-full object-cover"/>
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-ink/40"/>
-        <div className="absolute left-0 right-0 bottom-12 px-6 text-bg text-center z-10">
+        <div className="absolute inset-0 bg-gradient-to-b from-ink/10 via-transparent to-ink/35"/>
+        <div className="hidden">
           <div className="mono text-[11px] tracking-[0.14em] uppercase opacity-85 mb-3.5">A wedding · {c.date}</div>
           <h1 className="serif text-6xl md:text-7xl lg:text-8xl font-normal tracking-tight">{c.couple ?? c.title}</h1>
           <div className="mono text-[11.5px] tracking-[0.16em] uppercase mt-5 opacity-85">
             Photographed by Lumen Studio
           </div>
         </div>
+        <Button
+          type="button"
+          size="sm"
+          onClick={scrollToGallery}
+          className="absolute bottom-6 left-6 bg-bg/95 text-ink hover:bg-bg lg:left-10"
+        >
+          <ArrowDown size={12}/>View gallery
+        </Button>
       </header>
 
-      <div className="sticky top-[60px] z-20 bg-bg/95 backdrop-blur border-b border-line px-6 md:px-9 flex items-center justify-between overflow-x-auto">
+      <div ref={galleryRef} className="scroll-mt-[60px] sticky top-[60px] z-20 bg-bg/95 backdrop-blur border-b border-line px-6 md:px-9 flex items-center justify-between overflow-x-auto">
         <div className="flex gap-5">
           {c.sets.map(s => (
             <button

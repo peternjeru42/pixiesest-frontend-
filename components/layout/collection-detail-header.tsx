@@ -2,7 +2,6 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { StatsCard } from '@/components/data-display/stats-card';
 import { cn } from '@/lib/utils';
@@ -11,8 +10,6 @@ import type { Collection } from '@/lib/types';
 const TABS = [
   { id: 'sets',      label: 'Sets' },
   { id: 'media',     label: 'Media' },
-  { id: 'favorites', label: 'Favorites' },
-  { id: 'downloads', label: 'Downloads' },
   { id: 'activity',  label: 'Activity' },
   { id: 'settings',  label: 'Settings' },
 ];
@@ -27,10 +24,7 @@ export function CollectionDetailHeader({ c, activeTab }: { c: Collection; active
           <Link href="/collections"><ArrowLeft size={12}/>Collections</Link>
         </Button>
         <div className="absolute left-6 lg:left-10 right-6 lg:right-10 bottom-6 text-bg">
-          <div className="flex items-center gap-2 mb-2.5">
-            <Badge tone={c.status as any}>{c.status}</Badge>
-            <span className="mono text-[10.5px] tracking-wider text-bg/85">{c.folderName.toUpperCase()}</span>
-          </div>
+          <div className="mono text-[10.5px] tracking-wider text-bg/85 mb-2.5">{c.folderName.toUpperCase()}</div>
           <h1 className="serif text-5xl font-medium tracking-tight">{c.title}</h1>
           <div className="mono text-[11px] tracking-wider mt-1.5 opacity-85">{c.date.toUpperCase()}</div>
         </div>
@@ -55,7 +49,6 @@ export function CollectionDetailHeader({ c, activeTab }: { c: Collection; active
               )}
             >
               {t.label}
-              {t.id === 'favorites' && <span className="ml-1.5 text-accent">/ {c.counts.favorites}</span>}
             </Link>
           ))}
         </div>

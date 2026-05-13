@@ -11,23 +11,14 @@ import { ArrowDownUp, LayoutGrid, Upload, Folder, Heart, Lock, Download, Image a
 import type { Media } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
-type Filter = 'all' | 'favorites' | 'private' | 'videos';
-
 export default function CollectionMediaPage({ params }: { params: { collectionId: string } }) {
   const c = COLLECTIONS.find(x => x.id === params.collectionId);
   const router = useRouter();
   const [media, setMedia] = React.useState<Media[]>(ALL_MEDIA);
-  const [filter, setFilter] = React.useState<Filter>('all');
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
   const [lightbox, setLightbox] = React.useState<{ items: Media[]; index: number } | null>(null);
 
   if (!c) return notFound();
-
-  const visible = media.filter(m =>
-    filter === 'all' ? true :
-    filter === 'favorites' ? m.faved :
-    filter === 'private' ? m.private :
-    filter === 'videos' ? m.type === 'video' : true);
 
   const toggleSel = (id: string) => setSelected(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const toggleFav = (id: string) => setMedia(arr => arr.map(m => m.id === id ? { ...m, faved: !m.faved } : m));
@@ -36,20 +27,7 @@ export default function CollectionMediaPage({ params }: { params: { collectionId
     <AdminLayout crumbs={[{ label: 'Studio' }, { label: 'Collections', href: '/collections' }, { label: c.title, href: `/collections/${c.id}` }, { label: 'Media' }]}>
       <CollectionDetailHeader c={c} activeTab="media"/>
       <div className="px-6 lg:px-10 pb-20">
-        <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
-          <div className="inline-flex bg-surface border border-line rounded-lg p-0.5">
-            {(['all','favorites','private','videos'] as Filter[]).map(f => (
-              <button key={f} onClick={() => setFilter(f)} className={cn(
-                'px-2.5 py-1 text-xs rounded-md capitalize transition-colors',
-                filter === f ? 'bg-panel text-ink font-medium' : 'text-muted hover:text-ink',
-              )}>{f} <span className="opacity-50 ml-1">{
-                f === 'all' ? media.length :
-                f === 'favorites' ? media.filter(m=>m.faved).length :
-                f === 'private' ? media.filter(m=>m.private).length :
-                media.filter(m=>m.type==='video').length
-              }</span></button>
-            ))}
-          </div>
+        <div className="flex items-center justify-end flex-wrap gap-3 mb-4">
           <div className="flex gap-2">
             <Button size="sm" variant="outline"><ArrowDownUp size={12}/>Date</Button>
             <Button size="sm" variant="outline"><LayoutGrid size={12}/>Grid</Button>
@@ -58,11 +36,11 @@ export default function CollectionMediaPage({ params }: { params: { collectionId
         </div>
 
         <MediaGrid
-          media={visible}
+          media={media}
           selectable
           selected={selected}
           onToggleSelect={toggleSel}
-          onOpen={(i) => setLightbox({ items: visible, index: i })}
+          onOpen={(i) => setLightbox({ items: media, index: i })}
           onToggleFavorite={toggleFav}
         />
 

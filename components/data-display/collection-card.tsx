@@ -2,8 +2,7 @@
 import * as React from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { Copy, Eye, FolderInput, Heart, MoreHorizontal, Send, Trash2 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Copy, Download, Eye, FolderInput, Heart, MoreHorizontal, Send, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -41,11 +40,11 @@ export function CollectionCard({ c }: { c: Collection }) {
 
   return (
     <article className="group bg-surface border border-line rounded-md overflow-hidden flex flex-col transition-transform hover:-translate-y-0.5 hover:shadow-lift">
-      <div className="relative aspect-[4/3] bg-panel overflow-hidden">
+      <div className="relative aspect-[16/11] bg-panel overflow-hidden">
         <Link href={`/collections/${c.id}`} className="block h-full">
           <img src={c.cover} alt="" className="w-full h-full object-cover transition-transform group-hover:scale-[1.02]"/>
-          <span className="absolute bottom-2.5 left-2.5">
-            <Badge tone={c.status as any}>{c.status}</Badge>
+          <span className="absolute bottom-2.5 left-2.5 rounded-md border border-bg/20 bg-ink/70 px-2 py-1 text-[10.5px] font-medium uppercase tracking-wider text-bg backdrop-blur">
+            {c.date}
           </span>
         </Link>
         <button
@@ -53,24 +52,23 @@ export function CollectionCard({ c }: { c: Collection }) {
           type="button"
           aria-label={`Open actions for ${c.title}`}
           onClick={openMenu}
-          className="absolute top-2 right-2 grid h-8 w-8 place-items-center rounded-full border border-line bg-bg/90 text-ink-2 opacity-100 backdrop-blur transition-colors hover:text-ink focus:outline-none focus:ring-2 focus:ring-ring/30 sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100"
+          className="absolute top-2 right-2 grid h-8 w-8 place-items-center rounded-md border border-bg/25 bg-ink/85 text-bg shadow-soft backdrop-blur transition-colors hover:bg-ink focus:outline-none focus:ring-2 focus:ring-bg/40"
         >
           <MoreHorizontal size={13}/>
         </button>
       </div>
-      <div className="p-4">
+      <div className="p-3.5">
         <Link href={`/collections/${c.id}`} className="serif text-[21px] leading-tight hover:underline">{c.title}</Link>
-        <div className="mono text-[10.5px] uppercase tracking-wider text-muted mt-2 flex gap-2 flex-wrap">
-          <span>{c.date}</span>
-          <span className="text-line-2">/</span>
+        <div className="mono text-[10.5px] uppercase tracking-wider text-muted mt-2 flex gap-2 whitespace-nowrap">
           <span>{c.counts.photos} photos</span>
           {c.counts.videos > 0 && (<><span className="text-line-2">/</span><span>{c.counts.videos} video</span></>)}
-          <span className="text-line-2">/</span>
+        </div>
+        <div className="mono text-[10.5px] uppercase tracking-wider text-muted mt-1 truncate">
           <span>{c.folderName}</span>
         </div>
-        <div className="flex gap-4 mt-3 text-[11.5px] text-muted">
+        <div className="flex gap-4 mt-2.5 text-[11.5px] text-muted">
           <span className="inline-flex items-center gap-1"><Heart size={11}/>{c.counts.favorites}</span>
-          <span className="inline-flex items-center gap-1"><Copy size={11}/>{c.counts.downloads}</span>
+          <span className="inline-flex items-center gap-1"><Download size={11}/>{c.counts.downloads}</span>
           <span className="inline-flex items-center gap-1"><Eye size={11}/>{c.counts.views.toLocaleString()}</span>
         </div>
       </div>
