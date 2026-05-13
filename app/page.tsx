@@ -27,28 +27,29 @@ const products = [
   {
     icon: LayoutTemplate,
     title: 'Website',
+    status: 'Coming soon',
     text: 'Build a portfolio site that carries the same quiet brand experience.',
   },
   {
     icon: CalendarCheck,
     title: 'Studio Manager',
+    status: 'Coming soon',
     text: 'Keep bookings, invoices and client communication close to delivery.',
   },
   {
     icon: ShoppingBag,
     title: 'Store',
+    status: 'Coming soon',
     text: 'Sell prints, products and digital downloads without extra handoff.',
   },
 ];
 
-const stats = [
-  ['1M+', 'photographers supported'],
-  ['6B+', 'photos delivered'],
-  ['10+', 'years serving studios'],
-  ['$1.5B+', 'sold through stores'],
+const plans = [
+  { name: 'Free', price: 'Free', storage: '5 GB', note: 'Start delivering client galleries.' },
+  { name: 'Starter', price: '500 KSh', suffix: '/month', storage: '20 GB', note: 'For active solo photographers.' },
+  { name: 'Studio', price: '1,000 KSh', suffix: '/month', storage: '200 GB', note: 'For growing studios and frequent shoots.' },
+  { name: 'Scale', price: '3,000 KSh', suffix: '/month', storage: '1000 GB', note: 'For high-volume gallery delivery.' },
 ];
-
-const workflows = ['Wedding', 'Portrait', 'Family', 'Seniors', 'Events', 'Adventure', 'Commercial', 'Sports'];
 
 export default function Home() {
   return (
@@ -63,7 +64,6 @@ export default function Home() {
           </Link>
           <nav className="hidden items-center gap-8 text-[13px] font-medium text-[#514c43] md:flex">
             <a href="#products">Products</a>
-            <a href="#examples">Examples</a>
             <a href="#pricing">Pricing</a>
           </nav>
           <div className="hidden items-center gap-3 md:flex">
@@ -158,10 +158,17 @@ export default function Home() {
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            {products.map(({ icon: Icon, title, text }) => (
+            {products.map(({ icon: Icon, title, status, text }) => (
               <article key={title} className="rounded-[6px] border border-[#e0dacf] bg-[#fbfaf7] p-6">
                 <Icon size={22} className="mb-8 text-[#496d71]" />
-                <h3 className="text-lg font-semibold">{title}</h3>
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="text-lg font-semibold">{title}</h3>
+                  {status && (
+                    <span className="rounded-full border border-[#cfc7b7] bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#786f61]">
+                      {status}
+                    </span>
+                  )}
+                </div>
                 <p className="mt-3 leading-7 text-[#625c52]">{text}</p>
               </article>
             ))}
@@ -198,46 +205,41 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="examples" className="bg-[#1b1a17] text-white">
-        <div className="mx-auto max-w-7xl px-5 py-20 lg:px-8">
-          <div className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr]">
-            <div>
-              <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#b3aa99]">
-                Designed for every workflow
-              </p>
-              <h2 className="font-display text-5xl font-medium leading-none tracking-normal">Made for all photographers.</h2>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {workflows.map((workflow) => (
-                <div key={workflow} className="rounded-[6px] border border-white/12 bg-white/6 p-5 text-sm font-semibold">
-                  {workflow}
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="mt-14 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {stats.map(([value, label]) => (
-              <div key={value} className="border-t border-white/16 pt-5">
-                <div className="font-display text-5xl leading-none">{value}</div>
-                <p className="mt-3 text-sm text-[#c7bead]">{label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="pricing" className="mx-auto max-w-5xl px-5 py-20 text-center lg:px-8">
+      <section id="pricing" className="mx-auto max-w-7xl px-5 py-20 lg:px-8">
         <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#786f61]">Start free</p>
-        <h2 className="font-display text-5xl font-medium leading-none tracking-normal">Start using Lumen today for free.</h2>
-        <p className="mx-auto mt-5 max-w-xl leading-8 text-[#625c52]">
-          Build your first galleries now and upgrade when your studio needs more storage, storefront tools or team workflows.
+        <div className="grid gap-8 lg:grid-cols-[0.75fr_1.25fr] lg:items-end">
+          <div>
+            <h2 className="font-display text-5xl font-medium leading-none tracking-normal">Simple storage-based pricing.</h2>
+            <p className="mt-5 max-w-xl leading-8 text-[#625c52]">
+              Start with a free gallery workspace, then upgrade when your studio needs more storage.
+            </p>
+          </div>
+          <Link
+            href="/register"
+            className="inline-flex h-12 items-center justify-center gap-2 rounded-[4px] bg-[#171512] px-7 text-sm font-semibold text-white transition-colors hover:bg-[#39342c] lg:justify-self-end"
+          >
+            Get Started <ArrowRight size={16} />
+          </Link>
+        </div>
+        <div className="mt-10 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+          {plans.map((plan) => (
+            <article key={plan.name} className="rounded-[6px] border border-[#ded8cc] bg-white p-6">
+              <h3 className="text-lg font-semibold">{plan.name}</h3>
+              <div className="mt-5 flex items-end gap-1">
+                <span className="font-display text-4xl leading-none">{plan.price}</span>
+                {plan.suffix && <span className="pb-1 text-sm text-[#786f61]">{plan.suffix}</span>}
+              </div>
+              <div className="mt-6 border-t border-[#e4ded3] pt-5">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#786f61]">Storage</p>
+                <p className="mt-2 text-2xl font-semibold">{plan.storage}</p>
+              </div>
+              <p className="mt-5 min-h-12 leading-6 text-[#625c52]">{plan.note}</p>
+            </article>
+          ))}
+        </div>
+        <p className="mt-8 text-center text-sm text-[#625c52]">
+          Upgrade, downgrade or stay on the free tier as your gallery storage needs change.
         </p>
-        <Link
-          href="/register"
-          className="mt-8 inline-flex h-12 items-center justify-center gap-2 rounded-[4px] bg-[#171512] px-7 text-sm font-semibold text-white transition-colors hover:bg-[#39342c]"
-        >
-          Get Started <ArrowRight size={16} />
-        </Link>
       </section>
 
       <footer className="border-t border-[#ded8cc] bg-white">
@@ -245,7 +247,7 @@ export default function Home() {
           <div className="font-semibold tracking-[0.18em] text-[#171512]">LUMEN</div>
           <div className="flex flex-wrap gap-5">
             <Link href="#products">Products</Link>
-            <Link href="#examples">Examples</Link>
+            <Link href="#pricing">Pricing</Link>
             <Link href="/login">Log In</Link>
             <Link href="/register">Get Started</Link>
           </div>

@@ -1,9 +1,8 @@
 'use client';
 import * as React from 'react';
 import Link from 'next/link';
-import { Search, Bell, Upload, Plus, Menu } from 'lucide-react';
+import { Search, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { MobileNav } from './mobile-nav';
 
 export function Topbar({ crumbs }: { crumbs: { label: string; href?: string }[] }) {
@@ -28,12 +27,6 @@ export function Topbar({ crumbs }: { crumbs: { label: string; href?: string }[] 
       <Button size="icon" variant="outline" className="relative">
         <Bell size={15}/>
         <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-accent"/>
-      </Button>
-      <Button asChild variant="outline" className="hidden sm:inline-flex">
-        <Link href="#"><Upload size={14}/>Upload</Link>
-      </Button>
-      <Button asChild variant="default">
-        <Link href="/collections/new"><Plus size={14}/><span className="hidden sm:inline">New collection</span></Link>
       </Button>
     </header>
   );
