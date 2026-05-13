@@ -76,7 +76,7 @@ function getStoredAccessToken() {
 
 function setAuthCookie(accessToken: string) {
   const secure = window.location.protocol === 'https:' ? '; Secure' : '';
-  document.cookie = `lumen.accessToken=${encodeURIComponent(accessToken)}; Path=/; Max-Age=1800; SameSite=Lax${secure}`;
+  document.cookie = `lumen.accessToken=${encodeURIComponent(accessToken)}; Path=/; Max-Age=604800; SameSite=Lax${secure}`;
 }
 
 function clearAuthCookie() {

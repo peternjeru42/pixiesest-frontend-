@@ -46,7 +46,7 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
           <div className="mono text-[11px] tracking-[0.14em] uppercase opacity-85 mb-3.5">A wedding · {c.date}</div>
           <h1 className="serif text-6xl md:text-7xl lg:text-8xl font-normal tracking-tight">{c.couple ?? c.title}</h1>
           <div className="mono text-[11.5px] tracking-[0.16em] uppercase mt-5 opacity-85">
-            Photographed by Lumen Studio {c.venue && ` · ${c.venue}`}
+            Photographed by Lumen Studio
           </div>
         </div>
       </header>
@@ -177,15 +177,18 @@ function FavPanel({ favorites, allItems, onClose, onSubmit, onRemove }: {
           {list.length === 0
             ? <EmptyState icon={Heart} title="No favorites yet" body="Tap the heart on any photo to add it to your selection."/>
             : (
-              <div className="flex flex-col gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 {list.map(m => (
-                  <div key={m.id} className="flex items-center gap-3 p-2 rounded-lg border border-line">
-                    <img src={m.thumb} className="w-14 h-14 rounded object-cover" alt=""/>
-                    <div className="flex-1 min-w-0">
-                      <div className="mono text-[11.5px] truncate">{m.filename}</div>
-                      <div className="text-xs text-muted mt-0.5">{m.setId} · {m.sizeMB.toFixed(1)} MB</div>
-                    </div>
-                    <Button size="icon" variant="ghost" onClick={() => onRemove(m.id)}><X size={13}/></Button>
+                  <div key={m.id} className="group relative aspect-[4/3] overflow-hidden rounded-sm bg-panel">
+                    <img src={m.thumb} className="h-full w-full object-cover" alt=""/>
+                    <button
+                      type="button"
+                      aria-label={`Remove ${m.filename} from favorites`}
+                      onClick={() => onRemove(m.id)}
+                      className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full bg-bg/90 text-ink opacity-0 shadow-soft transition-opacity group-hover:opacity-100 focus:opacity-100"
+                    >
+                      <X size={13}/>
+                    </button>
                   </div>
                 ))}
               </div>

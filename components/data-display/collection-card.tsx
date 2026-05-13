@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { Copy, Eye, FolderInput, Heart, Lock, MoreHorizontal, Pencil, Send, Trash2 } from 'lucide-react';
+import { Copy, Eye, FolderInput, Heart, Lock, MoreHorizontal, Send, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,7 +18,7 @@ import { FOLDERS } from '@/lib/mock-data';
 import { cn } from '@/lib/utils';
 import type { Collection } from '@/lib/types';
 
-const MENU_WIDTH = 312;
+const MENU_WIDTH = 190;
 
 export function CollectionCard({ c }: { c: Collection }) {
   const triggerRef = React.useRef<HTMLButtonElement>(null);
@@ -126,7 +126,11 @@ function CollectionActionDropdown({
       if (event.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.body.style.overflow = '';
+    };
   }, [open, onClose]);
 
   if (!open || !mounted) return null;
@@ -134,16 +138,14 @@ function CollectionActionDropdown({
   return createPortal(
     <div className="fixed inset-0 z-[110]" onMouseDown={onClose}>
       <div
-        className="fixed max-h-[calc(100dvh-24px)] overflow-y-auto rounded-sm border border-line bg-surface py-4 shadow-deep"
+        className="fixed max-h-[calc(100dvh-24px)] overflow-y-auto rounded-md border border-line bg-surface py-1.5 shadow-lift"
         style={style}
         onMouseDown={(event) => event.stopPropagation()}
       >
-        <MenuButton icon={<Send size={23} strokeWidth={1.7}/>} onClick={onShare}>Share</MenuButton>
-        <MenuLink href={`/galleries/${collection.slug}`} icon={<Eye size={23} strokeWidth={1.7}/>}>Preview</MenuLink>
-        <MenuButton icon={<Pencil size={23} strokeWidth={1.7}/>} onClick={onClose}>Quick edit</MenuButton>
-        <MenuButton icon={<FolderInput size={23} strokeWidth={1.7}/>} onClick={onMove}>Move to</MenuButton>
-        <MenuButton icon={<Copy size={23} strokeWidth={1.7}/>} onClick={onClose}>Duplicate</MenuButton>
-        <MenuButton icon={<Trash2 size={23} strokeWidth={1.7}/>} danger onClick={onClose}>Delete</MenuButton>
+        <MenuButton icon={<Send size={15} strokeWidth={1.7}/>} onClick={onShare}>Share</MenuButton>
+        <MenuLink href={`/galleries/${collection.slug}`} icon={<Eye size={15} strokeWidth={1.7}/>}>Preview</MenuLink>
+        <MenuButton icon={<FolderInput size={15} strokeWidth={1.7}/>} onClick={onMove}>Move to</MenuButton>
+        <MenuButton icon={<Trash2 size={15} strokeWidth={1.7}/>} danger onClick={onClose}>Delete</MenuButton>
       </div>
     </div>,
     document.body,
@@ -152,8 +154,8 @@ function CollectionActionDropdown({
 
 function MenuLink({ href, icon, children }: { href: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <Link href={href} className="flex min-h-16 w-full items-center gap-6 px-10 text-[21px] text-ink-2 transition-colors hover:bg-panel hover:text-ink">
-      <span className="grid h-7 w-7 place-items-center text-ink-2">{icon}</span>
+    <Link href={href} className="flex min-h-9 w-full items-center gap-2.5 px-3 text-[13px] text-ink-2 transition-colors hover:bg-panel hover:text-ink">
+      <span className="grid h-5 w-5 place-items-center text-ink-2">{icon}</span>
       <span>{children}</span>
     </Link>
   );
@@ -175,11 +177,11 @@ function MenuButton({
       type="button"
       onClick={onClick}
       className={cn(
-        'flex min-h-16 w-full items-center gap-6 px-10 text-left text-[21px] transition-colors hover:bg-panel',
+        'flex min-h-9 w-full items-center gap-2.5 px-3 text-left text-[13px] transition-colors hover:bg-panel',
         danger ? 'text-danger' : 'text-ink-2 hover:text-ink',
       )}
     >
-      <span className="grid h-7 w-7 place-items-center">{icon}</span>
+      <span className="grid h-5 w-5 place-items-center">{icon}</span>
       <span>{children}</span>
     </button>
   );
@@ -201,11 +203,11 @@ function ShareCollectionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="lg" className="rounded-none sm:rounded-md" onClose={() => onOpenChange(false)}>
-        <DialogHeader className="px-7 pt-8 pb-4 sm:px-12 sm:pt-12">
-          <DialogTitle className="font-sans text-[24px] font-semibold uppercase tracking-[0.16em]">Get direct link</DialogTitle>
+      <DialogContent size="md" className="rounded-md" onClose={() => onOpenChange(false)}>
+        <DialogHeader className="px-5 pt-6 pb-2 sm:px-6">
+          <DialogTitle className="font-sans text-[14px] font-semibold uppercase tracking-[0.16em]">Get direct link</DialogTitle>
         </DialogHeader>
-        <DialogBody className="gap-8 px-7 pb-8 sm:px-12 sm:pb-10">
+        <DialogBody className="gap-5 px-5 pb-6 sm:px-6">
           <CopyBlock
             label="Collection URL"
             value={publicUrl}
@@ -216,10 +218,10 @@ function ShareCollectionDialog({
             value={password}
             helper={collection.password ? 'Share this password with your client to access the collection.' : 'This collection does not require a password.'}
           />
-          <div className="flex gap-5 text-muted">
-            <span className="grid h-7 w-7 place-items-center rounded-full bg-panel text-sm font-semibold">f</span>
-            <span className="grid h-7 w-7 place-items-center rounded-full bg-panel text-sm font-semibold">p</span>
-            <span className="grid h-7 w-7 place-items-center text-2xl leading-none">x</span>
+          <div className="flex gap-3 text-muted">
+            <span className="grid h-6 w-6 place-items-center rounded-full bg-panel text-xs font-semibold">f</span>
+            <span className="grid h-6 w-6 place-items-center rounded-full bg-panel text-xs font-semibold">p</span>
+            <span className="grid h-6 w-6 place-items-center text-lg leading-none">x</span>
           </div>
         </DialogBody>
       </DialogContent>
@@ -238,14 +240,14 @@ function CopyBlock({ label, value, helper }: { label: string; value: string; hel
 
   return (
     <div>
-      <div className="mb-5 text-[21px] font-medium">{label}</div>
-      <div className="flex min-h-16 items-center justify-between gap-3 bg-panel px-5 text-[20px]">
+      <div className="mb-2 text-[13.5px] font-medium">{label}</div>
+      <div className="flex min-h-11 items-center justify-between gap-3 rounded-md bg-panel px-3 text-[13px]">
         <span className="min-w-0 truncate">{value}</span>
-        <button type="button" onClick={copyValue} className="inline-flex shrink-0 items-center gap-2 text-[19px] font-medium text-teal-600">
-          <Copy size={19}/>{copied ? 'Copied' : 'Copy'}
+        <button type="button" onClick={copyValue} className="inline-flex shrink-0 items-center gap-1.5 text-[12.5px] font-medium text-teal-600">
+          <Copy size={14}/>{copied ? 'Copied' : 'Copy'}
         </button>
       </div>
-      <p className="mt-5 text-[19px] leading-8 text-muted">{helper}</p>
+      <p className="mt-2 text-[12.5px] leading-5 text-muted">{helper}</p>
     </div>
   );
 }
