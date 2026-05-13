@@ -1,32 +1,43 @@
 'use client';
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import {
-  CalendarDays,
-  Copy,
-  Download,
-  Eye,
-  FolderInput,
-  Heart,
-  ImageIcon,
-  Lock,
-  MoreHorizontal,
-  Share2,
-  Trash2,
-} from 'lucide-react';
+import { Copy, Eye, FolderInput, Heart, Lock, MoreHorizontal, Pencil, Send, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogBody,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { FOLDERS } from '@/lib/mock-data';
+import { cn } from '@/lib/utils';
 import type { Collection } from '@/lib/types';
 
+const MENU_WIDTH = 312;
+
 export function CollectionCard({ c }: { c: Collection }) {
-  const [actionsOpen, setActionsOpen] = React.useState(false);
+  const triggerRef = React.useRef<HTMLButtonElement>(null);
+  const [menuOpen, setMenuOpen] = React.useState(false);
+  const [shareOpen, setShareOpen] = React.useState(false);
+  const [moveOpen, setMoveOpen] = React.useState(false);
+  const [menuStyle, setMenuStyle] = React.useState<React.CSSProperties>({});
+
+  function openMenu() {
+    const rect = triggerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+
+    const width = Math.min(MENU_WIDTH, window.innerWidth - 24);
+    const left = Math.min(Math.max(12, rect.right - width), window.innerWidth - width - 12);
+    const top = Math.min(rect.bottom + 8, window.innerHeight - 24);
+
+    setMenuStyle({ left, top, width });
+    setMenuOpen(true);
+  }
 
   return (
     <article className="group bg-surface border border-line rounded-md overflow-hidden flex flex-col transition-transform hover:-translate-y-0.5 hover:shadow-lift">
@@ -43,9 +54,10 @@ export function CollectionCard({ c }: { c: Collection }) {
           </span>
         </Link>
         <button
+          ref={triggerRef}
           type="button"
           aria-label={`Open actions for ${c.title}`}
-          onClick={() => setActionsOpen(true)}
+          onClick={openMenu}
           className="absolute top-2 right-2 grid h-8 w-8 place-items-center rounded-full border border-line bg-bg/90 text-ink-2 opacity-100 backdrop-blur transition-colors hover:text-ink focus:outline-none focus:ring-2 focus:ring-ring/30 sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100"
         >
           <MoreHorizontal size={13}/>
@@ -63,123 +75,98 @@ export function CollectionCard({ c }: { c: Collection }) {
         </div>
         <div className="flex gap-4 mt-3 text-[11.5px] text-muted">
           <span className="inline-flex items-center gap-1"><Heart size={11}/>{c.counts.favorites}</span>
-          <span className="inline-flex items-center gap-1"><Download size={11}/>{c.counts.downloads}</span>
+          <span className="inline-flex items-center gap-1"><Copy size={11}/>{c.counts.downloads}</span>
           <span className="inline-flex items-center gap-1"><Eye size={11}/>{c.counts.views.toLocaleString()}</span>
         </div>
       </div>
 
-      <Dialog open={actionsOpen} onOpenChange={setActionsOpen}>
-        <DialogContent size="lg" className="rounded-t-2xl sm:rounded-lg" onClose={() => setActionsOpen(false)}>
-          <div className="grid max-h-[calc(100dvh-1rem)] overflow-y-auto sm:grid-cols-[0.9fr_1.1fr]">
-            <div className="relative min-h-48 bg-panel sm:min-h-full">
-              {c.cover ? (
-                <img src={c.cover} alt="" className="absolute inset-0 h-full w-full object-cover"/>
-              ) : (
-                <div className="absolute inset-0 grid place-items-center text-muted">
-                  <ImageIcon size={28}/>
-                </div>
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-ink/55 via-ink/10 to-transparent"/>
-              <div className="absolute bottom-4 left-4 right-4 flex flex-wrap items-center gap-2">
-                <Badge tone={c.status as any}>{c.status}</Badge>
-                {c.password && (
-                  <span className="mono inline-flex items-center gap-1 rounded-full border border-bg/35 bg-bg/85 px-2 py-1 text-[10px] uppercase tracking-wider text-ink backdrop-blur">
-                    <Lock size={10}/>Password
-                  </span>
-                )}
-              </div>
-            </div>
+      <CollectionActionDropdown
+        collection={c}
+        open={menuOpen}
+        style={menuStyle}
+        onClose={() => setMenuOpen(false)}
+        onShare={() => {
+          setMenuOpen(false);
+          setShareOpen(true);
+        }}
+        onMove={() => {
+          setMenuOpen(false);
+          setMoveOpen(true);
+        }}
+      />
 
-            <div className="min-w-0">
-              <DialogHeader className="pr-14">
-                <DialogTitle className="text-[28px] leading-none sm:text-[30px]">{c.title}</DialogTitle>
-                <DialogDescription className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5"><CalendarDays size={13}/>{c.date}</span>
-                  <span className="text-line-2">/</span>
-                  <span>{c.folderName}</span>
-                </DialogDescription>
-              </DialogHeader>
-
-              <DialogBody className="gap-5 pb-5">
-                <div className="grid grid-cols-3 overflow-hidden rounded-lg border border-line bg-bg">
-                  <Metric icon={<Heart size={13}/>} label="Favorites" value={c.counts.favorites.toLocaleString()}/>
-                  <Metric icon={<Download size={13}/>} label="Downloads" value={c.counts.downloads.toLocaleString()}/>
-                  <Metric icon={<Eye size={13}/>} label="Views" value={c.counts.views.toLocaleString()}/>
-                </div>
-
-                <div>
-                  <div className="eyebrow mb-2">Collection actions</div>
-                  <div className="grid gap-2 sm:grid-cols-2">
-                    <ActionLink href={`/galleries/${c.slug}`} icon={<Eye size={16}/>} description="Open the client-facing gallery.">
-                      Preview gallery
-                    </ActionLink>
-                    <ActionButton icon={<Share2 size={16}/>} description="Prepare a shareable gallery link." onClick={() => setActionsOpen(false)}>
-                      Share collection
-                    </ActionButton>
-                    <ActionButton icon={<Copy size={16}/>} description="Copy the public gallery URL." onClick={() => setActionsOpen(false)}>
-                      Copy link
-                    </ActionButton>
-                    <ActionButton icon={<FolderInput size={16}/>} description="Organize this collection elsewhere." onClick={() => setActionsOpen(false)}>
-                      Move to folder
-                    </ActionButton>
-                  </div>
-                </div>
-
-                <div className="rounded-lg border border-danger/20 bg-danger/5 p-3">
-                  <ActionButton danger icon={<Trash2 size={16}/>} description="Remove this collection and its settings." onClick={() => setActionsOpen(false)}>
-                    Delete collection
-                  </ActionButton>
-                </div>
-              </DialogBody>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <ShareCollectionDialog collection={c} open={shareOpen} onOpenChange={setShareOpen}/>
+      <MoveToFolderDialog collection={c} open={moveOpen} onOpenChange={setMoveOpen}/>
     </article>
   );
 }
 
-function Metric({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-  return (
-    <div className="border-r border-line p-3 last:border-r-0">
-      <div className="mb-1 flex items-center gap-1.5 text-muted">
-        {icon}
-        <span className="mono text-[10px] uppercase tracking-wider">{label}</span>
+function CollectionActionDropdown({
+  collection,
+  open,
+  style,
+  onClose,
+  onShare,
+  onMove,
+}: {
+  collection: Collection;
+  open: boolean;
+  style: React.CSSProperties;
+  onClose: () => void;
+  onShare: () => void;
+  onMove: () => void;
+}) {
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => setMounted(true), []);
+
+  React.useEffect(() => {
+    if (!open) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+
+  if (!open || !mounted) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[110]" onMouseDown={onClose}>
+      <div
+        className="fixed max-h-[calc(100dvh-24px)] overflow-y-auto rounded-sm border border-line bg-surface py-4 shadow-deep"
+        style={style}
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <MenuButton icon={<Send size={23} strokeWidth={1.7}/>} onClick={onShare}>Share</MenuButton>
+        <MenuLink href={`/galleries/${collection.slug}`} icon={<Eye size={23} strokeWidth={1.7}/>}>Preview</MenuLink>
+        <MenuButton icon={<Pencil size={23} strokeWidth={1.7}/>} onClick={onClose}>Quick edit</MenuButton>
+        <MenuButton icon={<FolderInput size={23} strokeWidth={1.7}/>} onClick={onMove}>Move to</MenuButton>
+        <MenuButton icon={<Copy size={23} strokeWidth={1.7}/>} onClick={onClose}>Duplicate</MenuButton>
+        <MenuButton icon={<Trash2 size={23} strokeWidth={1.7}/>} danger onClick={onClose}>Delete</MenuButton>
       </div>
-      <div className="serif text-[22px] leading-none">{value}</div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
-function ActionLink({
-  href,
-  icon,
-  children,
-  description,
-}: {
-  href: string;
-  icon: React.ReactNode;
-  children: React.ReactNode;
-  description: string;
-}) {
+function MenuLink({ href, icon, children }: { href: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
-    <Link
-      href={href}
-      className="flex min-h-20 w-full items-start gap-3 rounded-lg border border-line bg-surface p-3 text-left transition-colors hover:border-line-2 hover:bg-panel"
-    >
-      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-bg text-ink-2">{icon}</span>
-      <span className="min-w-0">
-        <span className="block text-[13.5px] font-medium text-ink">{children}</span>
-        <span className="mt-1 block text-xs leading-5 text-muted">{description}</span>
-      </span>
+    <Link href={href} className="flex min-h-16 w-full items-center gap-6 px-10 text-[21px] text-ink-2 transition-colors hover:bg-panel hover:text-ink">
+      <span className="grid h-7 w-7 place-items-center text-ink-2">{icon}</span>
+      <span>{children}</span>
     </Link>
   );
 }
 
-function ActionButton({ icon, children, description, danger, onClick }: {
+function MenuButton({
+  icon,
+  children,
+  danger,
+  onClick,
+}: {
   icon: React.ReactNode;
   children: React.ReactNode;
-  description: string;
   danger?: boolean;
   onClick: () => void;
 }) {
@@ -187,15 +174,135 @@ function ActionButton({ icon, children, description, danger, onClick }: {
     <button
       type="button"
       onClick={onClick}
-      className={`flex min-h-20 w-full items-start gap-3 rounded-lg border p-3 text-left transition-colors ${
-        danger ? 'border-transparent bg-transparent text-danger hover:bg-surface' : 'border-line bg-surface hover:border-line-2 hover:bg-panel'
-      }`}
+      className={cn(
+        'flex min-h-16 w-full items-center gap-6 px-10 text-left text-[21px] transition-colors hover:bg-panel',
+        danger ? 'text-danger' : 'text-ink-2 hover:text-ink',
+      )}
     >
-      <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-md ${danger ? 'bg-danger/10 text-danger' : 'bg-bg text-ink-2'}`}>{icon}</span>
-      <span className="min-w-0">
-        <span className={`block text-[13.5px] font-medium ${danger ? 'text-danger' : 'text-ink'}`}>{children}</span>
-        <span className="mt-1 block text-xs leading-5 text-muted">{description}</span>
-      </span>
+      <span className="grid h-7 w-7 place-items-center">{icon}</span>
+      <span>{children}</span>
     </button>
+  );
+}
+
+function ShareCollectionDialog({
+  collection,
+  open,
+  onOpenChange,
+}: {
+  collection: Collection;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const publicUrl = typeof window === 'undefined'
+    ? `/galleries/${collection.slug}`
+    : `${window.location.origin}/galleries/${collection.slug}`;
+  const password = collection.password || 'No password required';
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent size="lg" className="rounded-none sm:rounded-md" onClose={() => onOpenChange(false)}>
+        <DialogHeader className="px-7 pt-8 pb-4 sm:px-12 sm:pt-12">
+          <DialogTitle className="font-sans text-[24px] font-semibold uppercase tracking-[0.16em]">Get direct link</DialogTitle>
+        </DialogHeader>
+        <DialogBody className="gap-8 px-7 pb-8 sm:px-12 sm:pb-10">
+          <CopyBlock
+            label="Collection URL"
+            value={publicUrl}
+            helper="Share this unique URL for this collection with your client."
+          />
+          <CopyBlock
+            label="Gallery password"
+            value={password}
+            helper={collection.password ? 'Share this password with your client to access the collection.' : 'This collection does not require a password.'}
+          />
+          <div className="flex gap-5 text-muted">
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-panel text-sm font-semibold">f</span>
+            <span className="grid h-7 w-7 place-items-center rounded-full bg-panel text-sm font-semibold">p</span>
+            <span className="grid h-7 w-7 place-items-center text-2xl leading-none">x</span>
+          </div>
+        </DialogBody>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function CopyBlock({ label, value, helper }: { label: string; value: string; helper: string }) {
+  const [copied, setCopied] = React.useState(false);
+
+  async function copyValue() {
+    await navigator.clipboard?.writeText(value);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1400);
+  }
+
+  return (
+    <div>
+      <div className="mb-5 text-[21px] font-medium">{label}</div>
+      <div className="flex min-h-16 items-center justify-between gap-3 bg-panel px-5 text-[20px]">
+        <span className="min-w-0 truncate">{value}</span>
+        <button type="button" onClick={copyValue} className="inline-flex shrink-0 items-center gap-2 text-[19px] font-medium text-teal-600">
+          <Copy size={19}/>{copied ? 'Copied' : 'Copy'}
+        </button>
+      </div>
+      <p className="mt-5 text-[19px] leading-8 text-muted">{helper}</p>
+    </div>
+  );
+}
+
+function MoveToFolderDialog({
+  collection,
+  open,
+  onOpenChange,
+}: {
+  collection: Collection;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const [folderId, setFolderId] = React.useState(collection.folderId);
+
+  React.useEffect(() => {
+    if (open) setFolderId(collection.folderId);
+  }, [collection.folderId, open]);
+
+  const selectedFolder = FOLDERS.find(folder => folder.id === folderId);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent size="md" className="rounded-none sm:rounded-md" onClose={() => onOpenChange(false)}>
+        <DialogHeader className="px-7 pt-8 pb-3 sm:px-9 sm:pt-9">
+          <DialogTitle className="font-sans text-[22px] font-semibold uppercase tracking-[0.14em]">Move to folder</DialogTitle>
+          <DialogDescription>Choose where to organize {collection.title}.</DialogDescription>
+        </DialogHeader>
+        <DialogBody className="gap-2 px-7 pb-3 sm:px-9">
+          {FOLDERS.map(folder => (
+            <button
+              key={folder.id}
+              type="button"
+              onClick={() => setFolderId(folder.id)}
+              className={cn(
+                'flex min-h-14 items-center justify-between rounded-md border px-4 text-left transition-colors',
+                folderId === folder.id ? 'border-ink bg-panel' : 'border-line bg-surface hover:bg-panel',
+              )}
+            >
+              <span>
+                <span className="block text-[15px] font-medium">{folder.name}</span>
+                <span className="text-xs text-muted">{folder.collectionsCount} collections</span>
+              </span>
+              <span className={cn('h-4 w-4 rounded-full border', folderId === folder.id ? 'border-ink bg-ink' : 'border-line-2')}/>
+            </button>
+          ))}
+        </DialogBody>
+        <DialogFooter className="items-center justify-between px-7 pb-7 sm:px-9">
+          <div className="text-sm text-muted">
+            {selectedFolder ? `Selected: ${selectedFolder.name}` : 'Select a folder'}
+          </div>
+          <div className="flex gap-2">
+            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button type="button" variant="default" onClick={() => onOpenChange(false)}>Move</Button>
+          </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

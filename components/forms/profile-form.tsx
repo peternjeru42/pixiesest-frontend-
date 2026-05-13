@@ -1,6 +1,7 @@
 'use client';
 import * as React from 'react';
-import { Upload } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { CheckCircle2, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,10 +14,21 @@ export function ProfileForm({ photographer }: { photographer: Photographer }) {
   const [isSaving, setIsSaving] = React.useState(false);
   const [error, setError] = React.useState('');
   const [saved, setSaved] = React.useState(false);
+  const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
     setForm(photographer);
   }, [photographer]);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  React.useEffect(() => {
+    if (!saved) return;
+    const timeout = window.setTimeout(() => setSaved(false), 2600);
+    return () => window.clearTimeout(timeout);
+  }, [saved]);
 
   const upd = (patch: Partial<Photographer>) => setForm(f => ({ ...f, ...patch }));
 
@@ -77,15 +89,25 @@ export function ProfileForm({ photographer }: { photographer: Photographer }) {
         <Label>Bio</Label>
         <Textarea value={form.bio ?? ''} onChange={e => upd({ bio: e.target.value })}/>
       </div>
-      {(error || saved) && (
-        <div className={error ? 'text-sm text-danger' : 'text-sm text-muted'}>
-          {error || 'Profile changes saved.'}
-        </div>
-      )}
+      {error && <div className="text-sm text-danger">{error}</div>}
       <div className="flex items-center justify-between pt-4 border-t border-line">
         <div className="text-sm text-muted">Public profile appears on your homepage and gallery covers.</div>
         <Button variant="default" disabled={isSaving}>{isSaving ? 'Saving...' : 'Save changes'}</Button>
       </div>
+      {mounted && saved && createPortal(
+        <div className="fixed right-4 top-4 z-[130] w-[calc(100vw-2rem)] max-w-sm rounded-lg border border-line bg-surface p-4 shadow-deep sm:right-6 sm:top-6">
+          <div className="flex items-start gap-3">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-ok/10 text-ok">
+              <CheckCircle2 size={19}/>
+            </span>
+            <div>
+              <div className="font-medium">Profile changes saved.</div>
+              <div className="mt-0.5 text-sm text-muted">Your public profile details are up to date.</div>
+            </div>
+          </div>
+        </div>,
+        document.body,
+      )}
     </form>
   );
 }

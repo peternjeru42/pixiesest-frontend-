@@ -54,8 +54,7 @@ export default async function DashboardPage() {
     <AdminLayout crumbs={[{ label: 'Studio' }, { label: 'Dashboard' }]}>
       <div className="px-6 lg:px-10 py-8 pb-20 max-w-[1600px] mx-auto">
         <PageHeader
-          eyebrow="Welcome back"
-          title={`Good morning, ${firstName}.`}
+          title={`Welcome back: Good morning, ${firstName}.`}
           sub={`${stats.active_collections} active galleries and ${stats.pending_favorite_lists} client favorite lists awaiting review.`}
         />
 
