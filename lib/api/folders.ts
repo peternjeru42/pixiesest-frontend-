@@ -4,13 +4,25 @@ import { listCollections } from './collections';
 
 const wait = (ms = 200) => new Promise(r => setTimeout(r, ms));
 
-export async function listFolders() {
+export async function listFolders(filter?: { search?: string }) {
   await wait();
   const collections = await listCollections();
-  return FOLDERS.map(folder => ({
+  const query = filter?.search?.trim().toLowerCase();
+  let folders = FOLDERS;
+  if (query) {
+    folders = folders.filter(folder =>
+      folder.name.toLowerCase().includes(query) ||
+      folder.slug.toLowerCase().includes(query),
+    );
+  }
+  return folders.map(folder => ({
     ...folder,
     collectionsCount: collections.filter(collection => collection.folderId === folder.id).length,
   }));
+}
+
+export async function searchFolders(search: string) {
+  return listFolders({ search });
 }
 export async function getFolder(id: string): Promise<Folder | null> {
   await wait();

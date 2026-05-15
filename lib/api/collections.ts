@@ -80,8 +80,7 @@ export async function getCollection(id: string): Promise<Collection | null> {
 export async function createCollection(input: Partial<Collection>) {
   await wait(400);
   const collections = readCollections();
-  const fallbackFolder = FOLDERS[0];
-  const folder = FOLDERS.find(f => f.id === input.folderId) ?? fallbackFolder;
+  const folder = input.folderId ? FOLDERS.find(f => f.id === input.folderId) ?? null : null;
   const title = input.title?.trim() || 'Untitled collection';
   const now = new Date();
   const collection: Collection = {
@@ -91,10 +90,10 @@ export async function createCollection(input: Partial<Collection>) {
     description: input.description,
     date: input.date || now.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
     cover: input.cover || unsplash('photo-1519741497674-611481863552', 1600),
-    folderId: folder.id,
-    folderName: folder.name,
-    status: input.status ?? 'draft',
-    password: input.password,
+    folderId: folder?.id ?? null,
+    folderName: folder?.name ?? null,
+    status: 'draft',
+    password: input.password || randomPin(),
     downloadPin: input.downloadPin || randomPin(),
     counts: input.counts ?? { photos: 0, videos: 0, videoDurationSec: 0, favorites: 0, downloads: 0, views: 0, sets: 0 },
     sets: input.sets ?? [],
@@ -110,11 +109,11 @@ export async function updateCollection(id: string, patch: Partial<Collection>) {
   if (index === -1) throw new Error('Collection not found');
 
   const next = { ...collections[index], ...patch };
-  if (patch.folderId) {
-    const folder = FOLDERS.find(f => f.id === patch.folderId);
-    if (!folder) throw new Error('Folder not found');
-    next.folderId = folder.id;
-    next.folderName = folder.name;
+  if ('folderId' in patch) {
+    const folder = patch.folderId ? FOLDERS.find(f => f.id === patch.folderId) : null;
+    if (patch.folderId && !folder) throw new Error('Folder not found');
+    next.folderId = folder?.id ?? null;
+    next.folderName = folder?.name ?? null;
   }
 
   collections[index] = next;
@@ -125,6 +124,6 @@ export async function deleteCollection(_id: string) { await wait(); return { ok:
 export async function publishCollection(id: string) { return updateCollection(id, { status: 'published' }); }
 export async function unpublishCollection(id: string) { return updateCollection(id, { status: 'draft' }); }
 export async function archiveCollection(id: string) { return updateCollection(id, { status: 'archived' }); }
-export async function moveCollectionToFolder(id: string, folderId: string) {
+export async function moveCollectionToFolder(id: string, folderId: string | null) {
   return updateCollection(id, { folderId });
 }

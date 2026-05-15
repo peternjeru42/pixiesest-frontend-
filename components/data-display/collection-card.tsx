@@ -65,7 +65,7 @@ export function CollectionCard({ c, onCollectionChange }: { c: Collection; onCol
           {c.counts.videos > 0 && (<><span className="text-line-2">/</span><span>{c.counts.videos} video</span></>)}
         </div>
         <div className="mono text-[10.5px] uppercase tracking-wider text-muted mt-1 truncate">
-          <span>{c.folderName}</span>
+          <span>{c.folderName ?? 'No folder'}</span>
         </div>
         <div className="flex gap-4 mt-2.5 text-[11.5px] text-muted">
           <span className="inline-flex items-center gap-1"><Heart size={11}/>{c.counts.favorites}</span>
@@ -257,7 +257,7 @@ function MoveToFolderDialog({
   onOpenChange: (open: boolean) => void;
   onMoved?: (collection: Collection) => void;
 }) {
-  const [folderId, setFolderId] = React.useState(collection.folderId);
+  const [folderId, setFolderId] = React.useState<string | null>(collection.folderId);
   const [folders, setFolders] = React.useState<Folder[]>([]);
   const [moving, setMoving] = React.useState(false);
 
@@ -279,7 +279,7 @@ function MoveToFolderDialog({
   const selectedFolder = folders.find(folder => folder.id === folderId);
 
   async function moveCollection() {
-    if (!folderId || folderId === collection.folderId) {
+    if (folderId === collection.folderId) {
       onOpenChange(false);
       return;
     }
@@ -301,6 +301,20 @@ function MoveToFolderDialog({
           <DialogDescription>Choose where to organize {collection.title}.</DialogDescription>
         </DialogHeader>
         <DialogBody className="gap-2 px-7 pb-3 sm:px-9">
+          <button
+            type="button"
+            onClick={() => setFolderId(null)}
+            className={cn(
+              'flex min-h-14 items-center justify-between rounded-md border px-4 text-left transition-colors',
+              folderId === null ? 'border-ink bg-panel' : 'border-line bg-surface hover:bg-panel',
+            )}
+          >
+            <span>
+              <span className="block text-[15px] font-medium">None</span>
+              <span className="text-xs text-muted">Do not assign this collection to a folder</span>
+            </span>
+            <span className={cn('h-4 w-4 rounded-full border', folderId === null ? 'border-ink bg-ink' : 'border-line-2')}/>
+          </button>
           {folders.map(folder => (
             <button
               key={folder.id}
@@ -321,11 +335,11 @@ function MoveToFolderDialog({
         </DialogBody>
         <DialogFooter className="items-center justify-between px-7 pb-7 sm:px-9">
           <div className="text-sm text-muted">
-            {selectedFolder ? `Selected: ${selectedFolder.name}` : 'Select a folder'}
+            {selectedFolder ? `Selected: ${selectedFolder.name}` : 'Selected: None'}
           </div>
           <div className="flex gap-2">
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="button" variant="default" disabled={!folderId || moving} onClick={moveCollection}>{moving ? 'Moving...' : 'Move'}</Button>
+            <Button type="button" variant="default" disabled={moving} onClick={moveCollection}>{moving ? 'Moving...' : 'Move'}</Button>
           </div>
         </DialogFooter>
       </DialogContent>

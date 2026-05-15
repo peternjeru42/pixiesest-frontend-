@@ -32,7 +32,7 @@ export default function StoragePage() {
             <TBody>
               {COLLECTIONS.map(c => (
                 <TR key={c.id}>
-                  <TD><div className="font-medium">{c.title}</div><div className="text-xs text-muted">{c.folderName}</div></TD>
+                  <TD><div className="font-medium">{c.title}</div><div className="text-xs text-muted">{c.folderName ?? 'No folder'}</div></TD>
                   <TD className="mono">{c.counts.photos}</TD>
                   <TD className="mono">{c.counts.videos}</TD>
                   <TD className="mono">{(c.counts.photos * 0.025).toFixed(1)} GB</TD>

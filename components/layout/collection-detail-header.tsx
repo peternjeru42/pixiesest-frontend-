@@ -24,7 +24,7 @@ export function CollectionDetailHeader({ c, activeTab }: { c: Collection; active
           <Link href="/collections"><ArrowLeft size={12}/>Collections</Link>
         </Button>
         <div className="absolute left-6 lg:left-10 right-6 lg:right-10 bottom-6 text-bg">
-          <div className="mono text-[10.5px] tracking-wider text-bg/85 mb-2.5">{c.folderName.toUpperCase()}</div>
+          <div className="mono text-[10.5px] tracking-wider text-bg/85 mb-2.5">{(c.folderName ?? 'No folder').toUpperCase()}</div>
           <h1 className="serif text-5xl font-medium tracking-tight">{c.title}</h1>
           <div className="mono text-[11px] tracking-wider mt-1.5 opacity-85">{c.date.toUpperCase()}</div>
         </div>

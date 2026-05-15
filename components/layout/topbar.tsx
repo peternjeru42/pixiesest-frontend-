@@ -5,7 +5,13 @@ import { Bell, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MobileNav } from './mobile-nav';
 
-export function Topbar({ crumbs }: { crumbs: { label: string; href?: string }[] }) {
+type TopbarSearch = {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+};
+
+export function Topbar({ crumbs, search }: { crumbs: { label: string; href?: string }[]; search?: TopbarSearch }) {
   const currentCrumb = crumbs[crumbs.length - 1]?.label ?? 'Lumen';
 
   return (
@@ -30,8 +36,13 @@ export function Topbar({ crumbs }: { crumbs: { label: string; href?: string }[] 
       <div className="flex-1"/>
       <div className="hidden min-w-[260px] items-center gap-2 rounded-lg border border-line bg-surface px-3 py-1.5 text-sm md:flex">
         <Search size={14} className="text-muted"/>
-        <input className="flex-1 bg-transparent outline-none placeholder:text-muted" placeholder="Search collections, photos, clients..."/>
-        <span className="mono rounded border border-line px-1.5 text-[10.5px] text-muted">Ctrl K</span>
+        <input
+          className="flex-1 bg-transparent outline-none placeholder:text-muted"
+          placeholder={search?.placeholder ?? 'Search collections, photos, clients...'}
+          value={search?.value ?? ''}
+          onChange={(event) => search?.onChange(event.target.value)}
+          readOnly={!search}
+        />
       </div>
       <Button size="icon" variant="outline" className="relative h-10 w-10 shrink-0 rounded-md bg-surface">
         <Bell size={15}/>

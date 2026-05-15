@@ -49,8 +49,8 @@ export interface Collection {
   venue?: string;
   date: string;
   cover: string;
-  folderId: string;
-  folderName: string;
+  folderId: string | null;
+  folderName: string | null;
   status: CollectionStatus;
   password?: string;
   downloadPin: string;
