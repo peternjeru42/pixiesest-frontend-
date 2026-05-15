@@ -111,6 +111,18 @@ export async function register(input: RegisterInput) {
   return auth;
 }
 
+export async function googleAuth(credential: string) {
+  if (!credential) throw new Error('Google credential is required');
+
+  const auth = await request<AuthResponse>('/auth/google/', {
+    method: 'POST',
+    body: JSON.stringify({ credential }),
+  });
+
+  persistAuthTokens(auth);
+  return auth;
+}
+
 export async function requestPasswordReset(email: string) {
   return request<{ detail: string }>('/auth/password-reset/request/', {
     method: 'POST',
