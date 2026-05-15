@@ -3,6 +3,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Grid3x3, FolderOpen, User } from 'lucide-react';
+import { LogoutButton } from '@/components/actions/logout-button';
 import { cn } from '@/lib/utils';
 
 const STUDIO = [
@@ -23,12 +24,16 @@ export function Sidebar() {
         <span className="serif text-[21px] tracking-wide">Lumen</span>
       </Link>
 
-      <nav className="flex flex-col gap-0.5">
+      <nav className="flex flex-1 flex-col gap-0.5">
         <SidebarLabel>Studio</SidebarLabel>
         {STUDIO.map(it => <SidebarItem key={it.href} {...it} active={isActive(pathname, it.href)}/>)}
         <SidebarLabel>Account</SidebarLabel>
         {ACCOUNT.map(it => <SidebarItem key={it.href} {...it} active={isActive(pathname, it.href)}/>)}
       </nav>
+
+      <div className="border-t border-line pt-3">
+        <LogoutButton />
+      </div>
     </aside>
   );
 }

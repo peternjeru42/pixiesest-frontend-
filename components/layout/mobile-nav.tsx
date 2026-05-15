@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { FolderOpen, Grid3x3, Home, Menu, User, X, type LucideIcon } from 'lucide-react';
+import { LogoutButton } from '@/components/actions/logout-button';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -88,6 +89,10 @@ export function MobileNav() {
                 ))}
               </NavGroup>
             </nav>
+
+            <div className="border-t border-line px-3 py-4">
+              <LogoutButton mobile onSignedOut={() => setOpen(false)} />
+            </div>
           </aside>
         </div>,
         document.body,

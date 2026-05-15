@@ -158,10 +158,10 @@ export async function logout() {
   const refresh = window.localStorage.getItem('lumen.refreshToken');
 
   try {
-    if (refresh && access) {
+    if (refresh) {
       await request<void>('/auth/logout/', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${access}` },
+        headers: access ? { Authorization: `Bearer ${access}` } : undefined,
         body: JSON.stringify({ refresh }),
       });
     }
