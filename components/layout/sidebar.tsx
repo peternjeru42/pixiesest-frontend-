@@ -20,7 +20,7 @@ export function Sidebar() {
   return (
     <aside className="hidden lg:flex flex-col w-56 shrink-0 bg-surface border-r border-line sticky top-0 h-screen px-3.5 py-4 gap-3">
       <Link href="/dashboard" className="flex items-center gap-2.5 px-2 pb-3 border-b border-line">
-        <span className="w-7 h-7 grid place-items-center rounded-full bg-ink text-bg serif italic text-base">L</span>
+        <span className="w-7 h-7 grid place-items-center rounded-full bg-ink text-bg serif italic text-base">D</span>
         <span className="serif text-[21px] tracking-wide">Droptop</span>
       </Link>
 

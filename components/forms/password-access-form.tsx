@@ -28,7 +28,7 @@ export function PasswordAccessForm({ c, onUnlock }: { c: Collection; onUnlock?: 
 
   return (
     <form onSubmit={submit} className="relative z-10 w-full max-w-sm p-8 text-center">
-      <span className="block w-9 h-9 rounded-full bg-bg text-ink grid place-items-center mx-auto mb-7 serif italic text-lg">L</span>
+      <span className="block w-9 h-9 rounded-full bg-bg text-ink grid place-items-center mx-auto mb-7 serif italic text-lg">D</span>
       <div className="mono text-[10.5px] tracking-[0.14em] text-bg/70 mb-3">{c.date.toUpperCase()}</div>
       <h1 className="serif text-5xl font-medium tracking-tight text-bg mb-7">{c.couple ?? c.title}</h1>
       <p className="text-sm opacity-80 text-bg mb-6 leading-relaxed">This gallery is private. Please enter the password your photographer provided.</p>

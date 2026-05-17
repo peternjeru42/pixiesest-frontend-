@@ -15,7 +15,7 @@ export function AuthLayout({ children, image, eyebrow, title, text }: AuthLayout
       <header className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 lg:px-8">
         <Link href="/" className="flex items-center gap-2.5">
           <span className="grid h-8 w-8 place-items-center rounded-full bg-[#171512] text-sm font-semibold text-[#f7f5f0]">
-            L
+            D
           </span>
           <span className="text-[15px] font-semibold tracking-[0.18em]">DROPTOP</span>
         </Link>

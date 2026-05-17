@@ -11,7 +11,7 @@ export default function FolderPublicPage({ params }: { params: { folderId: strin
     <div className="bg-bg min-h-screen text-ink">
       <nav className="sticky top-0 z-30 flex items-center justify-between px-6 md:px-9 py-4 bg-bg/85 backdrop-blur border-b border-line">
         <Link href="/" className="flex items-center gap-2.5">
-          <span className="w-6 h-6 grid place-items-center rounded-full bg-ink text-bg serif italic text-[12px]">L</span>
+          <span className="w-6 h-6 grid place-items-center rounded-full bg-ink text-bg serif italic text-[12px]">D</span>
           <span className="serif text-[18px] uppercase tracking-[0.05em]">Droptop</span>
         </Link>
       </nav>

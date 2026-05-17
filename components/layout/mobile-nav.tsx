@@ -59,7 +59,7 @@ export function MobileNav() {
           >
             <div className="flex items-center justify-between border-b border-line px-5 py-4">
               <Link href="/dashboard" onClick={() => setOpen(false)} className="flex min-w-0 items-center gap-2.5">
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-ink text-bg serif italic text-base">L</span>
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-ink text-bg serif italic text-base">D</span>
                 <span className="serif text-[24px] tracking-wide">Droptop</span>
               </Link>
               <Button size="icon" variant="ghost" aria-label="Close navigation" onClick={() => setOpen(false)}>
