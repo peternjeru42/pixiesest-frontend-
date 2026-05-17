@@ -18,6 +18,7 @@ export function CollectionForm({ initialFolderId }: { initialFolderId?: string }
   const [date, setDate] = React.useState('');
   const [description, setDescription] = React.useState('');
   const [saving, setSaving] = React.useState(false);
+  const [error, setError] = React.useState('');
 
   React.useEffect(() => {
     let mounted = true;
@@ -33,16 +34,20 @@ export function CollectionForm({ initialFolderId }: { initialFolderId?: string }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!title.trim()) return;
+    const cleanTitle = title.trim();
+    if (!cleanTitle || saving) return;
     setSaving(true);
+    setError('');
     try {
       await createCollection({
-        title,
+        title: cleanTitle,
         folderId: folder || null,
         date,
-        description,
+        description: description.trim(),
       });
       router.push('/collections');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to create collection.');
     } finally {
       setSaving(false);
     }
@@ -71,9 +76,14 @@ export function CollectionForm({ initialFolderId }: { initialFolderId?: string }
         <Label>Description</Label>
         <Textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="A short note shown on the gallery cover."/>
       </div>
+      {error && (
+        <div role="alert" className="rounded-md border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger">
+          {error}
+        </div>
+      )}
       <div className="flex justify-end gap-2 pt-3 border-t border-line">
         <Button type="button" variant="ghost" onClick={() => router.back()}>Cancel</Button>
-        <Button type="submit" variant="default" disabled={!title || saving}>{saving ? 'Creating...' : 'Create collection'}</Button>
+        <Button type="submit" variant="default" disabled={!title.trim() || saving}>{saving ? 'Creating...' : 'Create collection'}</Button>
       </div>
     </form>
   );

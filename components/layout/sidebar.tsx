@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, Grid3x3, FolderOpen, User } from 'lucide-react';
 import { LogoutButton } from '@/components/actions/logout-button';
+import { listCollections, subscribeToCollectionChanges } from '@/lib/api/collections';
+import { listFolders } from '@/lib/api/folders';
 import { cn } from '@/lib/utils';
 
 const STUDIO = [
@@ -17,6 +19,28 @@ const ACCOUNT = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const [counts, setCounts] = React.useState({ collections: 0, folders: 0 });
+
+  React.useEffect(() => {
+    let mounted = true;
+    const loadCounts = async () => {
+      const [collections, folders] = await Promise.all([listCollections(), listFolders()]);
+      if (mounted) setCounts({ collections: collections.length, folders: folders.length });
+    };
+    loadCounts();
+    const unsubscribe = subscribeToCollectionChanges(loadCounts);
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
+  }, []);
+
+  const studioItems = STUDIO.map(item => {
+    if (item.href === '/collections') return { ...item, count: counts.collections };
+    if (item.href === '/folders') return { ...item, count: counts.folders };
+    return item;
+  });
+
   return (
     <aside className="hidden lg:flex flex-col w-56 shrink-0 bg-surface border-r border-line sticky top-0 h-screen px-3.5 py-4 gap-3">
       <Link href="/dashboard" className="flex items-center gap-2.5 px-2 pb-3 border-b border-line">
@@ -26,7 +50,7 @@ export function Sidebar() {
 
       <nav className="flex flex-1 flex-col gap-0.5">
         <SidebarLabel>Studio</SidebarLabel>
-        {STUDIO.map(it => <SidebarItem key={it.href} {...it} active={isActive(pathname, it.href)}/>)}
+        {studioItems.map(it => <SidebarItem key={it.href} {...it} active={isActive(pathname, it.href)}/>)}
         <SidebarLabel>Account</SidebarLabel>
         {ACCOUNT.map(it => <SidebarItem key={it.href} {...it} active={isActive(pathname, it.href)}/>)}
       </nav>
