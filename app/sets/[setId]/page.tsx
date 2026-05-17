@@ -9,15 +9,30 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MediaGrid } from '@/components/media/media-grid';
 import { MediaLightbox } from '@/components/media/media-lightbox';
-import { SETS, SET_MEDIA } from '@/lib/mock-data';
+import { SETS } from '@/lib/mock-data';
+import { listMedia, subscribeToMediaChanges } from '@/lib/api/media';
 import type { Media } from '@/lib/types';
 
 export default function SetDetailPage({ params }: { params: { setId: string } }) {
   const s = SETS[params.setId];
   const router = useRouter();
-  const [media, setMedia] = React.useState<Media[]>(SET_MEDIA[params.setId] ?? []);
+  const [media, setMedia] = React.useState<Media[]>([]);
   const [lightbox, setLightbox] = React.useState<{ items: Media[]; index: number } | null>(null);
   const toggleFav = (id: string) => setMedia(arr => arr.map(m => m.id === id ? { ...m, faved: !m.faved } : m));
+
+  React.useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      const items = await listMedia({ setId: params.setId });
+      if (mounted) setMedia(items);
+    };
+    load();
+    const unsubscribe = subscribeToMediaChanges(load);
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
+  }, [params.setId]);
 
   if (!s) return notFound();
 

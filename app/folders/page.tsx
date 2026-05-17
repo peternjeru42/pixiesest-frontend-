@@ -7,7 +7,7 @@ import { PageHeader } from '@/components/layout/page-header';
 import { Button } from '@/components/ui/button';
 import { FolderCard } from '@/components/data-display/folder-card';
 import { listCollections, subscribeToCollectionChanges } from '@/lib/api/collections';
-import { listFolders } from '@/lib/api/folders';
+import { listFolders, subscribeToFolderChanges } from '@/lib/api/folders';
 import type { Collection, Folder } from '@/lib/types';
 
 export default function FoldersPage() {
@@ -23,10 +23,12 @@ export default function FoldersPage() {
       setCollections(collectionItems);
     };
     load();
-    const unsubscribe = subscribeToCollectionChanges(load);
+    const unsubscribeCollections = subscribeToCollectionChanges(load);
+    const unsubscribeFolders = subscribeToFolderChanges(load);
     return () => {
       mounted = false;
-      unsubscribe();
+      unsubscribeCollections();
+      unsubscribeFolders();
     };
   }, []);
 

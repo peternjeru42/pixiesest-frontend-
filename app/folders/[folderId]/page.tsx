@@ -6,7 +6,7 @@ import { AdminLayout } from '@/components/layout/admin-layout';
 import { Button } from '@/components/ui/button';
 import { CollectionCard } from '@/components/data-display/collection-card';
 import { listCollections, subscribeToCollectionChanges } from '@/lib/api/collections';
-import { listFolders } from '@/lib/api/folders';
+import { listFolders, subscribeToFolderChanges } from '@/lib/api/folders';
 import type { Collection, Folder } from '@/lib/types';
 
 export default function FolderDetailPage({ params }: { params: { folderId: string } }) {
@@ -25,10 +25,12 @@ export default function FolderDetailPage({ params }: { params: { folderId: strin
       setLoaded(true);
     };
     load();
-    const unsubscribe = subscribeToCollectionChanges(load);
+    const unsubscribeCollections = subscribeToCollectionChanges(load);
+    const unsubscribeFolders = subscribeToFolderChanges(load);
     return () => {
       mounted = false;
-      unsubscribe();
+      unsubscribeCollections();
+      unsubscribeFolders();
     };
   }, [params.folderId]);
 

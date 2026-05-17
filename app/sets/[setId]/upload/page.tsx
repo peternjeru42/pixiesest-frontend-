@@ -16,8 +16,8 @@ export default function SetUploadPage({ params }: { params: { setId: string } })
         <Button asChild size="sm" variant="ghost" className="mb-3">
           <Link href={`/sets/${params.setId}`}><ArrowLeft size={12}/>Back to set</Link>
         </Button>
-        <PageHeader eyebrow={`Upload to ${s.title}`} title="Upload media" sub="Originals upload directly to Droptop storage."/>
-        <UploadDropzone/>
+        <PageHeader eyebrow={`Upload to ${s.title}`} title="Upload media" sub="Select image or video files and they will be added to this set."/>
+        <UploadDropzone collectionId="c1" setId={s.id} fallbackThumb={s.cover}/>
       </div>
     </AdminLayout>
   );

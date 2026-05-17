@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Home, Grid3x3, FolderOpen, User } from 'lucide-react';
 import { LogoutButton } from '@/components/actions/logout-button';
 import { listCollections, subscribeToCollectionChanges } from '@/lib/api/collections';
-import { listFolders } from '@/lib/api/folders';
+import { listFolders, subscribeToFolderChanges } from '@/lib/api/folders';
 import { cn } from '@/lib/utils';
 
 const STUDIO = [
@@ -28,10 +28,12 @@ export function Sidebar() {
       if (mounted) setCounts({ collections: collections.length, folders: folders.length });
     };
     loadCounts();
-    const unsubscribe = subscribeToCollectionChanges(loadCounts);
+    const unsubscribeCollections = subscribeToCollectionChanges(loadCounts);
+    const unsubscribeFolders = subscribeToFolderChanges(loadCounts);
     return () => {
       mounted = false;
-      unsubscribe();
+      unsubscribeCollections();
+      unsubscribeFolders();
     };
   }, []);
 

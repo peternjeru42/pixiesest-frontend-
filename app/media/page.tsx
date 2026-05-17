@@ -6,12 +6,27 @@ import { PageHeader } from '@/components/layout/page-header';
 import { Button } from '@/components/ui/button';
 import { MediaGrid } from '@/components/media/media-grid';
 import { MediaLightbox } from '@/components/media/media-lightbox';
-import { ALL_MEDIA } from '@/lib/mock-data';
+import { listMedia, subscribeToMediaChanges } from '@/lib/api/media';
 import type { Media } from '@/lib/types';
 
 export default function MediaPage() {
-  const [media, setMedia] = React.useState<Media[]>(ALL_MEDIA);
+  const [media, setMedia] = React.useState<Media[]>([]);
   const [lightbox, setLightbox] = React.useState<{ items: Media[]; index: number } | null>(null);
+
+  React.useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      const items = await listMedia();
+      if (mounted) setMedia(items);
+    };
+    load();
+    const unsubscribe = subscribeToMediaChanges(load);
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
+  }, []);
+
   const toggleFav = (id: string) => setMedia(arr => arr.map(m => m.id === id ? { ...m, faved: !m.faved } : m));
   return (
     <AdminLayout crumbs={[{ label: 'Studio' }, { label: 'Media' }]}>
