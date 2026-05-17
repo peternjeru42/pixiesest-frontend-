@@ -1,8 +1,6 @@
-import Link from 'next/link';
+import { Suspense } from 'react';
 import { AuthLayout } from '@/components/layout/auth-layout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { PasswordResetForm } from '@/components/forms/password-reset-form';
 
 export default function ResetPasswordPage() {
   return (
@@ -13,12 +11,9 @@ export default function ResetPasswordPage() {
       </div>
       <h1 className="serif text-4xl font-medium tracking-tight mb-1.5">Set a new password</h1>
       <div className="text-muted mb-7">Pick something memorable.</div>
-      <form className="flex flex-col gap-4" action="/login">
-        <div className="flex flex-col gap-1.5"><Label>New password</Label><Input type="password" required/></div>
-        <div className="flex flex-col gap-1.5"><Label>Confirm password</Label><Input type="password" required/></div>
-        <Button size="lg">Reset password</Button>
-        <div className="text-sm text-muted text-center mt-1"><Link href="/login" className="text-ink underline">Back to sign in</Link></div>
-      </form>
+      <Suspense fallback={<div className="text-sm text-muted">Loading reset form...</div>}>
+        <PasswordResetForm />
+      </Suspense>
     </AuthLayout>
   );
 }
