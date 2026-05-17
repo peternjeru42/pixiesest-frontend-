@@ -63,24 +63,24 @@ function getErrorMessage(data: unknown): string {
 
 function persistAuthTokens(auth: AuthResponse) {
   if (typeof window === 'undefined') return;
-  window.localStorage.setItem('lumen.accessToken', auth.access);
-  window.localStorage.setItem('lumen.refreshToken', auth.refresh);
-  window.localStorage.setItem('lumen.user', JSON.stringify(auth.user));
+  window.localStorage.setItem('droptop.accessToken', auth.access);
+  window.localStorage.setItem('droptop.refreshToken', auth.refresh);
+  window.localStorage.setItem('droptop.user', JSON.stringify(auth.user));
   setAuthCookie(auth.access);
 }
 
 function getStoredAccessToken() {
   if (typeof window === 'undefined') return null;
-  return window.localStorage.getItem('lumen.accessToken');
+  return window.localStorage.getItem('droptop.accessToken');
 }
 
 function setAuthCookie(accessToken: string) {
   const secure = window.location.protocol === 'https:' ? '; Secure' : '';
-  document.cookie = `lumen.accessToken=${encodeURIComponent(accessToken)}; Path=/; Max-Age=604800; SameSite=Lax${secure}`;
+  document.cookie = `droptop.accessToken=${encodeURIComponent(accessToken)}; Path=/; Max-Age=604800; SameSite=Lax${secure}`;
 }
 
 function clearAuthCookie() {
-  document.cookie = 'lumen.accessToken=; Path=/; Max-Age=0; SameSite=Lax';
+  document.cookie = 'droptop.accessToken=; Path=/; Max-Age=0; SameSite=Lax';
 }
 
 export async function login(email: string, password: string) {
@@ -155,7 +155,7 @@ export async function logout() {
   if (typeof window === 'undefined') return { ok: true };
 
   const access = getStoredAccessToken();
-  const refresh = window.localStorage.getItem('lumen.refreshToken');
+  const refresh = window.localStorage.getItem('droptop.refreshToken');
 
   try {
     if (refresh) {
@@ -166,9 +166,9 @@ export async function logout() {
       });
     }
   } finally {
-    window.localStorage.removeItem('lumen.accessToken');
-    window.localStorage.removeItem('lumen.refreshToken');
-    window.localStorage.removeItem('lumen.user');
+    window.localStorage.removeItem('droptop.accessToken');
+    window.localStorage.removeItem('droptop.refreshToken');
+    window.localStorage.removeItem('droptop.user');
     clearAuthCookie();
   }
 

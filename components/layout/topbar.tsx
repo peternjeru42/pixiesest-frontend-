@@ -12,13 +12,13 @@ type TopbarSearch = {
 };
 
 export function Topbar({ crumbs, search }: { crumbs: { label: string; href?: string }[]; search?: TopbarSearch }) {
-  const currentCrumb = crumbs[crumbs.length - 1]?.label ?? 'Lumen';
+  const currentCrumb = crumbs[crumbs.length - 1]?.label ?? 'Droptop';
 
   return (
     <header className="sticky top-0 z-50 flex min-h-[64px] items-center gap-3 border-b border-line bg-bg/95 px-4 py-3.5 backdrop-blur lg:gap-4 lg:px-8">
       <MobileNav/>
       <div className="min-w-0 lg:hidden">
-        <div className="mono text-[9.5px] uppercase tracking-[0.14em] text-muted">Lumen</div>
+        <div className="mono text-[9.5px] uppercase tracking-[0.14em] text-muted">Droptop</div>
         <div className="truncate text-[15px] font-medium leading-5">{currentCrumb}</div>
       </div>
       <nav className="hidden items-center gap-2 mono text-[11px] uppercase tracking-wider text-muted md:flex">

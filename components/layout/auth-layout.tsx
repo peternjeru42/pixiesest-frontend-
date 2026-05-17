@@ -17,7 +17,7 @@ export function AuthLayout({ children, image, eyebrow, title, text }: AuthLayout
           <span className="grid h-8 w-8 place-items-center rounded-full bg-[#171512] text-sm font-semibold text-[#f7f5f0]">
             L
           </span>
-          <span className="text-[15px] font-semibold tracking-[0.18em]">LUMEN</span>
+          <span className="text-[15px] font-semibold tracking-[0.18em]">DROPTOP</span>
         </Link>
         <Link href="/" className="text-[13px] font-medium text-[#514c43]">
           Back to site

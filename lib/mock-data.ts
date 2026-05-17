@@ -38,7 +38,7 @@ function makeMedia(photoId: string, setId: string, collectionId: string, idx: nu
                    faved=false, isPrivate=false): Media {
   return {
     id: `${collectionId}-${setId}-${idx}`,
-    filename: `LUMEN_${String(1000 + idx).padStart(4,'0')}.jpg`,
+    filename: `DROPTOP_${String(1000 + idx).padStart(4,'0')}.jpg`,
     src: unsplash(photoId, 1600),
     thumb: unsplash(photoId, 480),
     width: 1600,
@@ -107,25 +107,25 @@ export const FAVORITE_LISTS: FavoriteList[] = [
 
 export const DOWNLOAD_LOGS: DownloadLog[] = [
   { id: 'd1', clientEmail: 'amelia.t@gmail.com', collectionId: 'c1', collectionTitle: 'Amelia & James', fileLabel: 'Ceremony · ZIP',  type: 'gallery',   sizeMB: 1200, status: 'complete',  date: 'Today, 11:14' },
-  { id: 'd2', clientEmail: 'james.harlow@me.com', collectionId: 'c1', collectionTitle: 'Amelia & James', fileLabel: 'LUMEN_0212.jpg', type: 'original',  sizeMB: 8.4,  status: 'complete',  date: 'Today, 10:02' },
+  { id: 'd2', clientEmail: 'james.harlow@me.com', collectionId: 'c1', collectionTitle: 'Amelia & James', fileLabel: 'DROPTOP_0212.jpg', type: 'original',  sizeMB: 8.4,  status: 'complete',  date: 'Today, 10:02' },
   { id: 'd6', clientEmail: 'j.harlow@me.com', collectionId: 'c1', collectionTitle: 'Amelia & James', fileLabel: 'Portraits · ZIP', type: 'gallery',   sizeMB: 744, status: 'failed', date: 'May 8' },
 ];
 
 export const ACTIVITY: ActivityEvent[] = [
   { id: 'a1', type: 'favorite', actor: 'amelia.t@gmail.com', target: 'Amelia & James', note: 'Added 38 favorites', collectionId: 'c1', time: '2 min ago' },
   { id: 'a2', type: 'download', actor: 'james.harlow@me.com', target: 'Amelia & James / Ceremony', note: 'Downloaded gallery ZIP · 1.2 GB', collectionId: 'c1', time: '14 min ago' },
-  { id: 'a4', type: 'comment', actor: 'amelia.t@gmail.com', target: 'LUMEN_0212.jpg', note: 'Left a note: "Can we get this one bigger?"', collectionId: 'c1', time: '2 hr ago' },
+  { id: 'a4', type: 'comment', actor: 'amelia.t@gmail.com', target: 'DROPTOP_0212.jpg', note: 'Left a note: "Can we get this one bigger?"', collectionId: 'c1', time: '2 hr ago' },
   { id: 'a9', type: 'view', actor: 'guest', target: 'Amelia & James', note: 'Viewed gallery (4 min)', collectionId: 'c1', time: '3 days ago' },
 ];
 
 export const PHOTOGRAPHER: Photographer = {
   id: 'p1',
-  email: 'mara@lumen.studio',
+  email: 'mara@droptop.studio',
   displayName: 'Mara Lin',
-  businessName: 'Lumen Studio',
+  businessName: 'Droptop Studio',
   bio: 'Wedding & editorial photographer based in Sonoma. Available for travel worldwide. Light, film, and small moments.',
-  website: 'lumen.studio',
-  instagram: '@lumen.studio',
+  website: 'droptop.studio',
+  instagram: '@droptop.studio',
   phone: '+1 (415) 555-0184',
   avatar: unsplash('photo-1438761681033-6461ffad8d80', 200),
   storage: { usedGB: 312, totalGB: 500, originalsGB: 244, previewsGB: 48, thumbsGB: 20 },

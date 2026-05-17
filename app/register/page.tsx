@@ -11,7 +11,7 @@ export default function RegisterPage() {
       text="Launch your first collections, organize clients and keep the business side close to the work."
     >
       <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#786f61]">Sign up</p>
-      <h1 className="font-display text-5xl font-medium leading-none tracking-normal">Create your Lumen account</h1>
+      <h1 className="font-display text-5xl font-medium leading-none tracking-normal">Create your Droptop account</h1>
       <p className="mt-3 text-sm leading-6 text-[#625c52]">
         Already have an account?{' '}
         <Link href="/login" className="font-semibold text-[#171512] underline underline-offset-4">

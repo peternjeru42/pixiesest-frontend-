@@ -13,7 +13,7 @@ export default function ProfilePage() {
   const [error, setError] = React.useState<string>('');
 
   React.useEffect(() => {
-    const token = window.localStorage.getItem('lumen.accessToken');
+    const token = window.localStorage.getItem('droptop.accessToken');
 
     if (!token) {
       router.replace('/login?next=/profile');

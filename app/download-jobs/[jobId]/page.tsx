@@ -31,7 +31,7 @@ export default function DownloadJobPage({ params }: { params: { jobId: string } 
       <div className="w-full max-w-md text-center">
         <Link href="/" className="serif text-2xl inline-flex items-center gap-2 mb-12">
           <span className="w-7 h-7 grid place-items-center rounded-full bg-ink text-bg serif italic text-base">L</span>
-          Lumen
+          Droptop
         </Link>
         {stage === 'preparing' && (
           <>

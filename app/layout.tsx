@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Lumen — Photography Client Galleries',
+  title: 'Droptop — Photography Client Galleries',
   description: 'A lean, premium photography client gallery platform.',
 };
 

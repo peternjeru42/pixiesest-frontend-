@@ -9,7 +9,7 @@ export default function ResetPasswordPage() {
     <AuthLayout image="https://images.unsplash.com/photo-1606490194859-07c18c9f0968?auto=format&fit=crop&w=1400&q=80">
       <div className="flex items-center gap-2.5 mb-9">
         <span className="w-8 h-8 grid place-items-center rounded-full bg-ink text-bg serif italic text-base">L</span>
-        <span className="serif text-2xl">Lumen</span>
+        <span className="serif text-2xl">Droptop</span>
       </div>
       <h1 className="serif text-4xl font-medium tracking-tight mb-1.5">Set a new password</h1>
       <div className="text-muted mb-7">Pick something memorable.</div>

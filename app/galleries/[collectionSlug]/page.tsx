@@ -50,7 +50,7 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
           <div className="mono text-[11px] tracking-[0.14em] uppercase opacity-85 mb-3.5">A wedding · {c.date}</div>
           <h1 className="serif text-6xl md:text-7xl lg:text-8xl font-normal tracking-tight">{c.couple ?? c.title}</h1>
           <div className="mono text-[11.5px] tracking-[0.16em] uppercase mt-5 opacity-85">
-            Photographed by Lumen Studio
+            Photographed by Droptop Studio
           </div>
         </div>
         <Button

@@ -21,7 +21,7 @@ export default function UploadPage({ params }: { params: { collectionId: string 
         <PageHeader
           eyebrow={`Upload to ${c.title}`}
           title="Upload media"
-          sub="Originals upload directly to Lumen storage. Drag a folder for fastest results."
+          sub="Originals upload directly to Droptop storage. Drag a folder for fastest results."
         />
         <div className="grid sm:grid-cols-2 gap-3 mb-6">
           <div className="flex flex-col gap-1.5">

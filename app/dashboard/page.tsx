@@ -9,7 +9,7 @@ import { StatsCard } from '@/components/data-display/stats-card';
 import { Badge } from '@/components/ui/badge';
 import { DashboardApiError, getDashboardOverview } from '@/lib/api/dashboard';
 
-const AUTH_COOKIE = 'lumen.accessToken';
+const AUTH_COOKIE = 'droptop.accessToken';
 
 export default async function DashboardPage() {
   const token = cookies().get(AUTH_COOKIE)?.value;

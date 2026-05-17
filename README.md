@@ -1,4 +1,4 @@
-# Lumen — Photography Client Galleries
+# Droptop — Photography Client Galleries
 
 A lean, premium photography client gallery platform — admin studio + public client galleries.
 

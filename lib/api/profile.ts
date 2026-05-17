@@ -65,7 +65,7 @@ function getApiBaseUrl() {
 
 function getStoredAccessToken() {
   if (typeof window === 'undefined') return null;
-  return window.localStorage.getItem('lumen.accessToken');
+  return window.localStorage.getItem('droptop.accessToken');
 }
 
 async function request<T>(path: string, accessToken: string, init?: RequestInit): Promise<T> {

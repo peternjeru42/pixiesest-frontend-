@@ -11,7 +11,7 @@ export default function LoginPage() {
       text="Access collections, favorites, print orders and client delivery tools from one calm account area."
     >
       <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#786f61]">Log in</p>
-      <h1 className="font-display text-5xl font-medium leading-none tracking-normal">Log in to Lumen</h1>
+      <h1 className="font-display text-5xl font-medium leading-none tracking-normal">Log in to Droptop</h1>
       <p className="mt-3 text-sm leading-6 text-[#625c52]">
         Do not have an account?{' '}
         <Link href="/register" className="font-semibold text-[#171512] underline underline-offset-4">

@@ -60,7 +60,7 @@ export default function Home() {
             <span className="grid h-8 w-8 place-items-center rounded-full bg-[#171512] text-sm font-semibold text-[#f7f5f0]">
               L
             </span>
-            <span className="text-[15px] font-semibold tracking-[0.18em]">LUMEN</span>
+            <span className="text-[15px] font-semibold tracking-[0.18em]">DROPTOP</span>
           </Link>
           <nav className="hidden items-center gap-8 text-[13px] font-medium text-[#514c43] md:flex">
             <a href="#products">Products</a>
@@ -244,7 +244,7 @@ export default function Home() {
 
       <footer className="border-t border-[#ded8cc] bg-white">
         <div className="mx-auto flex max-w-7xl flex-col gap-6 px-5 py-10 text-sm text-[#625c52] sm:flex-row sm:items-center sm:justify-between lg:px-8">
-          <div className="font-semibold tracking-[0.18em] text-[#171512]">LUMEN</div>
+          <div className="font-semibold tracking-[0.18em] text-[#171512]">DROPTOP</div>
           <div className="flex flex-wrap gap-5">
             <Link href="#products">Products</Link>
             <Link href="#pricing">Pricing</Link>

@@ -77,7 +77,7 @@ export function RegisterForm() {
           <Label htmlFor="businessName">Business name</Label>
           <Input
             id="businessName"
-            placeholder="Lumen Studio"
+            placeholder="Droptop Studio"
             value={form.businessName}
             onChange={(e) => setForm((f) => ({ ...f, businessName: e.target.value }))}
             className="rounded-[4px] bg-white"
@@ -124,7 +124,7 @@ export function RegisterForm() {
       </form>
 
       <p className="mt-5 text-center text-[12px] leading-5 text-[#786f61]">
-        By creating an account, you agree to Lumen&apos;s{' '}
+        By creating an account, you agree to Droptop&apos;s{' '}
         <Link href="#" className="font-medium text-[#171512] underline underline-offset-4">
           Terms of Service
         </Link>{' '}

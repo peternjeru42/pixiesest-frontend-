@@ -11,7 +11,7 @@ export function PublicGalleryNav({ favCount, onOpenFavorites, onOpenDownload, ad
     <nav className="sticky top-0 z-30 flex items-center justify-between px-6 md:px-9 py-4 bg-bg/85 backdrop-blur border-b border-line">
       <Link href="/dashboard" className="flex items-center gap-2.5">
         <span className="w-6 h-6 grid place-items-center rounded-full bg-ink text-bg serif italic text-[12px]">L</span>
-        <span className="serif text-[18px] uppercase tracking-[0.05em]">Lumen</span>
+        <span className="serif text-[18px] uppercase tracking-[0.05em]">Droptop</span>
       </Link>
       <div className="flex items-center gap-2">
         <Button variant="outline" size="icon" onClick={onOpenFavorites} className="relative">
@@ -35,8 +35,8 @@ export function PublicGalleryFooter({ coupleName }: { coupleName: string }) {
   return (
     <footer className="mt-20 pt-8 pb-12 border-t border-line text-center">
       <div className="serif text-2xl mb-1">Thank you, {coupleName}.</div>
-      <div className="text-[12.5px] text-muted">Photographed with care by Lumen Studio · lumen.studio · @lumen.studio</div>
-      <div className="mono text-[10.5px] text-muted tracking-[0.14em] mt-5">© 2026 LUMEN STUDIO · ALL RIGHTS RESERVED</div>
+      <div className="text-[12.5px] text-muted">Photographed with care by Droptop Studio · droptop.studio · @droptop.studio</div>
+      <div className="mono text-[10.5px] text-muted tracking-[0.14em] mt-5">© 2026 DROPTOP STUDIO · ALL RIGHTS RESERVED</div>
     </footer>
   );
 }

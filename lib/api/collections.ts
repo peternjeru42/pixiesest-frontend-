@@ -3,8 +3,8 @@ import type { Collection, CollectionStatus } from '../types';
 import { unsplash } from '../utils';
 
 const wait = (ms = 200) => new Promise(r => setTimeout(r, ms));
-const COLLECTIONS_STORAGE_KEY = 'lumen.collections.v2';
-const COLLECTIONS_CHANGED_EVENT = 'lumen.collections.changed';
+const COLLECTIONS_STORAGE_KEY = 'droptop.collections.v2';
+const COLLECTIONS_CHANGED_EVENT = 'droptop.collections.changed';
 
 function cloneCollection(collection: Collection): Collection {
   return {
