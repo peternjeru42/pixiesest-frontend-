@@ -11,7 +11,11 @@ import { Label } from '@/components/ui/label';
 import * as api from '@/lib/api';
 import { GoogleAuthButton } from './google-auth-button';
 
-export function LoginForm() {
+type LoginFormProps = {
+  initialMessage?: string;
+};
+
+export function LoginForm({ initialMessage = '' }: LoginFormProps) {
   const router = useRouter();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -19,7 +23,7 @@ export function LoginForm() {
   const [remember, setRemember] = React.useState(true);
   const [loading, setLoading] = React.useState(false);
   const [googleLoading, setGoogleLoading] = React.useState(false);
-  const [err, setErr] = React.useState('');
+  const [err, setErr] = React.useState(initialMessage);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -38,7 +42,7 @@ export function LoginForm() {
   return (
     <div className="mt-8">
       <div className="grid gap-3">
-        <GoogleAuthButton text="continue_with" onError={setErr} onLoadingChange={setGoogleLoading} />
+        <GoogleAuthButton text="continue_with" intent="login" onError={setErr} onLoadingChange={setGoogleLoading} />
       </div>
 
       <div className="my-7 flex items-center gap-4">

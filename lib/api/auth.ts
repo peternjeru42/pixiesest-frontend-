@@ -16,6 +16,8 @@ type AuthResponse = {
   user: AuthUser;
 };
 
+type GoogleAuthIntent = 'login' | 'signup';
+
 type RegisterInput = {
   firstName: string;
   lastName: string;
@@ -23,6 +25,18 @@ type RegisterInput = {
   email: string;
   password: string;
 };
+
+export class ApiError extends Error {
+  status: number;
+  code?: string;
+
+  constructor(message: string, status: number, code?: string) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.code = code;
+  }
+}
 
 async function request<T>(path: string, init: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -36,10 +50,16 @@ async function request<T>(path: string, init: RequestInit): Promise<T> {
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(getErrorMessage(data) || `Request failed with status ${response.status}`);
+    throw new ApiError(getErrorMessage(data) || `Request failed with status ${response.status}`, response.status, getErrorCode(data));
   }
 
   return data as T;
+}
+
+function getErrorCode(data: unknown): string | undefined {
+  if (!data || typeof data !== 'object') return undefined;
+  const code = (data as { code?: unknown }).code;
+  return typeof code === 'string' ? code : undefined;
 }
 
 function getErrorMessage(data: unknown): string {
@@ -111,12 +131,12 @@ export async function register(input: RegisterInput) {
   return auth;
 }
 
-export async function googleAuth(credential: string) {
+export async function googleAuth(credential: string, intent: GoogleAuthIntent = 'login') {
   if (!credential) throw new Error('Google credential is required');
 
   const auth = await request<AuthResponse>('/auth/google/', {
     method: 'POST',
-    body: JSON.stringify({ credential }),
+    body: JSON.stringify({ credential, intent }),
   });
 
   persistAuthTokens(auth);

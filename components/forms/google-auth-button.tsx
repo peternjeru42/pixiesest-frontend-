@@ -10,9 +10,11 @@ type GoogleCredentialResponse = {
 };
 
 type GoogleButtonText = 'signin_with' | 'signup_with' | 'continue_with';
+type GoogleAuthIntent = 'login' | 'signup';
 
 type GoogleAuthButtonProps = {
   text: GoogleButtonText;
+  intent?: GoogleAuthIntent;
   onError: (message: string) => void;
   onLoadingChange: (loading: boolean) => void;
 };
@@ -44,7 +46,7 @@ declare global {
   }
 }
 
-export function GoogleAuthButton({ text, onError, onLoadingChange }: GoogleAuthButtonProps) {
+export function GoogleAuthButton({ text, intent = 'login', onError, onLoadingChange }: GoogleAuthButtonProps) {
   const router = useRouter();
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [scriptReady, setScriptReady] = React.useState(false);
@@ -61,14 +63,18 @@ export function GoogleAuthButton({ text, onError, onLoadingChange }: GoogleAuthB
       onError('');
 
       try {
-        await api.googleAuth(response.credential);
+        await api.googleAuth(response.credential, intent);
         router.push('/dashboard');
       } catch (error) {
+        if (intent === 'signup' && error instanceof api.ApiError && error.code === 'google_account_exists') {
+          router.replace('/login?google=existing');
+          return;
+        }
         onError(error instanceof Error ? error.message : 'Google authentication failed');
         onLoadingChange(false);
       }
     },
-    [onError, onLoadingChange, router]
+    [intent, onError, onLoadingChange, router]
   );
 
   React.useEffect(() => {

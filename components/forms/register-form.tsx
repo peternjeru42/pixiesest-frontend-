@@ -41,7 +41,7 @@ export function RegisterForm() {
   return (
     <div className="mt-8">
       <div className="grid gap-3">
-        <GoogleAuthButton text="signup_with" onError={setErr} onLoadingChange={setGoogleLoading} />
+        <GoogleAuthButton text="signup_with" intent="signup" onError={setErr} onLoadingChange={setGoogleLoading} />
       </div>
 
       <div className="my-7 flex items-center gap-4">

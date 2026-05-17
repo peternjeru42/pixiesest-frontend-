@@ -2,7 +2,18 @@ import Link from 'next/link';
 import { AuthLayout } from '@/components/layout/auth-layout';
 import { LoginForm } from '@/components/forms/login-form';
 
-export default function LoginPage() {
+type LoginPageProps = {
+  searchParams?: {
+    google?: string;
+  };
+};
+
+export default function LoginPage({ searchParams }: LoginPageProps) {
+  const initialMessage =
+    searchParams?.google === 'existing'
+      ? 'That Google account already exists. Continue with Google to sign in.'
+      : '';
+
   return (
     <AuthLayout
       image="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1400&q=80"
@@ -18,7 +29,7 @@ export default function LoginPage() {
           Sign up
         </Link>
       </p>
-      <LoginForm />
+      <LoginForm initialMessage={initialMessage} />
     </AuthLayout>
   );
 }
