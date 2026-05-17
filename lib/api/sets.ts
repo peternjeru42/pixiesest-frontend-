@@ -34,6 +34,14 @@ type BackendMedia = {
   created_at?: string;
 };
 
+type Paginated<T> = {
+  results: T[];
+};
+
+function unpackList<T>(data: T[] | Paginated<T>) {
+  return Array.isArray(data) ? data : data.results;
+}
+
 function getStoredAccessToken() {
   if (typeof window === 'undefined') return null;
   return window.localStorage.getItem('droptop.accessToken');
@@ -114,7 +122,7 @@ function toMedia(media: BackendMedia): Media {
 }
 
 export async function listSets(collectionId: string) {
-  return (await request<BackendSet[]>(`/collections/${collectionId}/sets/`)).map(toSet);
+  return unpackList(await request<BackendSet[] | Paginated<BackendSet>>(`/collections/${collectionId}/sets/`)).map(toSet);
 }
 
 export async function getSet(id: string): Promise<Set | null> {
@@ -156,5 +164,5 @@ export async function deleteSet(id: string) {
 }
 
 export async function getSetMedia(id: string) {
-  return (await request<BackendMedia[]>(`/sets/${id}/media/`)).map(toMedia);
+  return unpackList(await request<BackendMedia[] | Paginated<BackendMedia>>(`/sets/${id}/media/`)).map(toMedia);
 }

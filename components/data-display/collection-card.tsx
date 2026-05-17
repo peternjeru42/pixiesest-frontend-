@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { Copy, Download, Eye, FolderInput, Heart, Image as ImageIcon, MoreHorizontal, Send, Trash2 } from 'lucide-react';
+import { Download, Eye, FolderInput, Heart, Image as ImageIcon, MoreHorizontal, Send, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { publicCollectionPath, ShareDialog } from '@/components/actions/share-dialog';
 import { listFolders } from '@/lib/api/folders';
 import { moveCollectionToFolder } from '@/lib/api/collections';
 import { cn } from '@/lib/utils';
@@ -95,7 +96,19 @@ export function CollectionCard({ c, onCollectionChange }: { c: Collection; onCol
         }}
       />
 
-      <ShareCollectionDialog collection={c} open={shareOpen} onOpenChange={setShareOpen}/>
+      <ShareDialog
+        open={shareOpen}
+        onOpenChange={setShareOpen}
+        title="Share collection"
+        description="Copy or share the public link for this collection."
+        resourceName={c.title}
+        path={publicCollectionPath(c.slug)}
+        details={c.downloadPin ? [{
+          label: 'Download PIN',
+          value: c.downloadPin,
+          helper: 'Share this PIN only with clients who should be able to download files.',
+        }] : []}
+      />
       <MoveToFolderDialog collection={c} open={moveOpen} onOpenChange={setMoveOpen} onMoved={onCollectionChange}/>
     </article>
   );
@@ -184,71 +197,6 @@ function MenuButton({
       <span className="grid h-5 w-5 place-items-center">{icon}</span>
       <span>{children}</span>
     </button>
-  );
-}
-
-function ShareCollectionDialog({
-  collection,
-  open,
-  onOpenChange,
-}: {
-  collection: Collection;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
-  const publicUrl = typeof window === 'undefined'
-    ? `/galleries/${collection.slug}`
-    : `${window.location.origin}/galleries/${collection.slug}`;
-  const downloadPin = collection.downloadPin || 'No PIN available';
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="md" className="rounded-md" onClose={() => onOpenChange(false)}>
-        <DialogHeader className="px-5 pt-6 pb-2 sm:px-6">
-          <DialogTitle className="font-sans text-[14px] font-semibold uppercase tracking-[0.16em]">Get direct link</DialogTitle>
-        </DialogHeader>
-        <DialogBody className="gap-5 px-5 pb-6 sm:px-6">
-          <CopyBlock
-            label="Collection URL"
-            value={publicUrl}
-            helper="Share this unique URL for this collection with your client."
-          />
-          <CopyBlock
-            label="Gallery password"
-            value={downloadPin}
-            helper="Share this 4-digit PIN with your client for single-photo and full-gallery downloads."
-          />
-          <div className="flex gap-3 text-muted">
-            <span className="grid h-6 w-6 place-items-center rounded-full bg-panel text-xs font-semibold">f</span>
-            <span className="grid h-6 w-6 place-items-center rounded-full bg-panel text-xs font-semibold">p</span>
-            <span className="grid h-6 w-6 place-items-center text-lg leading-none">x</span>
-          </div>
-        </DialogBody>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function CopyBlock({ label, value, helper }: { label: string; value: string; helper: string }) {
-  const [copied, setCopied] = React.useState(false);
-
-  async function copyValue() {
-    await navigator.clipboard?.writeText(value);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1400);
-  }
-
-  return (
-    <div>
-      <div className="mb-2 text-[13.5px] font-medium">{label}</div>
-      <div className="flex min-h-11 items-center justify-between gap-3 rounded-md bg-panel px-3 text-[13px]">
-        <span className="min-w-0 truncate">{value}</span>
-        <button type="button" onClick={copyValue} className="inline-flex shrink-0 items-center gap-1.5 text-[12.5px] font-medium text-teal-600">
-          <Copy size={14}/>{copied ? 'Copied' : 'Copy'}
-        </button>
-      </div>
-      <p className="mt-2 text-[12.5px] leading-5 text-muted">{helper}</p>
-    </div>
   );
 }
 

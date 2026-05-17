@@ -35,6 +35,14 @@ type CompleteUploadResponse = {
   media_asset?: string | BackendMedia | null;
 };
 
+type Paginated<T> = {
+  results: T[];
+};
+
+function unpackList<T>(data: T[] | Paginated<T>) {
+  return Array.isArray(data) ? data : data.results;
+}
+
 function getStoredAccessToken() {
   if (typeof window === 'undefined') return null;
   return window.localStorage.getItem('droptop.accessToken');
@@ -117,9 +125,9 @@ export function subscribeToMediaChanges(callback: () => void) {
 }
 
 export async function listMedia(filter?: { collectionId?: string; setId?: string }) {
-  if (filter?.setId) return (await request<BackendMedia[]>(`/sets/${filter.setId}/media/`)).map(toMedia);
-  if (filter?.collectionId) return (await request<BackendMedia[]>(`/collections/${filter.collectionId}/media/`)).map(toMedia);
-  return (await request<BackendMedia[]>('/media/')).map(toMedia);
+  if (filter?.setId) return unpackList(await request<BackendMedia[] | Paginated<BackendMedia>>(`/sets/${filter.setId}/media/`)).map(toMedia);
+  if (filter?.collectionId) return unpackList(await request<BackendMedia[] | Paginated<BackendMedia>>(`/collections/${filter.collectionId}/media/`)).map(toMedia);
+  return unpackList(await request<BackendMedia[] | Paginated<BackendMedia>>('/media/')).map(toMedia);
 }
 
 export async function getMedia(id: string): Promise<Media | null> {

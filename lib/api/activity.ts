@@ -14,6 +14,14 @@ type BackendActivity = {
   created_at?: string;
 };
 
+type Paginated<T> = {
+  results: T[];
+};
+
+function unpackList<T>(data: T[] | Paginated<T>) {
+  return Array.isArray(data) ? data : data.results;
+}
+
 function getStoredAccessToken() {
   if (typeof window === 'undefined') return null;
   return window.localStorage.getItem('droptop.accessToken');
@@ -64,7 +72,7 @@ function toActivity(event: BackendActivity): ActivityEvent {
 
 export async function listActivity(filter?: { collectionId?: string; type?: string }) {
   const path = filter?.collectionId ? `/collections/${filter.collectionId}/activity/` : '/activity/';
-  let activity = (await request<BackendActivity[]>(path)).map(toActivity);
+  let activity = unpackList(await request<BackendActivity[] | Paginated<BackendActivity>>(path)).map(toActivity);
   if (filter?.type) activity = activity.filter(event => event.type === filter.type);
   return activity;
 }

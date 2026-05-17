@@ -35,6 +35,7 @@ export function FolderForm() {
         description: description.trim(),
         showOnHomepage: showHome,
         hasPassword,
+        password: hasPassword ? password.trim() : undefined,
       });
       router.push('/folders');
     } catch (err) {

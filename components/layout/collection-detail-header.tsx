@@ -1,9 +1,10 @@
 'use client';
 import * as React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Image as ImageIcon, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { StatsCard } from '@/components/data-display/stats-card';
+import { publicCollectionPath, ShareDialog } from '@/components/actions/share-dialog';
 import { cn } from '@/lib/utils';
 import type { Collection } from '@/lib/types';
 
@@ -15,6 +16,8 @@ const TABS = [
 ];
 
 export function CollectionDetailHeader({ c, activeTab }: { c: Collection; activeTab: string }) {
+  const [shareOpen, setShareOpen] = React.useState(false);
+
   return (
     <>
       <div className="relative h-72 overflow-hidden bg-panel">
@@ -29,12 +32,28 @@ export function CollectionDetailHeader({ c, activeTab }: { c: Collection; active
         <Button asChild size="sm" className="absolute top-5 left-6 lg:left-10 bg-bg/95 hover:bg-bg">
           <Link href="/collections"><ArrowLeft size={12}/>Collections</Link>
         </Button>
+        <Button size="sm" className="absolute top-5 right-6 lg:right-10 bg-bg/95 hover:bg-bg" onClick={() => setShareOpen(true)}>
+          <Share2 size={12}/>Share
+        </Button>
         <div className="absolute left-6 lg:left-10 right-6 lg:right-10 bottom-6 text-bg">
           <div className="mono text-[10.5px] tracking-wider text-bg/85 mb-2.5">{(c.folderName ?? 'No folder').toUpperCase()}</div>
           <h1 className="serif text-5xl font-medium tracking-tight">{c.title}</h1>
           <div className="mono text-[11px] tracking-wider mt-1.5 opacity-85">{c.date.toUpperCase()}</div>
         </div>
       </div>
+      <ShareDialog
+        open={shareOpen}
+        onOpenChange={setShareOpen}
+        title="Share collection"
+        description="Copy or share the public link for this collection."
+        resourceName={c.title}
+        path={publicCollectionPath(c.slug)}
+        details={c.downloadPin ? [{
+          label: 'Download PIN',
+          value: c.downloadPin,
+          helper: 'Share this PIN only with clients who should be able to download files.',
+        }] : []}
+      />
 
       <div className="px-6 lg:px-10 py-5">
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">

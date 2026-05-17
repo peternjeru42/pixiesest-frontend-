@@ -3,34 +3,60 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { verifyCollectionPassword, verifyFolderPassword } from '@/lib/api/public-gallery';
 import type { Collection } from '@/lib/types';
 
-export function PasswordAccessForm({ c, onUnlock }: { c: Collection; onUnlock?: () => void }) {
+export function PasswordAccessForm({
+  c,
+  slug,
+  resource = 'collection',
+  title,
+  subtitle,
+  returnPath,
+  onUnlock,
+}: {
+  c?: Collection;
+  slug?: string;
+  resource?: 'collection' | 'folder';
+  title?: string;
+  subtitle?: string;
+  returnPath?: string;
+  onUnlock?: () => void;
+}) {
   const router = useRouter();
+  const resourceSlug = slug ?? c?.slug ?? '';
+  const resourceTitle = title ?? c?.couple ?? c?.title ?? 'Private gallery';
+  const resourceSubtitle = subtitle ?? c?.date ?? '';
   const [pw, setPw] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [err, setErr] = React.useState('');
   const [loading, setLoading] = React.useState(false);
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true); setErr('');
-    setTimeout(() => {
-      if (pw === (c.password ?? 'amelia26')) {
-        if (onUnlock) onUnlock();
-        else router.push(`/galleries/${c.slug}`);
+    if (!resourceSlug) return;
+    setLoading(true);
+    setErr('');
+
+    try {
+      if (resource === 'folder') {
+        await verifyFolderPassword(resourceSlug, pw, email);
       } else {
-        setErr('Password is incorrect. Try again or contact the photographer.');
-        setLoading(false);
+        await verifyCollectionPassword(resourceSlug, pw, email);
       }
-    }, 500);
+      if (onUnlock) onUnlock();
+      else router.push(returnPath ?? (resource === 'folder' ? `/folders/${resourceSlug}/public` : `/galleries/${resourceSlug}`));
+    } catch {
+      setErr('Password is incorrect. Try again or contact the photographer.');
+      setLoading(false);
+    }
   }
 
   return (
     <form onSubmit={submit} className="relative z-10 w-full max-w-sm p-8 text-center">
       <span className="block w-9 h-9 rounded-full bg-bg text-ink grid place-items-center mx-auto mb-7 serif italic text-lg">D</span>
-      <div className="mono text-[10.5px] tracking-[0.14em] text-bg/70 mb-3">{c.date.toUpperCase()}</div>
-      <h1 className="serif text-5xl font-medium tracking-tight text-bg mb-7">{c.couple ?? c.title}</h1>
+      {resourceSubtitle && <div className="mono text-[10.5px] tracking-[0.14em] text-bg/70 mb-3">{resourceSubtitle.toUpperCase()}</div>}
+      <h1 className="serif text-5xl font-medium tracking-tight text-bg mb-7">{resourceTitle}</h1>
       <p className="text-sm opacity-80 text-bg mb-6 leading-relaxed">This gallery is private. Please enter the password your photographer provided.</p>
       <input
         autoFocus
@@ -47,9 +73,8 @@ export function PasswordAccessForm({ c, onUnlock }: { c: Collection; onUnlock?: 
       />
       {err && <div className="text-[12.5px] text-rose-300 mb-3">{err}</div>}
       <Button size="lg" disabled={loading || !pw} className="w-full bg-bg text-ink border-bg hover:bg-bg/90">
-        {loading ? 'Unlocking…' : 'Enter gallery'} <ArrowRight size={14}/>
+        {loading ? 'Unlocking...' : 'Enter gallery'} <ArrowRight size={14}/>
       </Button>
-      <div className="mono text-[10.5px] tracking-[0.14em] text-bg/40 mt-6">HINT FOR DEMO: AMELIA26</div>
     </form>
   );
 }

@@ -16,6 +16,14 @@ type BackendDownload = {
   created_at?: string;
 };
 
+type Paginated<T> = {
+  results: T[];
+};
+
+function unpackList<T>(data: T[] | Paginated<T>) {
+  return Array.isArray(data) ? data : data.results;
+}
+
 function getStoredAccessToken() {
   if (typeof window === 'undefined') return null;
   return window.localStorage.getItem('droptop.accessToken');
@@ -82,7 +90,7 @@ function toDownload(download: BackendDownload): DownloadLog {
 
 export async function listDownloads(filter?: { collectionId?: string }) {
   const path = filter?.collectionId ? `/collections/${filter.collectionId}/downloads/logs/` : '/downloads/logs/';
-  return (await request<BackendDownload[]>(path)).map(toDownload);
+  return unpackList(await request<BackendDownload[] | Paginated<BackendDownload>>(path)).map(toDownload);
 }
 
 export async function requestDownload(input: { collectionId: string; type: DownloadType; setId?: string; pin?: string }) {

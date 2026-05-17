@@ -7,16 +7,17 @@ import { PageHeader } from '@/components/layout/page-header';
 import { Button } from '@/components/ui/button';
 import { FolderCard } from '@/components/data-display/folder-card';
 import { listCollections, subscribeToCollectionChanges } from '@/lib/api/collections';
-import { listFolders, subscribeToFolderChanges } from '@/lib/api/folders';
+import { getCachedFolders, listFolders, subscribeToFolderChanges } from '@/lib/api/folders';
 import type { Collection, Folder } from '@/lib/types';
 
 export default function FoldersPage() {
-  const [folders, setFolders] = React.useState<Folder[]>([]);
+  const [folders, setFolders] = React.useState<Folder[]>(() => getCachedFolders());
   const [collections, setCollections] = React.useState<Collection[]>([]);
 
   React.useEffect(() => {
     let mounted = true;
     const load = async () => {
+      setFolders(getCachedFolders());
       const [folderItems, collectionItems] = await Promise.all([listFolders(), listCollections()]);
       if (!mounted) return;
       setFolders(folderItems);

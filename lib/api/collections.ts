@@ -2,6 +2,7 @@ import type { Collection, CollectionStatus, Set, SetVisibility } from '../types'
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api/v1').replace(/\/$/, '');
 const COLLECTIONS_CHANGED_EVENT = 'droptop.collections.changed';
+const COLLECTIONS_CACHE_KEY = 'droptop.collections.cache.v1';
 
 type BackendCounts = Partial<{
   photos: number;
@@ -43,6 +44,14 @@ type BackendCollection = {
   sets?: BackendSet[];
 };
 
+type Paginated<T> = {
+  results: T[];
+};
+
+function unpackList<T>(data: T[] | Paginated<T>) {
+  return Array.isArray(data) ? data : data.results;
+}
+
 function getStoredAccessToken() {
   if (typeof window === 'undefined') return null;
   return window.localStorage.getItem('droptop.accessToken');
@@ -83,6 +92,51 @@ function getErrorMessage(data: unknown) {
 
 function notifyCollectionChanges() {
   if (typeof window !== 'undefined') window.dispatchEvent(new Event(COLLECTIONS_CHANGED_EVENT));
+}
+
+function readCollectionCache(): Collection[] {
+  if (typeof window === 'undefined') return [];
+
+  const stored = window.localStorage.getItem(COLLECTIONS_CACHE_KEY);
+  if (!stored) return [];
+
+  try {
+    return JSON.parse(stored) as Collection[];
+  } catch {
+    window.localStorage.removeItem(COLLECTIONS_CACHE_KEY);
+    return [];
+  }
+}
+
+function writeCollectionCache(collections: Collection[]) {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(COLLECTIONS_CACHE_KEY, JSON.stringify(collections.slice(0, 50)));
+}
+
+function mergeCollections(primary: Collection[], fallback: Collection[]) {
+  const byId = new Map<string, Collection>();
+  for (const collection of fallback) byId.set(collection.id, collection);
+  for (const collection of primary) byId.set(collection.id, collection);
+  return Array.from(byId.values());
+}
+
+function rememberCollection(collection: Collection) {
+  writeCollectionCache(mergeCollections([collection], readCollectionCache()));
+}
+
+function rememberCollections(collections: Collection[]) {
+  writeCollectionCache(mergeCollections(collections, readCollectionCache()));
+}
+
+function forgetCollection(id: string) {
+  writeCollectionCache(readCollectionCache().filter(collection => collection.id !== id));
+}
+
+export function getCachedCollections(filter?: { status?: CollectionStatus; folderId?: string }) {
+  let collections = readCollectionCache();
+  if (filter?.status) collections = collections.filter(collection => collection.status === filter.status);
+  if (filter?.folderId) collections = collections.filter(collection => collection.folderId === filter.folderId);
+  return collections;
 }
 
 function formatDisplayDate(value?: string | null) {
@@ -160,9 +214,11 @@ export function subscribeToCollectionChanges(callback: () => void) {
 }
 
 export async function listCollections(filter?: { status?: CollectionStatus; folderId?: string }) {
-  let collections = (await request<BackendCollection[]>('/collections/')).map(toCollection);
+  const cached = getCachedCollections(filter);
+  let collections = mergeCollections(unpackList(await request<BackendCollection[] | Paginated<BackendCollection>>('/collections/')).map(toCollection), cached);
   if (filter?.status) collections = collections.filter(collection => collection.status === filter.status);
   if (filter?.folderId) collections = collections.filter(collection => collection.folderId === filter.folderId);
+  rememberCollections(collections);
   return collections;
 }
 
@@ -180,6 +236,7 @@ export async function createCollection(input: Partial<Collection>) {
     method: 'POST',
     body: JSON.stringify(collectionBody(input, 'create')),
   }));
+  rememberCollection(collection);
   notifyCollectionChanges();
   return collection;
 }
@@ -189,18 +246,21 @@ export async function updateCollection(id: string, patch: Partial<Collection>) {
     method: 'PATCH',
     body: JSON.stringify(collectionBody(patch)),
   }));
+  rememberCollection(collection);
   notifyCollectionChanges();
   return collection;
 }
 
 export async function deleteCollection(id: string) {
   await request(`/collections/${id}/`, { method: 'DELETE' });
+  forgetCollection(id);
   notifyCollectionChanges();
   return { ok: true };
 }
 
 async function collectionAction(id: string, action: string) {
   const collection = toCollection(await request<BackendCollection>(`/collections/${id}/${action}/`, { method: 'POST' }));
+  rememberCollection(collection);
   notifyCollectionChanges();
   return collection;
 }
@@ -214,6 +274,7 @@ export async function moveCollectionToFolder(id: string, folderId: string | null
     method: 'PATCH',
     body: JSON.stringify({ folder_id: folderId }),
   }));
+  rememberCollection(collection);
   notifyCollectionChanges();
   return collection;
 }

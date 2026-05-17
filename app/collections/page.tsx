@@ -6,18 +6,20 @@ import { AdminLayout } from '@/components/layout/admin-layout';
 import { PageHeader } from '@/components/layout/page-header';
 import { Button } from '@/components/ui/button';
 import { CollectionCard } from '@/components/data-display/collection-card';
-import { listCollections, subscribeToCollectionChanges } from '@/lib/api/collections';
+import { getCachedCollections, listCollections, subscribeToCollectionChanges } from '@/lib/api/collections';
 import { searchFolders } from '@/lib/api/folders';
 import type { Collection } from '@/lib/types';
 
 export default function CollectionsPage() {
-  const [collections, setCollections] = React.useState<Collection[]>([]);
+  const [collections, setCollections] = React.useState<Collection[]>(() => filterCachedCollections(''));
   const [search, setSearch] = React.useState('');
 
   React.useEffect(() => {
     let mounted = true;
     const load = async () => {
       const query = search.trim();
+      setCollections(filterCachedCollections(query));
+
       const [items, folders] = await Promise.all([
         listCollections(),
         query ? searchFolders(query) : Promise.resolve([]),
@@ -74,5 +76,16 @@ export default function CollectionsPage() {
         )}
       </div>
     </AdminLayout>
+  );
+}
+
+function filterCachedCollections(query: string) {
+  const collections = getCachedCollections();
+  const normalized = query.trim().toLowerCase();
+  if (!normalized) return collections;
+  return collections.filter(collection =>
+    collection.title.toLowerCase().includes(normalized) ||
+    collection.slug.toLowerCase().includes(normalized) ||
+    (collection.folderName ?? '').toLowerCase().includes(normalized),
   );
 }
