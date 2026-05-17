@@ -1,7 +1,7 @@
-import Link from 'next/link';
-import { ArrowLeft, Mail } from 'lucide-react';
+import { Suspense } from 'react';
+import { Mail } from 'lucide-react';
 import { AuthLayout } from '@/components/layout/auth-layout';
-import { Button } from '@/components/ui/button';
+import { SignupVerificationForm } from '@/components/forms/signup-verification-form';
 
 export default function VerifyPage() {
   return (
@@ -13,12 +13,11 @@ export default function VerifyPage() {
       <div className="w-14 h-14 grid place-items-center rounded-full bg-accent-soft text-accent mb-5">
         <Mail size={22}/>
       </div>
-      <h1 className="serif text-4xl font-medium tracking-tight mb-1.5">Check your inbox</h1>
-      <div className="text-muted mb-7">We sent a verification link to <b className="text-ink">mara@droptop.studio</b>. Click it to continue.</div>
-      <Button size="lg" variant="outline" className="w-full">Resend email</Button>
-      <Link href="/login" className="text-sm text-muted inline-flex items-center gap-1.5 justify-center mt-5 hover:text-ink">
-        <ArrowLeft size={13}/>Back to sign in
-      </Link>
+      <h1 className="serif text-4xl font-medium tracking-tight mb-1.5">Verify your email</h1>
+      <div className="text-muted mb-7">Enter the code to finish creating your account.</div>
+      <Suspense fallback={<div className="text-sm text-muted">Loading verification form...</div>}>
+        <SignupVerificationForm />
+      </Suspense>
     </AuthLayout>
   );
 }

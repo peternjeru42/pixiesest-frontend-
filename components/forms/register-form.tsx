@@ -31,7 +31,7 @@ export function RegisterForm() {
 
     try {
       await api.register(form);
-      router.push('/dashboard');
+      router.push(`/verify-email?email=${encodeURIComponent(form.email)}`);
     } catch (error) {
       setErr(error instanceof Error ? error.message : 'Account creation failed');
       setLoading(false);

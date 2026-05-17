@@ -18,13 +18,16 @@ type AuthResponse = {
 
 type GoogleAuthIntent = 'login' | 'signup';
 
-type RegisterInput = {
+export type RegisterInput = {
   firstName: string;
   lastName: string;
   businessName: string;
   email: string;
   password: string;
+  phoneNumber?: string;
 };
+
+const PENDING_REGISTRATION_KEY = 'droptop.pendingRegistration';
 
 export class ApiError extends Error {
   status: number;
@@ -89,6 +92,28 @@ function persistAuthTokens(auth: AuthResponse) {
   setAuthCookie(auth.access);
 }
 
+function cachePendingRegistration(input: RegisterInput) {
+  if (typeof window === 'undefined') return;
+  window.sessionStorage.setItem(PENDING_REGISTRATION_KEY, JSON.stringify(input));
+}
+
+export function getPendingRegistration(): RegisterInput | null {
+  if (typeof window === 'undefined') return null;
+  const stored = window.sessionStorage.getItem(PENDING_REGISTRATION_KEY);
+  if (!stored) return null;
+  try {
+    return JSON.parse(stored) as RegisterInput;
+  } catch {
+    window.sessionStorage.removeItem(PENDING_REGISTRATION_KEY);
+    return null;
+  }
+}
+
+export function clearPendingRegistration() {
+  if (typeof window === 'undefined') return;
+  window.sessionStorage.removeItem(PENDING_REGISTRATION_KEY);
+}
+
 function getStoredAccessToken() {
   if (typeof window === 'undefined') return null;
   return window.localStorage.getItem('droptop.accessToken');
@@ -116,7 +141,7 @@ export async function login(email: string, password: string) {
 }
 
 export async function register(input: RegisterInput) {
-  const auth = await request<AuthResponse>('/auth/register/', {
+  const response = await request<{ detail: string; expires_in: number }>('/auth/register/', {
     method: 'POST',
     body: JSON.stringify({
       email: input.email,
@@ -124,9 +149,31 @@ export async function register(input: RegisterInput) {
       first_name: input.firstName,
       last_name: input.lastName,
       business_name: input.businessName,
+      phone_number: input.phoneNumber ?? '',
     }),
   });
 
+  cachePendingRegistration(input);
+  return response;
+}
+
+export async function verifySignupCode(code: string, input = getPendingRegistration()) {
+  if (!input) throw new Error('Signup details are missing. Start signup again.');
+
+  const auth = await request<AuthResponse>('/auth/register/verify/', {
+    method: 'POST',
+    body: JSON.stringify({
+      email: input.email,
+      code,
+      password: input.password,
+      first_name: input.firstName,
+      last_name: input.lastName,
+      business_name: input.businessName,
+      phone_number: input.phoneNumber ?? '',
+    }),
+  });
+
+  clearPendingRegistration();
   persistAuthTokens(auth);
   return auth;
 }
