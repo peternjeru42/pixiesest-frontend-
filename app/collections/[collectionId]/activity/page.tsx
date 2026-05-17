@@ -1,18 +1,49 @@
+'use client';
+import * as React from 'react';
 import { notFound } from 'next/navigation';
 import { AdminLayout } from '@/components/layout/admin-layout';
 import { CollectionDetailHeader } from '@/components/layout/collection-detail-header';
 import { ActivityTimeline } from '@/components/data-display/activity-timeline';
-import { COLLECTIONS, ACTIVITY } from '@/lib/mock-data';
+import { getCollection, subscribeToCollectionChanges } from '@/lib/api/collections';
+import { ACTIVITY } from '@/lib/mock-data';
+import type { Collection } from '@/lib/types';
 
 export default function CollectionActivityPage({ params }: { params: { collectionId: string } }) {
-  const c = COLLECTIONS.find(x => x.id === params.collectionId);
-  if (!c) return notFound();
+  const [collection, setCollection] = React.useState<Collection | null>(null);
+  const [loaded, setLoaded] = React.useState(false);
+
+  React.useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      const current = await getCollection(params.collectionId);
+      if (!mounted) return;
+      setCollection(current);
+      setLoaded(true);
+    };
+    load();
+    const unsubscribe = subscribeToCollectionChanges(load);
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
+  }, [params.collectionId]);
+
+  if (!loaded) {
+    return (
+      <AdminLayout crumbs={[{ label: 'Studio' }, { label: 'Collections', href: '/collections' }, { label: 'Activity' }]}>
+        <div className="px-6 lg:px-10 py-8 text-sm text-muted">Loading activity...</div>
+      </AdminLayout>
+    );
+  }
+
+  if (!collection) return notFound();
+
   return (
-    <AdminLayout crumbs={[{ label: 'Studio' }, { label: 'Collections', href: '/collections' }, { label: c.title, href: `/collections/${c.id}` }, { label: 'Activity' }]}>
-      <CollectionDetailHeader c={c} activeTab="activity"/>
+    <AdminLayout crumbs={[{ label: 'Studio' }, { label: 'Collections', href: '/collections' }, { label: collection.title, href: `/collections/${collection.id}` }, { label: 'Activity' }]}>
+      <CollectionDetailHeader c={collection} activeTab="activity"/>
       <div className="px-6 lg:px-10 pb-20 max-w-3xl">
         <div className="bg-surface border border-line rounded-md p-5">
-          <ActivityTimeline events={ACTIVITY.filter(a => !a.collectionId || a.collectionId === c.id)}/>
+          <ActivityTimeline events={ACTIVITY.filter(event => !event.collectionId || event.collectionId === collection.id)}/>
         </div>
       </div>
     </AdminLayout>
