@@ -24,7 +24,7 @@ export default async function DashboardPage() {
     dashboard = await getDashboardOverview(token);
   } catch (error) {
     if (error instanceof DashboardApiError && error.status === 401) {
-      redirect('/login?next=/dashboard');
+      redirect('/auth/clear-session?next=/dashboard');
     }
 
     return (

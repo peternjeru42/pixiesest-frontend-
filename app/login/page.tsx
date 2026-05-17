@@ -5,14 +5,24 @@ import { LoginForm } from '@/components/forms/login-form';
 type LoginPageProps = {
   searchParams?: {
     google?: string;
+    next?: string;
   };
 };
+
+function getSafeRedirectPath(path?: string) {
+  if (!path || !path.startsWith('/') || path.startsWith('//')) {
+    return '/dashboard';
+  }
+
+  return path;
+}
 
 export default function LoginPage({ searchParams }: LoginPageProps) {
   const initialMessage =
     searchParams?.google === 'existing'
       ? 'That Google account already exists. Continue with Google to sign in.'
       : '';
+  const redirectTo = getSafeRedirectPath(searchParams?.next);
 
   return (
     <AuthLayout
@@ -29,7 +39,7 @@ export default function LoginPage({ searchParams }: LoginPageProps) {
           Sign up
         </Link>
       </p>
-      <LoginForm initialMessage={initialMessage} />
+      <LoginForm initialMessage={initialMessage} redirectTo={redirectTo} />
     </AuthLayout>
   );
 }

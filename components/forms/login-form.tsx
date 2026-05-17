@@ -13,9 +13,10 @@ import { GoogleAuthButton } from './google-auth-button';
 
 type LoginFormProps = {
   initialMessage?: string;
+  redirectTo?: string;
 };
 
-export function LoginForm({ initialMessage = '' }: LoginFormProps) {
+export function LoginForm({ initialMessage = '', redirectTo = '/dashboard' }: LoginFormProps) {
   const router = useRouter();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -32,7 +33,7 @@ export function LoginForm({ initialMessage = '' }: LoginFormProps) {
 
     try {
       await api.login(email, password);
-      router.push('/dashboard');
+      router.replace(redirectTo);
     } catch (error) {
       setErr(error instanceof Error ? error.message : 'Sign in failed');
       setLoading(false);
@@ -42,7 +43,7 @@ export function LoginForm({ initialMessage = '' }: LoginFormProps) {
   return (
     <div className="mt-8">
       <div className="grid gap-3">
-        <GoogleAuthButton text="continue_with" intent="login" onError={setErr} onLoadingChange={setGoogleLoading} />
+        <GoogleAuthButton text="continue_with" intent="login" redirectTo={redirectTo} onError={setErr} onLoadingChange={setGoogleLoading} />
       </div>
 
       <div className="my-7 flex items-center gap-4">

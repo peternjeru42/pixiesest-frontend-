@@ -15,6 +15,7 @@ type GoogleAuthIntent = 'login' | 'signup';
 type GoogleAuthButtonProps = {
   text: GoogleButtonText;
   intent?: GoogleAuthIntent;
+  redirectTo?: string;
   onError: (message: string) => void;
   onLoadingChange: (loading: boolean) => void;
 };
@@ -46,7 +47,7 @@ declare global {
   }
 }
 
-export function GoogleAuthButton({ text, intent = 'login', onError, onLoadingChange }: GoogleAuthButtonProps) {
+export function GoogleAuthButton({ text, intent = 'login', redirectTo = '/dashboard', onError, onLoadingChange }: GoogleAuthButtonProps) {
   const router = useRouter();
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [scriptReady, setScriptReady] = React.useState(false);
@@ -64,7 +65,7 @@ export function GoogleAuthButton({ text, intent = 'login', onError, onLoadingCha
 
       try {
         await api.googleAuth(response.credential, intent);
-        router.push('/dashboard');
+        router.replace(redirectTo);
       } catch (error) {
         if (intent === 'signup' && error instanceof api.ApiError && error.code === 'google_account_exists') {
           router.replace('/login?google=existing');
@@ -74,7 +75,7 @@ export function GoogleAuthButton({ text, intent = 'login', onError, onLoadingCha
         onLoadingChange(false);
       }
     },
-    [intent, onError, onLoadingChange, router]
+    [intent, onError, onLoadingChange, redirectTo, router]
   );
 
   React.useEffect(() => {
