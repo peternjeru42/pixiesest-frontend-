@@ -5,19 +5,22 @@ import { AdminLayout } from '@/components/layout/admin-layout';
 import { CollectionDetailHeader } from '@/components/layout/collection-detail-header';
 import { ActivityTimeline } from '@/components/data-display/activity-timeline';
 import { getCollection, subscribeToCollectionChanges } from '@/lib/api/collections';
-import { ACTIVITY } from '@/lib/mock-data';
-import type { Collection } from '@/lib/types';
+import { listActivity } from '@/lib/api/activity';
+import type { ActivityEvent, Collection } from '@/lib/types';
 
 export default function CollectionActivityPage({ params }: { params: { collectionId: string } }) {
   const [collection, setCollection] = React.useState<Collection | null>(null);
+  const [activity, setActivity] = React.useState<ActivityEvent[]>([]);
   const [loaded, setLoaded] = React.useState(false);
 
   React.useEffect(() => {
     let mounted = true;
     const load = async () => {
       const current = await getCollection(params.collectionId);
+      const events = current ? await listActivity({ collectionId: current.id }) : [];
       if (!mounted) return;
       setCollection(current);
+      setActivity(events);
       setLoaded(true);
     };
     load();
@@ -43,7 +46,11 @@ export default function CollectionActivityPage({ params }: { params: { collectio
       <CollectionDetailHeader c={collection} activeTab="activity"/>
       <div className="px-6 lg:px-10 pb-20 max-w-3xl">
         <div className="bg-surface border border-line rounded-md p-5">
-          <ActivityTimeline events={ACTIVITY.filter(event => !event.collectionId || event.collectionId === collection.id)}/>
+          {activity.length > 0 ? (
+            <ActivityTimeline events={activity}/>
+          ) : (
+            <div className="text-sm text-muted">No activity for this collection yet.</div>
+          )}
         </div>
       </div>
     </AdminLayout>

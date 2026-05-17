@@ -1,56 +1,70 @@
-import { FOLDERS } from '../mock-data';
 import type { Folder } from '../types';
-import { listCollections } from './collections';
-import { unsplash } from '../utils';
 
-const wait = (ms = 200) => new Promise(r => setTimeout(r, ms));
-const FOLDERS_STORAGE_KEY = 'droptop.folders.v2';
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api/v1').replace(/\/$/, '');
 const FOLDERS_CHANGED_EVENT = 'droptop.folders.changed';
 
-function cloneFolder(folder: Folder): Folder {
-  return { ...folder };
+type BackendFolder = {
+  id: string;
+  slug: string;
+  name: string;
+  description?: string;
+  cover_url?: string;
+  collections_count?: number;
+  is_password_enabled?: boolean;
+  show_on_homepage?: boolean;
+  created_at?: string;
+};
+
+function getStoredAccessToken() {
+  if (typeof window === 'undefined') return null;
+  return window.localStorage.getItem('droptop.accessToken');
 }
 
-function readFolders(): Folder[] {
-  if (typeof window === 'undefined') return FOLDERS.map(cloneFolder);
+async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const token = getStoredAccessToken();
+  if (!token) throw new Error('You need to sign in before loading folders.');
 
-  const stored = window.localStorage.getItem(FOLDERS_STORAGE_KEY);
-  if (stored) {
-    try {
-      return (JSON.parse(stored) as Folder[]).map(cloneFolder);
-    } catch {
-      window.localStorage.removeItem(FOLDERS_STORAGE_KEY);
-    }
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...init,
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      ...(init.headers ?? {}),
+    },
+  });
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(`Request failed with status ${response.status}`);
   }
 
-  const seeded = FOLDERS.map(cloneFolder);
-  writeFolders(seeded);
-  return seeded;
+  return data as T;
 }
 
-function writeFolders(folders: Folder[]) {
-  if (typeof window === 'undefined') return;
-  window.localStorage.setItem(FOLDERS_STORAGE_KEY, JSON.stringify(folders));
-  window.dispatchEvent(new Event(FOLDERS_CHANGED_EVENT));
+function notifyFolderChanges() {
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event(FOLDERS_CHANGED_EVENT));
 }
 
-function makeSlug(value: string) {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '') || `folder-${Date.now()}`;
+function toFolder(folder: BackendFolder): Folder {
+  return {
+    id: String(folder.id),
+    slug: folder.slug,
+    name: folder.name,
+    description: folder.description,
+    cover: folder.cover_url ?? '',
+    collectionsCount: folder.collections_count ?? 0,
+    hasPassword: Boolean(folder.is_password_enabled),
+    showOnHomepage: folder.show_on_homepage ?? true,
+    createdAt: folder.created_at ?? '',
+  };
 }
 
-function nextUniqueSlug(name: string, folders: Folder[]) {
-  const base = makeSlug(name);
-  let slug = base;
-  let suffix = 2;
-  while (folders.some(folder => folder.slug === slug)) {
-    slug = `${base}-${suffix}`;
-    suffix += 1;
-  }
-  return slug;
+function folderBody(input: Partial<Folder>, mode: 'create' | 'patch' = 'patch') {
+  const body: Record<string, string | boolean> = {};
+  if (mode === 'create' || input.name !== undefined) body.name = input.name ?? 'Untitled folder';
+  if (mode === 'create' || input.description !== undefined) body.description = input.description ?? '';
+  if (mode === 'create' || input.showOnHomepage !== undefined) body.show_on_homepage = input.showOnHomepage ?? true;
+  return body;
 }
 
 export function subscribeToFolderChanges(callback: () => void) {
@@ -60,61 +74,43 @@ export function subscribeToFolderChanges(callback: () => void) {
 }
 
 export async function listFolders(filter?: { search?: string }) {
-  await wait();
-  const collections = await listCollections();
-  const query = filter?.search?.trim().toLowerCase();
-  let folders = readFolders();
-  if (query) {
-    folders = folders.filter(folder =>
-      folder.name.toLowerCase().includes(query) ||
-      folder.slug.toLowerCase().includes(query),
-    );
-  }
-  return folders.map(folder => ({
-    ...folder,
-    collectionsCount: collections.filter(collection => collection.folderId === folder.id).length,
-  }));
+  const query = filter?.search ? `?search=${encodeURIComponent(filter.search)}` : '';
+  return (await request<BackendFolder[]>(`/folders/${query}`)).map(toFolder);
 }
 
 export async function searchFolders(search: string) {
   return listFolders({ search });
 }
+
 export async function getFolder(id: string): Promise<Folder | null> {
-  await wait();
-  const folders = await listFolders();
-  return folders.find(f => f.id === id || f.slug === id) ?? null;
+  try {
+    return toFolder(await request<BackendFolder>(`/folders/${id}/`));
+  } catch (error) {
+    if (error instanceof Error && /404/.test(error.message)) return null;
+    throw error;
+  }
 }
+
 export async function createFolder(input: Partial<Folder>) {
-  await wait(400);
-  const folders = readFolders();
-  const name = input.name?.trim() || 'Untitled folder';
-  const folder: Folder = {
-    id: `new-${Date.now()}`,
-    slug: nextUniqueSlug(name, folders),
-    name,
-    description: input.description?.trim(),
-    cover: input.cover || unsplash('photo-1519741497674-611481863552', 1200),
-    collectionsCount: 0,
-    hasPassword: Boolean(input.hasPassword),
-    showOnHomepage: input.showOnHomepage ?? true,
-    createdAt: new Date().toISOString().slice(0, 10),
-  };
-  writeFolders([folder, ...folders]);
+  const folder = toFolder(await request<BackendFolder>('/folders/', {
+    method: 'POST',
+    body: JSON.stringify(folderBody(input, 'create')),
+  }));
+  notifyFolderChanges();
   return folder;
 }
+
 export async function updateFolder(id: string, patch: Partial<Folder>) {
-  await wait();
-  const folders = readFolders();
-  const index = folders.findIndex(folder => folder.id === id);
-  if (index === -1) throw new Error('Folder not found');
-  const updated = { ...folders[index], ...patch };
-  if (patch.name) updated.slug = nextUniqueSlug(patch.name, folders.filter(folder => folder.id !== id));
-  folders[index] = updated;
-  writeFolders(folders);
-  return updated;
+  const folder = toFolder(await request<BackendFolder>(`/folders/${id}/`, {
+    method: 'PATCH',
+    body: JSON.stringify(folderBody(patch)),
+  }));
+  notifyFolderChanges();
+  return folder;
 }
+
 export async function deleteFolder(id: string) {
-  await wait();
-  writeFolders(readFolders().filter(folder => folder.id !== id));
+  await request(`/folders/${id}/`, { method: 'DELETE' });
+  notifyFolderChanges();
   return { ok: true };
 }

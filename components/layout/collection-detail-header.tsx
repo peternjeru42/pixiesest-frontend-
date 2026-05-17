@@ -1,7 +1,7 @@
 'use client';
 import * as React from 'react';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { StatsCard } from '@/components/data-display/stats-card';
 import { cn } from '@/lib/utils';
@@ -18,7 +18,13 @@ export function CollectionDetailHeader({ c, activeTab }: { c: Collection; active
   return (
     <>
       <div className="relative h-72 overflow-hidden bg-panel">
-        <img src={c.cover} alt="" className="w-full h-full object-cover"/>
+        {c.cover ? (
+          <img src={c.cover} alt="" className="w-full h-full object-cover"/>
+        ) : (
+          <div className="grid h-full place-items-center bg-ink text-bg/60">
+            <ImageIcon size={40} strokeWidth={1.4}/>
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-b from-ink/15 to-ink/55"/>
         <Button asChild size="sm" className="absolute top-5 left-6 lg:left-10 bg-bg/95 hover:bg-bg">
           <Link href="/collections"><ArrowLeft size={12}/>Collections</Link>

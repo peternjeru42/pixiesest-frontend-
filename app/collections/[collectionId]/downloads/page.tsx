@@ -6,20 +6,23 @@ import { CollectionDetailHeader } from '@/components/layout/collection-detail-he
 import { StatusBadge } from '@/components/actions/status-badge';
 import { Table, TBody, TD, TH, THead, TR } from '@/components/ui/table';
 import { getCollection, subscribeToCollectionChanges } from '@/lib/api/collections';
-import { DOWNLOAD_LOGS } from '@/lib/mock-data';
+import { listDownloads } from '@/lib/api/downloads';
 import { formatBytes } from '@/lib/utils';
-import type { Collection } from '@/lib/types';
+import type { Collection, DownloadLog } from '@/lib/types';
 
 export default function CollectionDownloadsPage({ params }: { params: { collectionId: string } }) {
   const [collection, setCollection] = React.useState<Collection | null>(null);
+  const [rows, setRows] = React.useState<DownloadLog[]>([]);
   const [loaded, setLoaded] = React.useState(false);
 
   React.useEffect(() => {
     let mounted = true;
     const load = async () => {
       const current = await getCollection(params.collectionId);
+      const downloads = current ? await listDownloads({ collectionId: current.id }) : [];
       if (!mounted) return;
       setCollection(current);
+      setRows(downloads);
       setLoaded(true);
     };
     load();
@@ -40,8 +43,6 @@ export default function CollectionDownloadsPage({ params }: { params: { collecti
 
   if (!collection) return notFound();
 
-  const rows = DOWNLOAD_LOGS.filter(download => download.collectionId === collection.id);
-
   return (
     <AdminLayout crumbs={[{ label: 'Studio' }, { label: 'Collections', href: '/collections' }, { label: collection.title, href: `/collections/${collection.id}` }, { label: 'Downloads' }]}>
       <CollectionDetailHeader c={collection} activeTab="downloads"/>
@@ -60,6 +61,11 @@ export default function CollectionDownloadsPage({ params }: { params: { collecti
                   <TD className="text-muted">{download.date}</TD>
                 </TR>
               ))}
+              {rows.length === 0 && (
+                <TR>
+                  <TD colSpan={6} className="text-muted">No downloads for this collection yet.</TD>
+                </TR>
+              )}
             </TBody>
           </Table>
         </div>

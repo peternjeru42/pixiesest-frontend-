@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Lock, MoreHorizontal } from 'lucide-react';
+import { Image as ImageIcon, Lock, MoreHorizontal } from 'lucide-react';
 import type { Collection, Folder } from '@/lib/types';
 
 export function FolderCard({ f, collections = [] }: { f: Folder; collections?: Collection[] }) {
@@ -12,7 +12,13 @@ export function FolderCard({ f, collections = [] }: { f: Folder; collections?: C
         <div className="grid h-full grid-cols-2 gap-1.5">
           {tiles.map((src, index) => (
             <div key={`${src}-${index}`} className="overflow-hidden rounded-sm bg-bg">
-              <img src={src} alt="" className="h-full w-full object-cover transition-transform group-hover:scale-[1.02]"/>
+              {src ? (
+                <img src={src} alt="" className="h-full w-full object-cover transition-transform group-hover:scale-[1.02]"/>
+              ) : (
+                <div className="grid h-full place-items-center text-muted">
+                  <ImageIcon size={18} strokeWidth={1.5}/>
+                </div>
+              )}
             </div>
           ))}
         </div>

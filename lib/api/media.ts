@@ -1,47 +1,113 @@
-import { ALL_MEDIA, SET_MEDIA } from '../mock-data';
 import type { Media } from '../types';
-import { getCollection, updateCollection } from './collections';
 
-const wait = (ms = 200) => new Promise(r => setTimeout(r, ms));
-const MEDIA_STORAGE_KEY = 'droptop.media.v2';
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api/v1').replace(/\/$/, '');
 const MEDIA_CHANGED_EVENT = 'droptop.media.changed';
 
-function cloneMedia(media: Media): Media {
-  return {
-    ...media,
-    camera: media.camera ? { ...media.camera } : undefined,
+type BackendMedia = {
+  id: string;
+  display_filename?: string;
+  original_filename?: string;
+  preview_url?: string;
+  thumbnail_url?: string;
+  original_width?: number | null;
+  original_height?: number | null;
+  file_size_bytes?: number;
+  media_type?: string;
+  status?: string;
+  duration_seconds?: number | null;
+  is_private?: boolean;
+  is_downloadable?: boolean;
+  set?: string;
+  collection?: string;
+  uploaded_at?: string | null;
+  created_at?: string;
+};
+
+type UploadResponse = {
+  upload: {
+    upload_id: string;
+    media_asset?: string | null;
   };
+  upload_url: string;
+};
+
+type CompleteUploadResponse = {
+  media_asset?: string | BackendMedia | null;
+};
+
+function getStoredAccessToken() {
+  if (typeof window === 'undefined') return null;
+  return window.localStorage.getItem('droptop.accessToken');
 }
 
-function readMedia(): Media[] {
-  if (typeof window === 'undefined') return ALL_MEDIA.map(cloneMedia);
+async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const token = getStoredAccessToken();
+  if (!token) throw new Error('You need to sign in before loading media.');
 
-  const stored = window.localStorage.getItem(MEDIA_STORAGE_KEY);
-  if (stored) {
-    try {
-      return (JSON.parse(stored) as Media[]).map(cloneMedia);
-    } catch {
-      window.localStorage.removeItem(MEDIA_STORAGE_KEY);
-    }
+  const headers = new Headers(init.headers);
+  if (!headers.has('Content-Type') && init.body && !(init.body instanceof FormData)) {
+    headers.set('Content-Type', 'application/json');
+  }
+  headers.set('Authorization', `Bearer ${token}`);
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...init,
+    headers,
+  });
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(getErrorMessage(data) || `Request failed with status ${response.status}`);
   }
 
-  const seeded = ALL_MEDIA.map(cloneMedia);
-  writeMedia(seeded);
-  return seeded;
+  return data as T;
 }
 
-function writeMedia(media: Media[]) {
-  if (typeof window === 'undefined') return;
-  window.localStorage.setItem(MEDIA_STORAGE_KEY, JSON.stringify(media));
-  window.dispatchEvent(new Event(MEDIA_CHANGED_EVENT));
+function getErrorMessage(data: unknown) {
+  if (!data || typeof data !== 'object') return '';
+  const detail = (data as { detail?: unknown }).detail;
+  if (typeof detail === 'string') return detail;
+  const firstEntry = Object.entries(data as Record<string, unknown>)[0];
+  if (!firstEntry) return '';
+  const [field, value] = firstEntry;
+  if (Array.isArray(value) && typeof value[0] === 'string') return `${field}: ${value[0]}`;
+  if (typeof value === 'string') return `${field}: ${value}`;
+  return '';
+}
+
+function notifyMediaChanges() {
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event(MEDIA_CHANGED_EVENT));
+}
+
+function mapStatus(status?: string): Media['status'] {
+  if (status === 'ready' || status === 'processing' || status === 'failed' || status === 'uploading') return status;
+  return status === 'uploaded' ? 'processing' : 'processing';
+}
+
+function toMedia(media: BackendMedia): Media {
+  const src = media.preview_url || media.thumbnail_url || '';
+  return {
+    id: String(media.id),
+    filename: media.display_filename || media.original_filename || '',
+    src,
+    thumb: media.thumbnail_url || src,
+    width: media.original_width || 0,
+    height: media.original_height || 0,
+    sizeMB: Number(((media.file_size_bytes ?? 0) / (1024 * 1024)).toFixed(1)),
+    type: media.media_type === 'video' ? 'video' : 'photo',
+    status: mapStatus(media.status),
+    durationSec: media.duration_seconds ?? undefined,
+    faved: false,
+    private: Boolean(media.is_private),
+    downloadable: media.is_downloadable ?? true,
+    setId: media.set ? String(media.set) : '',
+    collectionId: media.collection ? String(media.collection) : '',
+    uploadedAt: media.uploaded_at || media.created_at || '',
+  };
 }
 
 function isVideo(file: File) {
   return file.type.startsWith('video/') || /\.(mp4|mov|m4v|webm)$/i.test(file.name);
-}
-
-function objectUrlFor(file: File) {
-  return typeof URL !== 'undefined' ? URL.createObjectURL(file) : '';
 }
 
 export function subscribeToMediaChanges(callback: () => void) {
@@ -51,70 +117,101 @@ export function subscribeToMediaChanges(callback: () => void) {
 }
 
 export async function listMedia(filter?: { collectionId?: string; setId?: string }) {
-  await wait();
-  let r = readMedia();
-  if (filter?.collectionId) r = r.filter(m => m.collectionId === filter.collectionId);
-  if (filter?.setId) r = r.filter(m => m.setId === filter.setId);
-  return r;
+  if (filter?.setId) return (await request<BackendMedia[]>(`/sets/${filter.setId}/media/`)).map(toMedia);
+  if (filter?.collectionId) return (await request<BackendMedia[]>(`/collections/${filter.collectionId}/media/`)).map(toMedia);
+  return (await request<BackendMedia[]>('/media/')).map(toMedia);
 }
+
 export async function getMedia(id: string): Promise<Media | null> {
-  await wait();
-  return readMedia().find(m => m.id === id) ?? null;
+  try {
+    return toMedia(await request<BackendMedia>(`/media/${id}/`));
+  } catch (error) {
+    if (error instanceof Error && /404/.test(error.message)) return null;
+    throw error;
+  }
 }
-export async function setMediaPrivacy(_id: string, _private: boolean) { await wait(); return { ok: true }; }
-export async function setMediaDownloadable(_id: string, _on: boolean) { await wait(); return { ok: true }; }
-export async function deleteMedia(id: string) {
-  await wait();
-  writeMedia(readMedia().filter(media => media.id !== id));
+
+export async function setMediaPrivacy(id: string, isPrivate: boolean) {
+  await request(`/media/${id}/privacy/`, {
+    method: 'PATCH',
+    body: JSON.stringify({ is_private: isPrivate }),
+  });
+  notifyMediaChanges();
   return { ok: true };
 }
-export async function bulkMove(_mediaIds: string[], _setId: string) { await wait(); return { ok: true }; }
-export async function setCover(_collectionOrSetId: string, _mediaId: string) { await wait(); return { ok: true }; }
+
+export async function setMediaDownloadable(id: string, isDownloadable: boolean) {
+  await request(`/media/${id}/downloadable/`, {
+    method: 'PATCH',
+    body: JSON.stringify({ is_downloadable: isDownloadable }),
+  });
+  notifyMediaChanges();
+  return { ok: true };
+}
+
+export async function deleteMedia(id: string) {
+  await request(`/media/${id}/`, { method: 'DELETE' });
+  notifyMediaChanges();
+  return { ok: true };
+}
+
+export async function bulkMove(mediaIds: string[], targetSetId: string) {
+  await request('/media/move/', {
+    method: 'POST',
+    body: JSON.stringify({ media_ids: mediaIds, target_set_id: targetSetId }),
+  });
+  notifyMediaChanges();
+  return { ok: true };
+}
+
+export async function setCover(collectionOrSetId: string, mediaId: string) {
+  await request(`/collections/${collectionOrSetId}/set-cover/`, {
+    method: 'POST',
+    body: JSON.stringify({ media_asset_id: mediaId }),
+  });
+  notifyMediaChanges();
+  return { ok: true };
+}
 
 export async function addUploadedMedia(input: { collectionId: string; setId: string; files: File[] }) {
-  await wait(250);
-  const collection = await getCollection(input.collectionId);
-  if (!collection) throw new Error('Collection not found');
+  if (input.setId === 'general') {
+    throw new Error('Create a set before uploading media to this collection.');
+  }
 
-  const now = new Date();
-  const uploadedAt = now.toISOString();
-  const existing = readMedia();
-  const media: Media[] = input.files.map((file, index) => {
-    const video = isVideo(file);
-    const src = objectUrlFor(file);
-    return {
-      id: `upload-${now.getTime()}-${index}`,
-      filename: file.name,
-      src,
-      thumb: video ? collection.cover : src,
-      width: video ? 1920 : 1600,
-      height: video ? 1080 : 1067,
-      sizeMB: Number((file.size / (1024 * 1024)).toFixed(1)),
-      type: video ? 'video' : 'photo',
-      status: 'ready',
-      durationSec: video ? 0 : undefined,
-      faved: false,
-      private: false,
-      downloadable: true,
-      setId: input.setId,
-      collectionId: input.collectionId,
-      uploadedAt,
-    };
-  });
+  const uploaded: Media[] = [];
 
-  writeMedia([...media, ...existing]);
+  for (const file of input.files) {
+    const presigned = await request<UploadResponse>('/uploads/presign/', {
+      method: 'POST',
+      body: JSON.stringify({
+        collection_id: input.collectionId,
+        set_id: input.setId,
+        original_filename: file.name,
+        mime_type: file.type || (isVideo(file) ? 'video/mp4' : 'image/jpeg'),
+        file_size_bytes: file.size,
+      }),
+    });
 
-  const photos = media.filter(item => item.type === 'photo').length;
-  const videos = media.length - photos;
-  await updateCollection(collection.id, {
-    counts: {
-      ...collection.counts,
-      photos: collection.counts.photos + photos,
-      videos: collection.counts.videos + videos,
-    },
-    cover: collection.counts.photos === 0 && media[0]?.thumb ? media[0].thumb : collection.cover,
-  });
+    const uploadResponse = await fetch(presigned.upload_url, {
+      method: 'PUT',
+      headers: { 'Content-Type': file.type || 'application/octet-stream' },
+      body: file,
+    });
+    if (!uploadResponse.ok) throw new Error(`Upload failed with status ${uploadResponse.status}`);
 
-  return media;
+    const completed = await request<CompleteUploadResponse>('/uploads/complete/', {
+      method: 'POST',
+      body: JSON.stringify({ upload_id: presigned.upload.upload_id }),
+    });
+
+    if (completed.media_asset && typeof completed.media_asset === 'object') {
+      uploaded.push(toMedia(completed.media_asset));
+    } else if (completed.media_asset) {
+      const media = await getMedia(String(completed.media_asset));
+      if (media) uploaded.push(media);
+    }
+  }
+
+  notifyMediaChanges();
+  return uploaded;
 }
-export { SET_MEDIA };

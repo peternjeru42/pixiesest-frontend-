@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { Copy, Download, Eye, FolderInput, Heart, MoreHorizontal, Send, Trash2 } from 'lucide-react';
+import { Copy, Download, Eye, FolderInput, Heart, Image as ImageIcon, MoreHorizontal, Send, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -43,7 +43,13 @@ export function CollectionCard({ c, onCollectionChange }: { c: Collection; onCol
     <article className="group bg-surface border border-line rounded-md overflow-hidden flex flex-col transition-transform hover:-translate-y-0.5 hover:shadow-lift">
       <div className="relative aspect-[16/11] bg-panel overflow-hidden">
         <Link href={`/collections/${c.id}`} className="block h-full">
-          <img src={c.cover} alt="" className="w-full h-full object-cover transition-transform group-hover:scale-[1.02]"/>
+          {c.cover ? (
+            <img src={c.cover} alt="" className="w-full h-full object-cover transition-transform group-hover:scale-[1.02]"/>
+          ) : (
+            <div className="grid h-full place-items-center bg-panel text-muted">
+              <ImageIcon size={28} strokeWidth={1.5}/>
+            </div>
+          )}
           <span className="absolute bottom-2.5 left-2.5 rounded-md border border-bg/20 bg-ink/70 px-2 py-1 text-[10.5px] font-medium uppercase tracking-wider text-bg backdrop-blur">
             {c.date}
           </span>
