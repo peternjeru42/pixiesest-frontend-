@@ -32,6 +32,9 @@ export default function FolderPublicPage({ params }: { params: { folderId: strin
       setLoading(false);
     }
   }, [params.folderId]);
+  const visibleFileCount = collections.reduce((total, collection) => (
+    total + collection.counts.photos + collection.counts.videos
+  ), 0);
 
   React.useEffect(() => {
     loadFolder();
@@ -95,7 +98,7 @@ export default function FolderPublicPage({ params }: { params: { folderId: strin
         </div>
       </header>
       <div className="mx-auto max-w-7xl px-6 py-16 lg:px-10">
-        {collections.length > 0 ? (
+        {collections.length > 0 && visibleFileCount > 0 ? (
           <div className="grid grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-3">
             {collections.map(collection => (
               <Link key={collection.id} href={`/galleries/${collection.slug}`} className="group rounded-md border border-line bg-surface p-5 transition-transform hover:-translate-y-0.5 hover:shadow-lift">
@@ -108,8 +111,9 @@ export default function FolderPublicPage({ params }: { params: { folderId: strin
             ))}
           </div>
         ) : (
-          <div className="rounded-md border border-line bg-surface px-5 py-8 text-sm text-muted">
-            No published collections in this folder yet.
+          <div className="rounded-md border border-line bg-surface px-5 py-8 text-center text-sm text-muted">
+            <div className="serif text-[22px] text-ink">There are no photos here.</div>
+            <p className="mt-1">This folder does not have visible files yet.</p>
           </div>
         )}
       </div>

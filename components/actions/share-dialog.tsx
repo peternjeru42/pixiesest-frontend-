@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import { Copy, Share2 } from 'lucide-react';
+import { Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -30,7 +30,6 @@ export function ShareDialog({
   onOpenChange,
   title,
   description,
-  resourceName,
   path,
   details = [],
 }: {
@@ -38,29 +37,16 @@ export function ShareDialog({
   onOpenChange: (open: boolean) => void;
   title: string;
   description: string;
-  resourceName: string;
   path: string;
   details?: Array<{ label: string; value: string; helper?: string }>;
 }) {
   const [copied, setCopied] = React.useState(false);
-  const [shared, setShared] = React.useState(false);
   const url = absoluteUrl(path);
 
   async function copyValue(value: string) {
     await navigator.clipboard?.writeText(value);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1400);
-  }
-
-  async function shareResource() {
-    if (!navigator.share) {
-      await copyValue(url);
-      return;
-    }
-
-    await navigator.share({ title: resourceName, url });
-    setShared(true);
-    window.setTimeout(() => setShared(false), 1400);
   }
 
   return (
@@ -85,9 +71,6 @@ export function ShareDialog({
         <DialogFooter className="px-5 pb-6 sm:px-6">
           <Button type="button" variant="outline" onClick={() => copyValue(url)}>
             <Copy size={14}/>{copied ? 'Copied' : 'Copy link'}
-          </Button>
-          <Button type="button" variant="default" onClick={shareResource}>
-            <Share2 size={14}/>{shared ? 'Shared' : 'Share'}
           </Button>
         </DialogFooter>
       </DialogContent>

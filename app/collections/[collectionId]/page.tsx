@@ -51,6 +51,7 @@ export default function CollectionDetailPage({ params }: { params: { collectionI
   }
 
   if (!collection) return notFound();
+  const visibleFileCount = collection.counts.photos + collection.counts.videos;
 
   async function handleCreateSet(values: { title: string; description: string; visibility: string }) {
     if (!collection) return;
@@ -85,6 +86,10 @@ export default function CollectionDetailPage({ params }: { params: { collectionI
         {!loaded ? (
           <div className="rounded-md border border-line bg-surface px-5 py-8 text-sm text-muted">
             Loading sets...
+          </div>
+        ) : visibleFileCount === 0 ? (
+          <div className="rounded-md border border-line bg-surface px-5 py-8 text-sm text-muted">
+            There are no photos here.
           </div>
         ) : sets.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

@@ -41,6 +41,9 @@ export default function FolderDetailPage({ params }: { params: { folderId: strin
       .map(collection => collection.id === updated.id ? updated : collection)
       .filter(collection => collection.folderId === folder?.id));
   }
+  const visibleFileCount = collections.reduce((total, collection) => (
+    total + collection.counts.photos + collection.counts.videos
+  ), 0);
 
   if (!loaded) {
     return (
@@ -88,8 +91,7 @@ export default function FolderDetailPage({ params }: { params: { folderId: strin
         open={shareOpen}
         onOpenChange={setShareOpen}
         title="Share folder"
-        description="Copy or share the public link for this folder."
-        resourceName={folder.name}
+        description="Copy the public link for this folder."
         path={publicFolderPath(folder.slug)}
       />
 
@@ -104,15 +106,21 @@ export default function FolderDetailPage({ params }: { params: { folderId: strin
             <Button asChild variant="default"><Link href={`/collections/new?folderId=${folder.id}`}><Plus size={14}/>New collection</Link></Button>
           </div>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {collections.map(collection => (
-            <CollectionCard
-              key={collection.id}
-              c={collection}
-              onCollectionChange={updateCollection}
-            />
-          ))}
-        </div>
+        {collections.length > 0 && visibleFileCount > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {collections.map(collection => (
+              <CollectionCard
+                key={collection.id}
+                c={collection}
+                onCollectionChange={updateCollection}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-md border border-line bg-surface px-5 py-8 text-sm text-muted">
+            There are no photos here.
+          </div>
+        )}
       </div>
     </AdminLayout>
   );

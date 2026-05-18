@@ -85,8 +85,7 @@ export function FolderCard({ f, collections = [] }: { f: Folder; collections?: C
         open={shareOpen}
         onOpenChange={setShareOpen}
         title="Share folder"
-        description="Copy or share the public link for this folder."
-        resourceName={f.name}
+        description="Copy the public link for this folder."
         path={publicFolderPath(f.slug)}
       />
     </article>

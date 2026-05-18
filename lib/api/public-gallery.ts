@@ -101,15 +101,21 @@ export function storeGallerySession(token: string) {
 
 async function publicRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
   const session = getStoredGallerySession();
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...init,
-    cache: 'no-store',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(session ? { 'X-Gallery-Session': session } : {}),
-      ...(init.headers ?? {}),
-    },
-  });
+  const headers = new Headers(init.headers);
+  if (init.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+  if (session) headers.set('X-Gallery-Session', session);
+
+  let response: Response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...init,
+      cache: 'no-store',
+      headers,
+    });
+  } catch {
+    throw new PublicApiError(0, 'Unable to reach the gallery service. Check the API URL and allowed frontend origins.');
+  }
+
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {

@@ -191,7 +191,7 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
             ))}
           </div>
         ) : (
-          <EmptyState icon={ImageIcon} title="No public media yet" body="This gallery does not have visible files."/>
+          <EmptyState icon={ImageIcon} title="There are no photos here." body="This gallery does not have visible files yet."/>
         )}
 
         <PublicGalleryFooter coupleName={collection.title}/>

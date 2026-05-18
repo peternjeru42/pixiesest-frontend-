@@ -71,8 +71,7 @@ export function CollectionDetailHeader({ c, activeTab }: { c: Collection; active
         open={shareOpen}
         onOpenChange={setShareOpen}
         title="Share collection"
-        description="Copy or share the public link for this collection."
-        resourceName={c.title}
+        description="Copy the public link for this collection."
         path={publicCollectionPath(c.slug)}
         details={c.downloadPin ? [{
           label: 'Download PIN',

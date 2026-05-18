@@ -119,7 +119,7 @@ export default function CollectionMediaPage({ params }: { params: { collectionId
           />
         ) : (
           <div className="rounded-md border border-line bg-surface px-5 py-8 text-sm text-muted">
-            No media in this collection yet.
+            There are no photos here.
           </div>
         )}
 
