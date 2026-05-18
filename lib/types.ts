@@ -20,6 +20,7 @@ export interface Folder {
 
 export interface Set {
   id: string;
+  collectionId?: string;
   title: string;
   description?: string;
   cover: string;

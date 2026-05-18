@@ -5,11 +5,15 @@ import { notFound } from 'next/navigation';
 import { ChevronRight, Download, Palette, Shield } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/admin-layout';
 import { CollectionDetailHeader } from '@/components/layout/collection-detail-header';
-import { getCollection, subscribeToCollectionChanges } from '@/lib/api/collections';
+import { getCachedCollections, getCollection, subscribeToCollectionChanges } from '@/lib/api/collections';
 import type { Collection } from '@/lib/types';
 
 export default function SettingsIndex({ params }: { params: { collectionId: string } }) {
-  const [collection, setCollection] = React.useState<Collection | null>(null);
+  const initialCollection = React.useMemo(
+    () => getCachedCollections().find(item => item.id === params.collectionId) ?? null,
+    [params.collectionId],
+  );
+  const [collection, setCollection] = React.useState<Collection | null>(initialCollection);
   const [loaded, setLoaded] = React.useState(false);
 
   React.useEffect(() => {
@@ -28,7 +32,7 @@ export default function SettingsIndex({ params }: { params: { collectionId: stri
     };
   }, [params.collectionId]);
 
-  if (!loaded) {
+  if (!loaded && !collection) {
     return (
       <AdminLayout crumbs={[{ label: 'Studio' }, { label: 'Collections', href: '/collections' }, { label: 'Settings' }]}>
         <div className="px-6 lg:px-10 py-8 text-sm text-muted">Loading settings...</div>

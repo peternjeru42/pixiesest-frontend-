@@ -4,12 +4,16 @@ import { notFound } from 'next/navigation';
 import { AdminLayout } from '@/components/layout/admin-layout';
 import { CollectionDetailHeader } from '@/components/layout/collection-detail-header';
 import { ActivityTimeline } from '@/components/data-display/activity-timeline';
-import { getCollection, subscribeToCollectionChanges } from '@/lib/api/collections';
+import { getCachedCollections, getCollection, subscribeToCollectionChanges } from '@/lib/api/collections';
 import { listActivity } from '@/lib/api/activity';
 import type { ActivityEvent, Collection } from '@/lib/types';
 
 export default function CollectionActivityPage({ params }: { params: { collectionId: string } }) {
-  const [collection, setCollection] = React.useState<Collection | null>(null);
+  const initialCollection = React.useMemo(
+    () => getCachedCollections().find(item => item.id === params.collectionId) ?? null,
+    [params.collectionId],
+  );
+  const [collection, setCollection] = React.useState<Collection | null>(initialCollection);
   const [activity, setActivity] = React.useState<ActivityEvent[]>([]);
   const [loaded, setLoaded] = React.useState(false);
 
@@ -31,7 +35,7 @@ export default function CollectionActivityPage({ params }: { params: { collectio
     };
   }, [params.collectionId]);
 
-  if (!loaded) {
+  if (!loaded && !collection) {
     return (
       <AdminLayout crumbs={[{ label: 'Studio' }, { label: 'Collections', href: '/collections' }, { label: 'Activity' }]}>
         <div className="px-6 lg:px-10 py-8 text-sm text-muted">Loading activity...</div>
@@ -46,7 +50,9 @@ export default function CollectionActivityPage({ params }: { params: { collectio
       <CollectionDetailHeader c={collection} activeTab="activity"/>
       <div className="px-6 lg:px-10 pb-20 max-w-3xl">
         <div className="bg-surface border border-line rounded-md p-5">
-          {activity.length > 0 ? (
+          {!loaded ? (
+            <div className="text-sm text-muted">Loading activity...</div>
+          ) : activity.length > 0 ? (
             <ActivityTimeline events={activity}/>
           ) : (
             <div className="text-sm text-muted">No activity for this collection yet.</div>

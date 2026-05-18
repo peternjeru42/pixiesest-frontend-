@@ -1,6 +1,7 @@
 'use client';
 import * as React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ArrowLeft, Image as ImageIcon, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { StatsCard } from '@/components/data-display/stats-card';
@@ -17,6 +18,31 @@ const TABS = [
 
 export function CollectionDetailHeader({ c, activeTab }: { c: Collection; activeTab: string }) {
   const [shareOpen, setShareOpen] = React.useState(false);
+  const router = useRouter();
+
+  function navigateTab(event: React.MouseEvent<HTMLAnchorElement>, href: string) {
+    if (
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    const viewDocument = document as Document & {
+      startViewTransition?: (callback: () => void) => void;
+    };
+
+    if (viewDocument.startViewTransition) {
+      viewDocument.startViewTransition(() => router.push(href));
+    } else {
+      router.push(href);
+    }
+  }
 
   return (
     <>
@@ -64,18 +90,24 @@ export function CollectionDetailHeader({ c, activeTab }: { c: Collection; active
         </div>
 
         <div className="flex gap-1 border-b border-line overflow-x-auto -mx-6 lg:-mx-10 px-6 lg:px-10">
-          {TABS.map(t => (
+          {TABS.map(t => {
+            const href = t.id === 'sets' ? `/collections/${c.id}` : `/collections/${c.id}/${t.id}`;
+            return (
             <Link
               key={t.id}
-              href={t.id === 'sets' ? `/collections/${c.id}` : `/collections/${c.id}/${t.id}`}
+              href={href}
+              prefetch
+              aria-current={activeTab === t.id ? 'page' : undefined}
+              onMouseEnter={() => router.prefetch(href)}
+              onClick={(event) => navigateTab(event, href)}
               className={cn(
-                'px-3.5 py-2.5 text-[13px] whitespace-nowrap border-b-[1.5px] -mb-px transition-colors',
+                'px-3.5 py-2.5 text-[13px] whitespace-nowrap border-b-[1.5px] -mb-px transition-all duration-200 ease-out',
                 activeTab === t.id ? 'border-ink text-ink' : 'border-transparent text-muted hover:text-ink',
               )}
             >
               {t.label}
             </Link>
-          ))}
+          )})}
         </div>
       </div>
     </>

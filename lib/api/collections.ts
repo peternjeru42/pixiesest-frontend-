@@ -17,6 +17,7 @@ type BackendCounts = Partial<{
 
 type BackendSet = {
   id: string;
+  collection?: string;
   title: string;
   description?: string;
   cover_url?: string;
@@ -167,6 +168,7 @@ function mapSetVisibility(visibility?: string): SetVisibility {
 function toSet(set: BackendSet): Set {
   return {
     id: String(set.id),
+    collectionId: set.collection ? String(set.collection) : undefined,
     title: set.title,
     description: set.description,
     cover: set.cover_url ?? '',
@@ -224,7 +226,9 @@ export async function listCollections(filter?: { status?: CollectionStatus; fold
 
 export async function getCollection(id: string): Promise<Collection | null> {
   try {
-    return toCollection(await request<BackendCollection>(`/collections/${id}/`));
+    const collection = toCollection(await request<BackendCollection>(`/collections/${id}/`));
+    rememberCollection(collection);
+    return collection;
   } catch (error) {
     if (error instanceof Error && /404|not found/i.test(error.message)) return null;
     throw error;

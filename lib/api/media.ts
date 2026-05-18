@@ -181,19 +181,16 @@ export async function setCover(collectionOrSetId: string, mediaId: string) {
   return { ok: true };
 }
 
-export async function addUploadedMedia(input: { collectionId: string; setId: string; files: File[] }) {
-  if (input.setId === 'general') {
-    throw new Error('Create a set before uploading media to this collection.');
-  }
-
+export async function addUploadedMedia(input: { collectionId: string; setId?: string | null; files: File[] }) {
   const uploaded: Media[] = [];
+  const setId = input.setId && input.setId !== 'general' ? input.setId : null;
 
   for (const file of input.files) {
     const presigned = await request<UploadResponse>('/uploads/presign/', {
       method: 'POST',
       body: JSON.stringify({
         collection_id: input.collectionId,
-        set_id: input.setId,
+        set_id: setId,
         original_filename: file.name,
         mime_type: file.type || (isVideo(file) ? 'video/mp4' : 'image/jpeg'),
         file_size_bytes: file.size,

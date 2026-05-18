@@ -1,9 +1,10 @@
+import Link from 'next/link';
 import { Image as ImageIcon, MoreHorizontal } from 'lucide-react';
 import type { Set } from '@/lib/types';
 
 export function SetCard({ s }: { s: Set }) {
   return (
-    <article className="group bg-surface border border-line rounded-md overflow-hidden flex flex-col hover:shadow-lift transition-shadow">
+    <Link href={`/sets/${s.id}`} className="group bg-surface border border-line rounded-md overflow-hidden flex flex-col hover:shadow-lift transition-shadow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30">
       <div className="relative aspect-[3/2] bg-panel overflow-hidden">
         {s.cover ? (
           <img src={s.cover} alt="" className="w-full h-full object-cover"/>
@@ -26,6 +27,6 @@ export function SetCard({ s }: { s: Set }) {
           {s.videoCount > 0 && (<><span className="text-line-2">·</span><span>{s.videoCount} video</span></>)}
         </div>
       </div>
-    </article>
+    </Link>
   );
 }

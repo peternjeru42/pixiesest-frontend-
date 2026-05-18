@@ -4,6 +4,7 @@ const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:
 
 type BackendSet = {
   id: string;
+  collection?: string;
   title: string;
   description?: string;
   cover_url?: string;
@@ -83,6 +84,7 @@ function toBackendVisibility(visibility?: SetVisibility) {
 function toSet(set: BackendSet): Set {
   return {
     id: String(set.id),
+    collectionId: set.collection ? String(set.collection) : undefined,
     title: set.title,
     description: set.description,
     cover: set.cover_url ?? '',

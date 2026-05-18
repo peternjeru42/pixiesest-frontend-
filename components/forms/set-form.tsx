@@ -6,10 +6,12 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select } from '@/components/ui/select';
 
-export function SetForm({ onSubmit, onCancel, defaultValues }: {
+export function SetForm({ onSubmit, onCancel, defaultValues, submitLabel = 'Save', disabled = false }: {
   onSubmit?: (v: { title: string; description: string; visibility: string }) => void;
   onCancel?: () => void;
   defaultValues?: { title?: string; description?: string; visibility?: string };
+  submitLabel?: string;
+  disabled?: boolean;
 }) {
   const [title, setTitle] = React.useState(defaultValues?.title ?? '');
   const [description, setDescription] = React.useState(defaultValues?.description ?? '');
@@ -33,8 +35,8 @@ export function SetForm({ onSubmit, onCancel, defaultValues }: {
         </Select>
       </div>
       <div className="flex justify-end gap-2 pt-2">
-        {onCancel && <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>}
-        <Button type="submit" variant="default">Save</Button>
+        {onCancel && <Button type="button" variant="ghost" onClick={onCancel} disabled={disabled}>Cancel</Button>}
+        <Button type="submit" variant="default" disabled={disabled}>{submitLabel}</Button>
       </div>
     </form>
   );

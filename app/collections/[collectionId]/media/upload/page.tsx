@@ -39,7 +39,7 @@ export default function UploadPage({ params }: { params: { collectionId: string 
         const setItems = await listSets(current.id);
         if (!mounted) return;
         setSets(setItems);
-        setSelectedSetId(existing => existing || setItems[0]?.id || 'general');
+        setSelectedSetId(existing => existing || 'general');
       }
     };
     load();
@@ -88,8 +88,8 @@ export default function UploadPage({ params }: { params: { collectionId: string 
           <div className="flex flex-col gap-1.5">
             <Label>Set</Label>
             <Select value={selectedSetId} onChange={(event) => setSelectedSetId(event.target.value)}>
+              <option value="general">General collection media</option>
               {sets.map(set => <option key={set.id} value={set.id}>{set.title}</option>)}
-              {sets.length === 0 && <option value="general">General</option>}
             </Select>
           </div>
         </div>
