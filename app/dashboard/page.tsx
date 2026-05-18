@@ -138,7 +138,7 @@ export default async function DashboardPage() {
                   <Link href={`/collections/${latestCollection.id}`}>Open</Link>
                 </Button>
                 <Button asChild size="sm" variant="outline">
-                  <Link href={`/galleries/${latestCollection.slug}`}>
+                  <Link href={`/galleries/${latestCollection.slug}?preview=1`}>
                     <Eye size={12} />Preview gallery
                   </Link>
                 </Button>

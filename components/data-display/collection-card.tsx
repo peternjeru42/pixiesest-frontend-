@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { publicCollectionPath, ShareDialog } from '@/components/actions/share-dialog';
+import { publicCollectionPath, publicCollectionPreviewPath, ShareDialog } from '@/components/actions/share-dialog';
 import { listFolders } from '@/lib/api/folders';
 import { moveCollectionToFolder } from '@/lib/api/collections';
 import { cn } from '@/lib/utils';
@@ -155,7 +155,7 @@ function CollectionActionDropdown({
         onMouseDown={(event) => event.stopPropagation()}
       >
         <MenuButton icon={<Send size={15} strokeWidth={1.7}/>} onClick={onShare}>Share</MenuButton>
-        <MenuLink href={`/galleries/${collection.slug}`} icon={<Eye size={15} strokeWidth={1.7}/>}>Preview</MenuLink>
+        <MenuLink href={publicCollectionPreviewPath(collection.slug)} icon={<Eye size={15} strokeWidth={1.7}/>}>Preview</MenuLink>
         <MenuButton icon={<FolderInput size={15} strokeWidth={1.7}/>} onClick={onMove}>Move to</MenuButton>
         <MenuButton icon={<Trash2 size={15} strokeWidth={1.7}/>} danger onClick={onClose}>Delete</MenuButton>
       </div>

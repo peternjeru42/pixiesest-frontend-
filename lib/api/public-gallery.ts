@@ -1,10 +1,15 @@
 import type { Collection, CollectionCounts, Folder, Media, Set, SetVisibility } from '../types';
+import { getStoredAccessToken } from './session';
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api/v1').replace(/\/$/, '');
 const GALLERY_SESSION_KEY = 'droptop.gallerySession';
 
 type Paginated<T> = {
   results: T[];
+};
+
+type PublicRequestOptions = {
+  preview?: boolean;
 };
 
 type BackendCounts = Partial<{
@@ -104,6 +109,10 @@ async function publicRequest<T>(path: string, init: RequestInit = {}): Promise<T
   const headers = new Headers(init.headers);
   if (init.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
   if (session) headers.set('X-Gallery-Session', session);
+  if (path.includes('preview=1')) {
+    const token = getStoredAccessToken();
+    if (token) headers.set('Authorization', `Bearer ${token}`);
+  }
 
   let response: Response;
   try {
@@ -124,6 +133,11 @@ async function publicRequest<T>(path: string, init: RequestInit = {}): Promise<T
   }
 
   return data as T;
+}
+
+function withPreview(path: string, options?: PublicRequestOptions) {
+  if (!options?.preview) return path;
+  return `${path}${path.includes('?') ? '&' : '?'}preview=1`;
 }
 
 function formatDisplayDate(value?: string | null) {
@@ -230,17 +244,17 @@ export async function listPublicFolderCollections(slug: string) {
   return unpackList(data).map(toCollection);
 }
 
-export async function getPublicCollection(slug: string) {
-  return toCollection(await publicRequest<BackendCollection>(`/public/collections/${slug}/`));
+export async function getPublicCollection(slug: string, options?: PublicRequestOptions) {
+  return toCollection(await publicRequest<BackendCollection>(withPreview(`/public/collections/${slug}/`, options)));
 }
 
-export async function listPublicCollectionSets(slug: string) {
-  const data = await publicRequest<BackendSet[] | Paginated<BackendSet>>(`/public/collections/${slug}/sets/`);
+export async function listPublicCollectionSets(slug: string, options?: PublicRequestOptions) {
+  const data = await publicRequest<BackendSet[] | Paginated<BackendSet>>(withPreview(`/public/collections/${slug}/sets/`, options));
   return unpackList(data).map(toSet);
 }
 
-export async function listPublicCollectionMedia(slug: string) {
-  const data = await publicRequest<BackendMedia[] | Paginated<BackendMedia>>(`/public/collections/${slug}/media/`);
+export async function listPublicCollectionMedia(slug: string, options?: PublicRequestOptions) {
+  const data = await publicRequest<BackendMedia[] | Paginated<BackendMedia>>(withPreview(`/public/collections/${slug}/media/`, options));
   return unpackList(data).map(toMedia);
 }
 

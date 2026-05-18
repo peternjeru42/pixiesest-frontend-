@@ -16,6 +16,10 @@ export function publicCollectionPath(slug: string) {
   return `/galleries/${slug}`;
 }
 
+export function publicCollectionPreviewPath(slug: string) {
+  return `/galleries/${slug}?preview=1`;
+}
+
 export function publicFolderPath(slug: string) {
   return `/folders/${slug}/public`;
 }

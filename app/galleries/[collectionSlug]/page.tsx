@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowDown, Download, Heart, Image as ImageIcon, LayoutGrid, Send, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -20,6 +20,8 @@ type PublicSet = GallerySet & { slug: string };
 
 export default function PublicGalleryPage({ params }: { params: { collectionSlug: string } }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const preview = searchParams.get('preview') === '1';
   const galleryRef = React.useRef<HTMLDivElement>(null);
   const [collection, setCollection] = React.useState<Collection | null>(null);
   const [sets, setSets] = React.useState<PublicSet[]>([]);
@@ -41,9 +43,9 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
       setError('');
       try {
         const [nextCollection, nextSets, nextMedia] = await Promise.all([
-          getPublicCollection(params.collectionSlug),
-          listPublicCollectionSets(params.collectionSlug),
-          listPublicCollectionMedia(params.collectionSlug),
+          getPublicCollection(params.collectionSlug, { preview }),
+          listPublicCollectionSets(params.collectionSlug, { preview }),
+          listPublicCollectionMedia(params.collectionSlug, { preview }),
         ]);
         if (!mounted) return;
         setCollection(nextCollection);
@@ -66,7 +68,7 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
     return () => {
       mounted = false;
     };
-  }, [params.collectionSlug, router]);
+  }, [params.collectionSlug, preview, router]);
 
   const activeItems = React.useMemo(() => {
     const visible = setId === 'all' ? media : media.filter(item => item.setId === setId);
