@@ -160,6 +160,12 @@ export async function deleteMedia(id: string) {
   return { ok: true };
 }
 
+export async function bulkDelete(mediaIds: string[]) {
+  await Promise.all(mediaIds.map(id => request(`/media/${id}/`, { method: 'DELETE' })));
+  notifyMediaChanges();
+  return { ok: true };
+}
+
 export async function bulkMove(mediaIds: string[], targetSetId: string) {
   await request('/media/move/', {
     method: 'POST',
@@ -167,6 +173,10 @@ export async function bulkMove(mediaIds: string[], targetSetId: string) {
   });
   notifyMediaChanges();
   return { ok: true };
+}
+
+export async function getMediaDownloadUrl(id: string) {
+  return request<{ url: string; filename?: string }>(`/media/${id}/download-url/`);
 }
 
 export async function setCover(collectionOrSetId: string, mediaId: string) {

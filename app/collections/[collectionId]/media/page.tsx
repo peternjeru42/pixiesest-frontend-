@@ -10,7 +10,7 @@ import { Select } from '@/components/ui/select';
 import { MediaGrid } from '@/components/media/media-grid';
 import { MediaLightbox } from '@/components/media/media-lightbox';
 import { getCachedCollections, getCollection, subscribeToCollectionChanges } from '@/lib/api/collections';
-import { bulkMove, listMedia, subscribeToMediaChanges } from '@/lib/api/media';
+import { bulkDelete, bulkMove, getMediaDownloadUrl, listMedia, subscribeToMediaChanges } from '@/lib/api/media';
 import { listSets } from '@/lib/api/sets';
 import { ArrowDownUp, LayoutGrid, Upload, Folder, Download, Trash2, X } from 'lucide-react';
 import type { Collection, Media, Set as CollectionSet } from '@/lib/types';
@@ -28,6 +28,11 @@ export default function CollectionMediaPage({ params }: { params: { collectionId
   const [targetSetId, setTargetSetId] = React.useState('');
   const [moving, setMoving] = React.useState(false);
   const [moveError, setMoveError] = React.useState('');
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [deleting, setDeleting] = React.useState(false);
+  const [deleteError, setDeleteError] = React.useState('');
+  const [downloading, setDownloading] = React.useState(false);
+  const [bulkError, setBulkError] = React.useState('');
 
   React.useEffect(() => {
     let mounted = true;
@@ -67,6 +72,47 @@ export default function CollectionMediaPage({ params }: { params: { collectionId
   const toggleSel = (id: string) => setSelected(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const toggleFav = (id: string) => setMedia(arr => arr.map(m => m.id === id ? { ...m, faved: !m.faved } : m));
   const selectedCount = selected.size;
+  const selectedItems = media.filter(item => selected.has(item.id));
+
+  function openMoveDialog() {
+    setBulkError('');
+    setMoveError('');
+    setTargetSetId(current => current || sets[0]?.id || '');
+    setMoveOpen(true);
+  }
+
+  function triggerBrowserDownload(url: string, filename: string) {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.rel = 'noopener';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
+
+  async function downloadMediaItem(item: Media) {
+    const download = await getMediaDownloadUrl(item.id);
+    if (!download.url) throw new Error(`No download URL returned for ${item.filename}.`);
+    triggerBrowserDownload(download.url, download.filename || item.filename);
+  }
+
+  async function downloadSelected() {
+    if (selectedItems.length === 0) return;
+
+    setDownloading(true);
+    setBulkError('');
+
+    try {
+      for (const item of selectedItems) {
+        await downloadMediaItem(item);
+      }
+    } catch (error) {
+      setBulkError(error instanceof Error ? error.message : 'Unable to download selected media.');
+    } finally {
+      setDownloading(false);
+    }
+  }
 
   async function addSelectedToSet() {
     if (!targetSetId || selected.size === 0) return;
@@ -86,6 +132,26 @@ export default function CollectionMediaPage({ params }: { params: { collectionId
       setMoveError(error instanceof Error ? error.message : 'Unable to add media to set.');
     } finally {
       setMoving(false);
+    }
+  }
+
+  async function deleteSelected() {
+    if (selected.size === 0) return;
+
+    setDeleting(true);
+    setBulkError('');
+    setDeleteError('');
+
+    try {
+      const mediaIds = Array.from(selected);
+      await bulkDelete(mediaIds);
+      setMedia(current => current.filter(item => !selected.has(item.id)));
+      setSelected(new Set());
+      setDeleteOpen(false);
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : 'Unable to delete selected media.');
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -122,14 +188,23 @@ export default function CollectionMediaPage({ params }: { params: { collectionId
 
         {selected.size > 0 && (
           <div className="fixed inset-x-3 bottom-3 z-30 mx-auto max-w-xl rounded-2xl bg-ink px-3 py-3 text-sm text-bg shadow-deep sm:bottom-5 sm:left-1/2 sm:right-auto sm:w-[min(92vw,560px)] sm:-translate-x-1/2 sm:rounded-full sm:px-4 sm:py-2.5">
+            {bulkError && (
+              <div role="alert" className="mb-2 rounded-lg border border-rose-300/40 bg-rose-500/15 px-3 py-2 text-xs text-rose-100 sm:absolute sm:bottom-full sm:left-0 sm:right-0 sm:mb-3">
+                {bulkError}
+              </div>
+            )}
             <div className="flex items-center gap-2">
               <span className="mono min-w-[74px] text-[10.5px] leading-tight tracking-wider text-bg/85 sm:min-w-[86px] sm:text-[11px]">
                 {selected.size} SELECTED
               </span>
               <div className="grid flex-1 grid-cols-3 gap-1.5 sm:flex sm:items-center sm:justify-center sm:gap-2">
-                <BulkBtn icon={<Folder size={13}/>} onClick={() => setMoveOpen(true)}>Add to set</BulkBtn>
-                <BulkBtn icon={<Download size={13}/>}>Download</BulkBtn>
-                <BulkBtn icon={<Trash2 size={13}/>} danger>Delete</BulkBtn>
+                <BulkBtn icon={<Folder size={13}/>} onClick={openMoveDialog} disabled={moving || deleting || downloading}>Add to set</BulkBtn>
+                <BulkBtn icon={<Download size={13}/>} onClick={downloadSelected} disabled={moving || deleting || downloading}>
+                  {downloading ? 'Downloading...' : 'Download'}
+                </BulkBtn>
+                <BulkBtn icon={<Trash2 size={13}/>} onClick={() => { setBulkError(''); setDeleteError(''); setDeleteOpen(true); }} disabled={moving || deleting || downloading} danger>
+                  Delete
+                </BulkBtn>
               </div>
               <button
                 type="button"
@@ -142,6 +217,33 @@ export default function CollectionMediaPage({ params }: { params: { collectionId
             </div>
           </div>
         )}
+
+        <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+          <DialogContent onClose={() => setDeleteOpen(false)}>
+            <DialogHeader>
+              <DialogTitle>Delete media</DialogTitle>
+              <DialogDescription>
+                Delete {selectedCount} selected item{selectedCount === 1 ? '' : 's'} from {collection.title}.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogBody>
+              <div className="rounded-md border border-danger/20 bg-danger/5 px-3 py-2 text-sm text-danger">
+                This removes the selected media from the studio library.
+              </div>
+              {deleteError && (
+                <div role="alert" className="rounded-md border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger">
+                  {deleteError}
+                </div>
+              )}
+              <div className="flex justify-end gap-2 pt-2">
+                <Button type="button" variant="ghost" onClick={() => setDeleteOpen(false)} disabled={deleting}>Cancel</Button>
+                <Button type="button" variant="danger" onClick={deleteSelected} disabled={deleting || selectedCount === 0}>
+                  {deleting ? 'Deleting...' : 'Delete'}
+                </Button>
+              </div>
+            </DialogBody>
+          </DialogContent>
+        </Dialog>
 
         <Dialog open={moveOpen} onOpenChange={setMoveOpen}>
           <DialogContent onClose={() => setMoveOpen(false)}>
@@ -188,6 +290,7 @@ export default function CollectionMediaPage({ params }: { params: { collectionId
             onClose={() => setLightbox(null)}
             onIndex={(i) => setLightbox(lb => lb && { ...lb, index: i })}
             onToggleFavorite={toggleFav}
+            onDownload={downloadMediaItem}
           />
         )}
       </div>
@@ -200,18 +303,21 @@ function BulkBtn({
   children,
   danger,
   onClick,
+  disabled,
 }: {
   icon: React.ReactNode;
   children: React.ReactNode;
   danger?: boolean;
   onClick?: () => void;
+  disabled?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
       className={cn(
-        'inline-flex min-h-9 min-w-0 items-center justify-center gap-1.5 rounded-full px-2 text-center text-[11.5px] font-medium leading-tight hover:bg-bg/10 sm:min-h-8 sm:px-3 sm:text-[12.5px]',
+        'inline-flex min-h-9 min-w-0 items-center justify-center gap-1.5 rounded-full px-2 text-center text-[11.5px] font-medium leading-tight hover:bg-bg/10 disabled:cursor-not-allowed disabled:opacity-50 sm:min-h-8 sm:px-3 sm:text-[12.5px]',
         danger && 'text-rose-300',
       )}
     >
