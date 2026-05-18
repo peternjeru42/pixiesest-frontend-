@@ -59,6 +59,29 @@ export default function CollectionMediaPage({ params }: { params: { collectionId
     };
   }, [params.collectionId]);
 
+  React.useEffect(() => {
+    if (!loaded || !collection) return;
+    if (!media.some(item => item.status === 'processing' || item.status === 'uploading')) return;
+
+    let active = true;
+    const refreshProcessingMedia = async () => {
+      try {
+        const [items, setItems] = await Promise.all([listMedia({ collectionId: collection.id }), listSets(collection.id)]);
+        if (!active) return;
+        setMedia(items);
+        setSets(setItems);
+        setTargetSetId(existing => existing || setItems[0]?.id || '');
+      } catch {
+        // Keep the current grid visible; explicit user actions still surface errors.
+      }
+    };
+    const interval = window.setInterval(refreshProcessingMedia, 3000);
+    return () => {
+      active = false;
+      window.clearInterval(interval);
+    };
+  }, [collection, loaded, media]);
+
   if (!loaded && !collection) {
     return (
       <AdminLayout crumbs={[{ label: 'Studio' }, { label: 'Collections', href: '/collections' }, { label: 'Media' }]}>

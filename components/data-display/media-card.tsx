@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import { Play, Lock, Check, Heart } from 'lucide-react';
+import { AlertCircle, Check, Heart, Image as ImageIcon, Loader2, Lock, Play } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Media } from '@/lib/types';
 
@@ -12,6 +12,10 @@ export function MediaTile({ m, onClick, selected, onToggleSelect, onToggleFavori
   onToggleFavorite?: () => void;
   anySelected?: boolean;
 }) {
+  const hasImage = Boolean(m.thumb || m.src);
+  const isProcessing = m.status === 'processing' || m.status === 'uploading';
+  const isFailed = m.status === 'failed';
+
   return (
     <div
       onClick={() => (anySelected && onToggleSelect ? onToggleSelect() : onClick?.())}
@@ -20,7 +24,22 @@ export function MediaTile({ m, onClick, selected, onToggleSelect, onToggleFavori
         selected && 'outline outline-[3px] -outline-offset-[3px] outline-ink',
       )}
     >
-      <img src={m.thumb} alt="" loading="lazy" className="w-full h-full object-cover"/>
+      {hasImage ? (
+        <img src={m.thumb || m.src} alt="" loading="lazy" className="w-full h-full object-cover"/>
+      ) : (
+        <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-panel px-3 text-center text-muted">
+          {isFailed ? (
+            <AlertCircle size={22} className="text-danger"/>
+          ) : isProcessing ? (
+            <Loader2 size={22} className="animate-spin text-muted"/>
+          ) : (
+            <ImageIcon size={22}/>
+          )}
+          <span className="mono text-[10px] uppercase tracking-wider">
+            {isFailed ? 'Failed' : isProcessing ? 'Processing' : 'No preview'}
+          </span>
+        </div>
+      )}
       <button
         type="button"
         onClick={(e) => { e.stopPropagation(); onToggleSelect?.(); }}
