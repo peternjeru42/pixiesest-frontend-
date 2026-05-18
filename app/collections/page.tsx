@@ -51,6 +51,10 @@ export default function CollectionsPage() {
     setCollections(current => current.map(collection => collection.id === updated.id ? updated : collection));
   }
 
+  function removeCollection(collectionId: string) {
+    setCollections(current => current.filter(collection => collection.id !== collectionId));
+  }
+
   return (
     <AdminLayout
       crumbs={[{ label: 'Studio' }, { label: 'Collections' }]}
@@ -67,7 +71,14 @@ export default function CollectionsPage() {
         />
         {collections.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {collections.map(c => <CollectionCard key={c.id} c={c} onCollectionChange={updateCollection}/>)}
+            {collections.map(c => (
+              <CollectionCard
+                key={c.id}
+                c={c}
+                onCollectionChange={updateCollection}
+                onCollectionDeleted={removeCollection}
+              />
+            ))}
           </div>
         ) : (
           <div className="rounded-md border border-line bg-surface px-5 py-8 text-sm text-muted">

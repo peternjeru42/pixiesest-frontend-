@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { DeleteCollectionDialog } from '@/components/actions/delete-collection-dialog';
 import { CollectionShareDialog, publicCollectionPreviewPath } from '@/components/actions/share-dialog';
 import { listFolders } from '@/lib/api/folders';
 import { moveCollectionToFolder } from '@/lib/api/collections';
@@ -21,11 +22,20 @@ import type { Collection, Folder } from '@/lib/types';
 
 const MENU_WIDTH = 190;
 
-export function CollectionCard({ c, onCollectionChange }: { c: Collection; onCollectionChange?: (collection: Collection) => void }) {
+export function CollectionCard({
+  c,
+  onCollectionChange,
+  onCollectionDeleted,
+}: {
+  c: Collection;
+  onCollectionChange?: (collection: Collection) => void;
+  onCollectionDeleted?: (collectionId: string) => void;
+}) {
   const triggerRef = React.useRef<HTMLButtonElement>(null);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [shareOpen, setShareOpen] = React.useState(false);
   const [moveOpen, setMoveOpen] = React.useState(false);
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [menuStyle, setMenuStyle] = React.useState<React.CSSProperties>({});
 
   function openMenu() {
@@ -94,6 +104,10 @@ export function CollectionCard({ c, onCollectionChange }: { c: Collection; onCol
           setMenuOpen(false);
           setMoveOpen(true);
         }}
+        onDelete={() => {
+          setMenuOpen(false);
+          setDeleteOpen(true);
+        }}
       />
 
       <CollectionShareDialog
@@ -103,6 +117,12 @@ export function CollectionCard({ c, onCollectionChange }: { c: Collection; onCol
         onPublished={onCollectionChange}
       />
       <MoveToFolderDialog collection={c} open={moveOpen} onOpenChange={setMoveOpen} onMoved={onCollectionChange}/>
+      <DeleteCollectionDialog
+        collection={c}
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        onDeleted={onCollectionDeleted}
+      />
     </article>
   );
 }
@@ -114,6 +134,7 @@ function CollectionActionDropdown({
   onClose,
   onShare,
   onMove,
+  onDelete,
 }: {
   collection: Collection;
   open: boolean;
@@ -121,6 +142,7 @@ function CollectionActionDropdown({
   onClose: () => void;
   onShare: () => void;
   onMove: () => void;
+  onDelete: () => void;
 }) {
   const [mounted, setMounted] = React.useState(false);
 
@@ -151,7 +173,7 @@ function CollectionActionDropdown({
         <MenuButton icon={<Send size={15} strokeWidth={1.7}/>} onClick={onShare}>Share</MenuButton>
         <MenuLink href={publicCollectionPreviewPath(collection.slug)} icon={<Eye size={15} strokeWidth={1.7}/>}>Preview</MenuLink>
         <MenuButton icon={<FolderInput size={15} strokeWidth={1.7}/>} onClick={onMove}>Move to</MenuButton>
-        <MenuButton icon={<Trash2 size={15} strokeWidth={1.7}/>} danger onClick={onClose}>Delete</MenuButton>
+        <MenuButton icon={<Trash2 size={15} strokeWidth={1.7}/>} danger onClick={onDelete}>Delete</MenuButton>
       </div>
     </div>,
     document.body,
