@@ -12,7 +12,7 @@ import { MediaLightbox } from '@/components/media/media-lightbox';
 import { getCachedCollections, getCollection, subscribeToCollectionChanges } from '@/lib/api/collections';
 import { bulkMove, listMedia, subscribeToMediaChanges } from '@/lib/api/media';
 import { listSets } from '@/lib/api/sets';
-import { ArrowDownUp, LayoutGrid, Upload, Folder, Heart, Lock, Download, Image as ImageIcon, Trash2, X } from 'lucide-react';
+import { ArrowDownUp, LayoutGrid, Upload, Folder, Download, Trash2, X } from 'lucide-react';
 import type { Collection, Media, Set as CollectionSet } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
@@ -121,17 +121,25 @@ export default function CollectionMediaPage({ params }: { params: { collectionId
         )}
 
         {selected.size > 0 && (
-          <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-30 bg-ink text-bg rounded-full shadow-deep flex items-center gap-3 px-4 py-2.5 text-sm">
-            <span className="mono text-[11px] tracking-wider">{selected.size} SELECTED</span>
-            <span className="w-px h-4 bg-bg/20"/>
-            <BulkBtn icon={<Folder size={13}/>} onClick={() => setMoveOpen(true)}>Add to set</BulkBtn>
-            <BulkBtn icon={<Heart size={13}/>}>Favorite</BulkBtn>
-            <BulkBtn icon={<Lock size={13}/>}>Private</BulkBtn>
-            <BulkBtn icon={<Download size={13}/>}>Download</BulkBtn>
-            <BulkBtn icon={<ImageIcon size={13}/>}>Set cover</BulkBtn>
-            <span className="w-px h-4 bg-bg/20"/>
-            <BulkBtn icon={<Trash2 size={13}/>} danger>Delete</BulkBtn>
-            <button onClick={() => setSelected(new Set())} className="px-1.5 py-1 rounded-full hover:bg-bg/10"><X size={13}/></button>
+          <div className="fixed inset-x-3 bottom-3 z-30 mx-auto max-w-xl rounded-2xl bg-ink px-3 py-3 text-sm text-bg shadow-deep sm:bottom-5 sm:left-1/2 sm:right-auto sm:w-[min(92vw,560px)] sm:-translate-x-1/2 sm:rounded-full sm:px-4 sm:py-2.5">
+            <div className="flex items-center gap-2">
+              <span className="mono min-w-[74px] text-[10.5px] leading-tight tracking-wider text-bg/85 sm:min-w-[86px] sm:text-[11px]">
+                {selected.size} SELECTED
+              </span>
+              <div className="grid flex-1 grid-cols-3 gap-1.5 sm:flex sm:items-center sm:justify-center sm:gap-2">
+                <BulkBtn icon={<Folder size={13}/>} onClick={() => setMoveOpen(true)}>Add to set</BulkBtn>
+                <BulkBtn icon={<Download size={13}/>}>Download</BulkBtn>
+                <BulkBtn icon={<Trash2 size={13}/>} danger>Delete</BulkBtn>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelected(new Set())}
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-full hover:bg-bg/10"
+                aria-label="Clear selected media"
+              >
+                <X size={14}/>
+              </button>
+            </div>
           </div>
         )}
 
@@ -202,7 +210,10 @@ function BulkBtn({
     <button
       type="button"
       onClick={onClick}
-      className={cn('px-2.5 py-1 rounded-full hover:bg-bg/10 inline-flex items-center gap-1.5 text-[12.5px]', danger && 'text-rose-300')}
+      className={cn(
+        'inline-flex min-h-9 min-w-0 items-center justify-center gap-1.5 rounded-full px-2 text-center text-[11.5px] font-medium leading-tight hover:bg-bg/10 sm:min-h-8 sm:px-3 sm:text-[12.5px]',
+        danger && 'text-rose-300',
+      )}
     >
       {icon}{children}
     </button>
