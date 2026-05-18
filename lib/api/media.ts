@@ -36,6 +36,14 @@ type CompleteUploadResponse = {
   media_asset?: string | BackendMedia | null;
 };
 
+type BulkPresignUploadResponse = {
+  uploads: UploadResponse[];
+};
+
+type BulkCompleteUploadResponse = {
+  uploads: CompleteUploadResponse[];
+};
+
 type Paginated<T> = {
   results: T[];
 };
@@ -115,6 +123,26 @@ function isVideo(file: File) {
   return file.type.startsWith('video/') || /\.(mp4|mov|m4v|webm)$/i.test(file.name);
 }
 
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  limit: number,
+  mapper: (item: T, index: number) => Promise<R>,
+) {
+  const results = new Array<R>(items.length);
+  let nextIndex = 0;
+  const workerCount = Math.min(limit, items.length);
+
+  await Promise.all(Array.from({ length: workerCount }, async () => {
+    while (nextIndex < items.length) {
+      const currentIndex = nextIndex;
+      nextIndex += 1;
+      results[currentIndex] = await mapper(items[currentIndex], currentIndex);
+    }
+  }));
+
+  return results;
+}
+
 export function subscribeToMediaChanges(callback: () => void) {
   if (typeof window === 'undefined') return () => {};
   window.addEventListener(MEDIA_CHANGED_EVENT, callback);
@@ -189,40 +217,42 @@ export async function setCover(collectionOrSetId: string, mediaId: string) {
 }
 
 export async function addUploadedMedia(input: { collectionId: string; setId?: string | null; files: File[] }) {
-  const uploaded: Media[] = [];
   const setId = input.setId && input.setId !== 'general' ? input.setId : null;
+  const uploadRequests = input.files.map(file => ({
+    collection_id: input.collectionId,
+    set_id: setId,
+    original_filename: file.name,
+    mime_type: file.type || (isVideo(file) ? 'video/mp4' : 'image/jpeg'),
+    file_size_bytes: file.size,
+  }));
 
-  for (const file of input.files) {
-    const presigned = await request<UploadResponse>('/uploads/presign/', {
-      method: 'POST',
-      body: JSON.stringify({
-        collection_id: input.collectionId,
-        set_id: setId,
-        original_filename: file.name,
-        mime_type: file.type || (isVideo(file) ? 'video/mp4' : 'image/jpeg'),
-        file_size_bytes: file.size,
-      }),
-    });
+  const presigned = await request<BulkPresignUploadResponse>('/uploads/bulk/presign/', {
+    method: 'POST',
+    body: JSON.stringify({ files: uploadRequests }),
+  });
 
-    const uploadResponse = await fetch(presigned.upload_url, {
+  await mapWithConcurrency(presigned.uploads, 3, async (upload, index) => {
+    const file = input.files[index];
+    const uploadResponse = await fetch(upload.upload_url, {
       method: 'PUT',
       headers: { 'Content-Type': file.type || 'application/octet-stream' },
       body: file,
     });
     if (!uploadResponse.ok) throw new Error(`Upload failed with status ${uploadResponse.status}`);
+  });
 
-    const completed = await request<CompleteUploadResponse>('/uploads/complete/', {
-      method: 'POST',
-      body: JSON.stringify({ upload_id: presigned.upload.upload_id }),
-    });
+  const completed = await request<BulkCompleteUploadResponse>('/uploads/bulk/complete/', {
+    method: 'POST',
+    body: JSON.stringify({
+      uploads: presigned.uploads.map(upload => ({ upload_id: upload.upload.upload_id })),
+    }),
+  });
 
-    if (completed.media_asset && typeof completed.media_asset === 'object') {
-      uploaded.push(toMedia(completed.media_asset));
-    } else if (completed.media_asset) {
-      const media = await getMedia(String(completed.media_asset));
-      if (media) uploaded.push(media);
-    }
-  }
+  const uploaded = (await mapWithConcurrency(completed.uploads, 5, async complete => {
+    if (complete.media_asset && typeof complete.media_asset === 'object') return toMedia(complete.media_asset);
+    if (complete.media_asset) return getMedia(String(complete.media_asset));
+    return null;
+  })).filter((media): media is Media => Boolean(media));
 
   notifyMediaChanges();
   return uploaded;
