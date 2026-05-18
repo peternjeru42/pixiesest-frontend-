@@ -274,3 +274,11 @@ export function verifyCollectionPassword(slug: string, password: string, email?:
 export function verifyFolderPassword(slug: string, password: string, email?: string) {
   return verifyPassword(`/gallery-access/folders/${slug}/verify/`, password, email);
 }
+
+export async function downloadOriginalMedia(mediaId: string, pin: string) {
+  const data = await publicRequest<{ url: string }>(`/public/downloads/media/${mediaId}/original/`, {
+    method: 'POST',
+    body: JSON.stringify({ pin }),
+  });
+  return data.url;
+}

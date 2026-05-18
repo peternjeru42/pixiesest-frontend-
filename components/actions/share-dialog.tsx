@@ -52,23 +52,23 @@ export function ShareDialog({
   copyLinkLabel?: string;
   onBeforeCopyLink?: () => Promise<void>;
 }) {
-  const [copied, setCopied] = React.useState(false);
-  const [copying, setCopying] = React.useState(false);
+  const [copiedKey, setCopiedKey] = React.useState('');
+  const [copyingKey, setCopyingKey] = React.useState('');
   const [copyError, setCopyError] = React.useState('');
   const url = absoluteUrl(path);
 
-  async function copyValue(value: string, beforeCopy?: () => Promise<void>) {
-    setCopying(true);
+  async function copyValue(key: string, value: string, beforeCopy?: () => Promise<void>) {
+    setCopyingKey(key);
     setCopyError('');
     try {
       await beforeCopy?.();
       await navigator.clipboard?.writeText(value);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 1400);
+      setCopiedKey(key);
+      window.setTimeout(() => setCopiedKey(''), 1400);
     } catch (error) {
       setCopyError(error instanceof Error ? error.message : 'Unable to copy this link.');
     } finally {
-      setCopying(false);
+      setCopyingKey('');
     }
   }
 
@@ -93,9 +93,9 @@ export function ShareDialog({
           <CopyBlock
             label="Public URL"
             value={url}
-            copied={copied}
-            copying={copying}
-            onCopy={() => copyValue(url, onBeforeCopyLink)}
+            copied={copiedKey === 'public-url'}
+            copying={copyingKey === 'public-url'}
+            onCopy={() => copyValue('public-url', url, onBeforeCopyLink)}
           />
           {details.map(detail => (
             <CopyBlock
@@ -103,13 +103,15 @@ export function ShareDialog({
               label={detail.label}
               value={detail.value}
               helper={detail.helper}
-              onCopy={() => copyValue(detail.value)}
+              copied={copiedKey === detail.label}
+              copying={copyingKey === detail.label}
+              onCopy={() => copyValue(detail.label, detail.value)}
             />
           ))}
         </DialogBody>
         <DialogFooter className="px-5 pb-6 sm:px-6">
-          <Button type="button" variant="outline" disabled={copying} onClick={() => copyValue(url, onBeforeCopyLink)}>
-            <Copy size={14}/>{copied ? 'Copied' : copying ? 'Copying...' : copyLinkLabel}
+          <Button type="button" variant="outline" disabled={Boolean(copyingKey)} onClick={() => copyValue('public-url', url, onBeforeCopyLink)}>
+            <Copy size={14}/>{copiedKey === 'public-url' ? 'Copied' : copyingKey === 'public-url' ? 'Copying...' : copyLinkLabel}
           </Button>
         </DialogFooter>
       </DialogContent>

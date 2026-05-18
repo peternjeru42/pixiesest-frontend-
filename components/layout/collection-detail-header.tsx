@@ -17,33 +17,28 @@ const TABS = [
   { id: 'settings',  label: 'Settings' },
 ];
 
-export function CollectionDetailHeader({ c, activeTab }: { c: Collection; activeTab: string }) {
+export type CollectionMainTab = 'sets' | 'media' | 'activity' | 'settings';
+
+export function CollectionDetailHeader({
+  c,
+  activeTab,
+  onTabChange,
+}: {
+  c: Collection;
+  activeTab: string;
+  onTabChange?: (tab: CollectionMainTab) => void;
+}) {
   const [shareOpen, setShareOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const router = useRouter();
 
-  function navigateTab(event: React.MouseEvent<HTMLAnchorElement>, href: string) {
-    if (
-      event.defaultPrevented ||
-      event.button !== 0 ||
-      event.metaKey ||
-      event.ctrlKey ||
-      event.shiftKey ||
-      event.altKey
-    ) {
+  function navigateTab(tab: CollectionMainTab, href: string) {
+    if (onTabChange) {
+      onTabChange(tab);
+      window.history.pushState(null, '', href);
       return;
     }
-
-    event.preventDefault();
-    const viewDocument = document as Document & {
-      startViewTransition?: (callback: () => void) => void;
-    };
-
-    if (viewDocument.startViewTransition) {
-      viewDocument.startViewTransition(() => router.push(href));
-    } else {
-      router.push(href);
-    }
+    router.push(href);
   }
 
   return (
@@ -98,20 +93,19 @@ export function CollectionDetailHeader({ c, activeTab }: { c: Collection; active
           {TABS.map(t => {
             const href = t.id === 'sets' ? `/collections/${c.id}` : `/collections/${c.id}/${t.id}`;
             return (
-            <Link
+            <button
+              type="button"
               key={t.id}
-              href={href}
-              prefetch
               aria-current={activeTab === t.id ? 'page' : undefined}
-              onMouseEnter={() => router.prefetch(href)}
-              onClick={(event) => navigateTab(event, href)}
+              onMouseEnter={() => !onTabChange && router.prefetch(href)}
+              onClick={() => navigateTab(t.id as CollectionMainTab, href)}
               className={cn(
                 'px-3.5 py-2.5 text-[13px] whitespace-nowrap border-b-[1.5px] -mb-px transition-all duration-200 ease-out',
                 activeTab === t.id ? 'border-ink text-ink' : 'border-transparent text-muted hover:text-ink',
               )}
             >
               {t.label}
-            </Link>
+            </button>
           )})}
         </div>
       </div>

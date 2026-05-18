@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ArrowLeft, Plus, Edit, Image as ImageIcon, Lock, Share2, Trash2 } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/admin-layout';
 import { Button } from '@/components/ui/button';
+import { CreateCollectionDialog } from '@/components/actions/create-collection-dialog';
 import { publicFolderPath, ShareDialog } from '@/components/actions/share-dialog';
 import { CollectionCard } from '@/components/data-display/collection-card';
 import { listCollections, subscribeToCollectionChanges } from '@/lib/api/collections';
@@ -14,6 +15,7 @@ export default function FolderDetailPage({ params }: { params: { folderId: strin
   const [folder, setFolder] = React.useState<Folder | null>(null);
   const [collections, setCollections] = React.useState<Collection[]>([]);
   const [shareOpen, setShareOpen] = React.useState(false);
+  const [createOpen, setCreateOpen] = React.useState(false);
   const [loaded, setLoaded] = React.useState(false);
 
   React.useEffect(() => {
@@ -44,6 +46,11 @@ export default function FolderDetailPage({ params }: { params: { folderId: strin
 
   function removeCollection(collectionId: string) {
     setCollections(current => current.filter(collection => collection.id !== collectionId));
+  }
+
+  function addCollection(collection: Collection) {
+    if (collection.folderId !== folder?.id) return;
+    setCollections(current => [collection, ...current.filter(item => item.id !== collection.id)]);
   }
   const visibleFileCount = collections.reduce((total, collection) => (
     total + collection.counts.photos + collection.counts.videos
@@ -107,9 +114,15 @@ export default function FolderDetailPage({ params }: { params: { folderId: strin
             <Button variant="outline" onClick={() => setShareOpen(true)}><Share2 size={14}/>Share</Button>
             <Button variant="outline">{folder.hasPassword ? <><Lock size={14}/>Remove password</> : <><Lock size={14}/>Set password</>}</Button>
             <Button variant="danger"><Trash2 size={14}/>Delete</Button>
-            <Button asChild variant="default"><Link href={`/collections/new?folderId=${folder.id}`}><Plus size={14}/>New collection</Link></Button>
+            <Button type="button" variant="default" onClick={() => setCreateOpen(true)}><Plus size={14}/>New collection</Button>
           </div>
         </div>
+        <CreateCollectionDialog
+          open={createOpen}
+          onOpenChange={setCreateOpen}
+          initialFolderId={folder.id}
+          onCreated={addCollection}
+        />
         {collections.length > 0 && visibleFileCount > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {collections.map(collection => (

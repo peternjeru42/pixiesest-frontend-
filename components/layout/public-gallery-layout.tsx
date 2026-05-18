@@ -1,11 +1,11 @@
 'use client';
 import * as React from 'react';
 import Link from 'next/link';
-import { Heart, Download, Settings } from 'lucide-react';
+import { Heart, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-export function PublicGalleryNav({ favCount, onOpenFavorites, onOpenDownload, adminHref }: {
-  favCount: number; onOpenFavorites: () => void; onOpenDownload: () => void; adminHref?: string;
+export function PublicGalleryNav({ favCount, onOpenFavorites, onOpenDownload }: {
+  favCount: number; onOpenFavorites: () => void; onOpenDownload?: () => void;
 }) {
   return (
     <nav className="sticky top-0 z-30 flex items-center justify-between px-6 md:px-9 py-4 bg-bg/85 backdrop-blur border-b border-line">
@@ -20,12 +20,7 @@ export function PublicGalleryNav({ favCount, onOpenFavorites, onOpenDownload, ad
             <span className="absolute -top-1.5 -right-1.5 bg-ink text-bg mono text-[9.5px] px-1.5 py-px rounded-full">{favCount}</span>
           )}
         </Button>
-        <Button variant="outline" size="icon" onClick={onOpenDownload}><Download size={14}/></Button>
-        {adminHref && (
-          <Button asChild size="sm" variant="outline" className="hidden md:inline-flex">
-            <Link href={adminHref}><Settings size={12}/>Admin</Link>
-          </Button>
-        )}
+        {onOpenDownload && <Button variant="outline" size="icon" onClick={onOpenDownload}><Download size={14}/></Button>}
       </div>
     </nav>
   );

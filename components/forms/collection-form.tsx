@@ -8,9 +8,17 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select } from '@/components/ui/select';
 import { createCollection } from '@/lib/api/collections';
 import { listFolders } from '@/lib/api/folders';
-import type { Folder } from '@/lib/types';
+import type { Collection, Folder } from '@/lib/types';
 
-export function CollectionForm({ initialFolderId }: { initialFolderId?: string }) {
+export function CollectionForm({
+  initialFolderId,
+  onCreated,
+  onCancel,
+}: {
+  initialFolderId?: string;
+  onCreated?: (collection: Collection) => void;
+  onCancel?: () => void;
+}) {
   const router = useRouter();
   const [title, setTitle] = React.useState('');
   const [folders, setFolders] = React.useState<Folder[]>([]);
@@ -39,13 +47,21 @@ export function CollectionForm({ initialFolderId }: { initialFolderId?: string }
     setSaving(true);
     setError('');
     try {
-      await createCollection({
+      const collection = await createCollection({
         title: cleanTitle,
         folderId: folder || null,
         date,
         description: description.trim(),
       });
-      router.push('/collections');
+      if (onCreated) {
+        onCreated(collection);
+        setTitle('');
+        setDate('');
+        setDescription('');
+        setFolder(initialFolderId ?? '');
+      } else {
+        router.push('/collections');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to create collection.');
     } finally {
@@ -82,7 +98,7 @@ export function CollectionForm({ initialFolderId }: { initialFolderId?: string }
         </div>
       )}
       <div className="flex justify-end gap-2 pt-3 border-t border-line">
-        <Button type="button" variant="ghost" onClick={() => router.back()}>Cancel</Button>
+        <Button type="button" variant="ghost" onClick={onCancel ?? (() => router.back())}>Cancel</Button>
         <Button type="submit" variant="default" disabled={!title.trim() || saving}>{saving ? 'Creating...' : 'Create collection'}</Button>
       </div>
     </form>

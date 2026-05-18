@@ -1,10 +1,10 @@
 'use client';
 import * as React from 'react';
-import Link from 'next/link';
 import { Plus, ArrowDown } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/admin-layout';
 import { PageHeader } from '@/components/layout/page-header';
 import { Button } from '@/components/ui/button';
+import { CreateCollectionDialog } from '@/components/actions/create-collection-dialog';
 import { CollectionCard } from '@/components/data-display/collection-card';
 import { getCachedCollections, listCollections, subscribeToCollectionChanges } from '@/lib/api/collections';
 import { searchFolders } from '@/lib/api/folders';
@@ -13,6 +13,7 @@ import type { Collection } from '@/lib/types';
 export default function CollectionsPage() {
   const [collections, setCollections] = React.useState<Collection[]>([]);
   const [search, setSearch] = React.useState('');
+  const [createOpen, setCreateOpen] = React.useState(false);
 
   React.useEffect(() => {
     let mounted = true;
@@ -55,6 +56,10 @@ export default function CollectionsPage() {
     setCollections(current => current.filter(collection => collection.id !== collectionId));
   }
 
+  function addCollection(collection: Collection) {
+    setCollections(current => [collection, ...current.filter(item => item.id !== collection.id)]);
+  }
+
   return (
     <AdminLayout
       crumbs={[{ label: 'Studio' }, { label: 'Collections' }]}
@@ -66,9 +71,10 @@ export default function CollectionsPage() {
           title="Collections"
           actions={<>
             <Button variant="outline"><ArrowDown size={14}/>Newest</Button>
-            <Button asChild variant="default"><Link href="/collections/new"><Plus size={14}/>New collection</Link></Button>
+            <Button type="button" variant="default" onClick={() => setCreateOpen(true)}><Plus size={14}/>New collection</Button>
           </>}
         />
+        <CreateCollectionDialog open={createOpen} onOpenChange={setCreateOpen} onCreated={addCollection}/>
         {collections.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {collections.map(c => (

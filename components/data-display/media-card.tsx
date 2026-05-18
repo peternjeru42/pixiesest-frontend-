@@ -1,15 +1,16 @@
 'use client';
 import * as React from 'react';
-import { AlertCircle, Check, Heart, Image as ImageIcon, Loader2, Lock, Play } from 'lucide-react';
+import { AlertCircle, Check, Download, Heart, Image as ImageIcon, Loader2, Lock, Play } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { Media } from '@/lib/types';
 
-export function MediaTile({ m, onClick, selected, onToggleSelect, onToggleFavorite, anySelected }: {
+export function MediaTile({ m, onClick, selected, onToggleSelect, onToggleFavorite, onDownload, anySelected }: {
   m: Media;
   onClick?: () => void;
   selected?: boolean;
   onToggleSelect?: () => void;
   onToggleFavorite?: () => void;
+  onDownload?: () => void;
   anySelected?: boolean;
 }) {
   const hasImage = Boolean(m.thumb || m.src);
@@ -58,17 +59,32 @@ export function MediaTile({ m, onClick, selected, onToggleSelect, onToggleFavori
           <Lock size={9}/>
         </span>
       )}
-      {onToggleFavorite && (
-        <button
-          type="button"
-          onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
-          className={cn(
-            'absolute bottom-2 right-2 transition-opacity',
-            m.faved ? 'opacity-100 text-rose-400' : 'opacity-0 group-hover:opacity-100 text-bg',
+      {(onDownload || onToggleFavorite) && (
+        <div className="absolute bottom-2 right-2 flex items-center gap-2">
+          {onDownload && (
+            <button
+              type="button"
+              aria-label={`Download ${m.filename}`}
+              onClick={(e) => { e.stopPropagation(); onDownload(); }}
+              className="grid h-8 w-8 place-items-center rounded-full bg-ink/70 text-bg opacity-0 transition-opacity hover:bg-ink group-hover:opacity-100 focus:opacity-100"
+            >
+              <Download size={15}/>
+            </button>
           )}
-        >
-          <Heart size={18} fill={m.faved ? 'currentColor' : 'none'}/>
-        </button>
+          {onToggleFavorite && (
+            <button
+              type="button"
+              aria-label={m.faved ? `Remove ${m.filename} from favourites` : `Add ${m.filename} to favourites`}
+              onClick={(e) => { e.stopPropagation(); onToggleFavorite(); }}
+              className={cn(
+                'grid h-8 w-8 place-items-center rounded-full bg-ink/70 transition-opacity hover:bg-ink',
+                m.faved ? 'opacity-100 text-rose-400' : 'opacity-0 group-hover:opacity-100 text-bg focus:opacity-100',
+              )}
+            >
+              <Heart size={18} fill={m.faved ? 'currentColor' : 'none'}/>
+            </button>
+          )}
+        </div>
       )}
     </div>
   );

@@ -1,14 +1,17 @@
 'use client';
 import * as React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowDown, Download, Heart, Image as ImageIcon, LayoutGrid, Send, X } from 'lucide-react';
+import { ArrowDown, Download, Heart, Image as ImageIcon, Send, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { EmptyState } from '@/components/data-display/empty-state';
 import { MediaLightbox } from '@/components/media/media-lightbox';
 import { PublicGalleryFooter, PublicGalleryNav } from '@/components/layout/public-gallery-layout';
 import {
   PublicApiError,
+  downloadOriginalMedia,
   getPublicCollection,
   listPublicCollectionMedia,
   listPublicCollectionSets,
@@ -29,7 +32,10 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
   const [setId, setSetId] = React.useState('all');
   const [favorites, setFavorites] = React.useState<Set<string>>(new Set());
   const [favPanel, setFavPanel] = React.useState(false);
-  const [downloadNotice, setDownloadNotice] = React.useState(false);
+  const [downloadTarget, setDownloadTarget] = React.useState<Media | null>(null);
+  const [downloadPin, setDownloadPin] = React.useState('');
+  const [downloading, setDownloading] = React.useState(false);
+  const [downloadError, setDownloadError] = React.useState('');
   const [submitModal, setSubmitModal] = React.useState(false);
   const [lightbox, setLightbox] = React.useState<{ items: Media[]; index: number } | null>(null);
   const [loading, setLoading] = React.useState(true);
@@ -83,6 +89,34 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
 
   const scrollToGallery = () => galleryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
+  function openDownload(media: Media | null) {
+    setDownloadTarget(media);
+    setDownloadPin('');
+    setDownloadError('');
+  }
+
+  async function submitDownloadPin(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!downloadTarget || downloading) return;
+    setDownloading(true);
+    setDownloadError('');
+    try {
+      const url = await downloadOriginalMedia(downloadTarget.id, downloadPin.trim());
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = downloadTarget.filename;
+      anchor.rel = 'noopener';
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      setDownloadTarget(null);
+    } catch (err) {
+      setDownloadError(err instanceof Error ? err.message : 'Unable to download this file.');
+    } finally {
+      setDownloading(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="grid min-h-screen place-items-center bg-bg text-ink">
@@ -113,8 +147,6 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
       <PublicGalleryNav
         favCount={favorites.size}
         onOpenFavorites={() => setFavPanel(true)}
-        onOpenDownload={() => setDownloadNotice(true)}
-        adminHref={`/collections/${collection.id}`}
       />
 
       <header className="relative h-[calc(100dvh-61px)] min-h-[520px] overflow-hidden bg-panel">
@@ -156,10 +188,6 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
             </button>
           ))}
         </div>
-        <div className="hidden shrink-0 gap-2 md:flex">
-          <Button size="sm" variant="outline"><LayoutGrid size={12}/>Grid</Button>
-          <Button size="sm" variant="outline" onClick={() => setDownloadNotice(true)}><Download size={12}/>Download all</Button>
-        </div>
       </div>
 
       <main className="px-6 py-12 pb-20 md:px-9">
@@ -183,15 +211,30 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
                 ) : (
                   <div className="grid h-full w-full place-items-center text-muted"><ImageIcon size={24}/></div>
                 )}
-                <button
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    toggleFav(item.id);
-                  }}
-                  className={cn('absolute bottom-2 right-2 transition-opacity', item.faved ? 'text-rose-400 opacity-100' : 'text-bg opacity-0 group-hover:opacity-100')}
-                >
-                  <Heart size={20} fill={item.faved ? 'currentColor' : 'none'}/>
-                </button>
+                <div className="absolute bottom-2 right-2 flex items-center gap-2">
+                  <button
+                    type="button"
+                    aria-label={`Download ${item.filename}`}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      openDownload(item);
+                    }}
+                    className="grid h-8 w-8 place-items-center rounded-full bg-ink/70 text-bg opacity-0 transition-opacity hover:bg-ink group-hover:opacity-100 focus:opacity-100"
+                  >
+                    <Download size={15}/>
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={item.faved ? `Remove ${item.filename} from favourites` : `Add ${item.filename} to favourites`}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      toggleFav(item.id);
+                    }}
+                    className={cn('grid h-8 w-8 place-items-center rounded-full bg-ink/70 transition-opacity hover:bg-ink', item.faved ? 'text-rose-400 opacity-100' : 'text-bg opacity-0 group-hover:opacity-100 focus:opacity-100')}
+                  >
+                    <Heart size={18} fill={item.faved ? 'currentColor' : 'none'}/>
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -215,15 +258,44 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
         />
       )}
 
-      <Dialog open={downloadNotice} onOpenChange={setDownloadNotice}>
-        <DialogContent size="sm" onClose={() => setDownloadNotice(false)}>
+      <Dialog open={Boolean(downloadTarget)} onOpenChange={(open) => {
+        if (!open && !downloading) setDownloadTarget(null);
+      }}>
+        <DialogContent size="sm" onClose={() => !downloading && setDownloadTarget(null)}>
           <DialogHeader>
-            <DialogTitle>Downloads</DialogTitle>
-            <DialogDescription>Use the download button on an individual file, or ask the photographer for a gallery download link.</DialogDescription>
+            <DialogTitle>Download original</DialogTitle>
+            <DialogDescription>Enter the download PIN from your photographer.</DialogDescription>
           </DialogHeader>
-          <DialogFooter>
-            <Button onClick={() => setDownloadNotice(false)}>Close</Button>
-          </DialogFooter>
+          <form onSubmit={submitDownloadPin}>
+            <DialogBody>
+              {downloadTarget && (
+                <div className="rounded-md border border-line bg-panel px-3 py-2 text-sm">
+                  {downloadTarget.filename}
+                </div>
+              )}
+              <div className="flex flex-col gap-1.5">
+                <Label>Download PIN</Label>
+                <Input
+                  value={downloadPin}
+                  onChange={(event) => setDownloadPin(event.target.value)}
+                  inputMode="numeric"
+                  autoFocus
+                  maxLength={12}
+                />
+              </div>
+              {downloadError && (
+                <div role="alert" className="rounded-md border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger">
+                  {downloadError}
+                </div>
+              )}
+            </DialogBody>
+            <DialogFooter>
+              <Button type="button" variant="ghost" disabled={downloading} onClick={() => setDownloadTarget(null)}>Cancel</Button>
+              <Button type="submit" variant="default" disabled={!downloadPin.trim() || downloading}>
+                <Download size={14}/>{downloading ? 'Preparing...' : 'Download original'}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
 
@@ -249,7 +321,7 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
           onClose={() => setLightbox(null)}
           onIndex={(index) => setLightbox(current => current && { ...current, index })}
           onToggleFavorite={toggleFav}
-          onDownload={() => setDownloadNotice(true)}
+          onDownload={openDownload}
         />
       )}
     </div>

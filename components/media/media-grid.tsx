@@ -4,10 +4,11 @@ import { cn } from '@/lib/utils';
 import { MediaTile } from '@/components/data-display/media-card';
 import type { Media } from '@/lib/types';
 
-export function MediaGrid({ media, onOpen, onToggleFavorite, density = 'regular', selectable, selected, onToggleSelect }: {
+export function MediaGrid({ media, onOpen, onToggleFavorite, onDownload, density = 'regular', selectable, selected, onToggleSelect }: {
   media: Media[];
   onOpen?: (index: number) => void;
   onToggleFavorite?: (id: string) => void;
+  onDownload?: (media: Media) => void;
   density?: 'compact' | 'regular' | 'comfy';
   selectable?: boolean;
   selected?: Set<string>;
@@ -30,6 +31,7 @@ export function MediaGrid({ media, onOpen, onToggleFavorite, density = 'regular'
           anySelected={selectable && (selected?.size ?? 0) > 0}
           onToggleSelect={selectable ? () => onToggleSelect?.(m.id) : undefined}
           onToggleFavorite={onToggleFavorite ? () => onToggleFavorite(m.id) : undefined}
+          onDownload={onDownload ? () => onDownload(m) : undefined}
         />
       ))}
     </div>
