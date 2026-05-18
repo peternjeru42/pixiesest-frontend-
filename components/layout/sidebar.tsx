@@ -2,7 +2,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Grid3x3, FolderOpen, User } from 'lucide-react';
+import { Home, Grid3x3, FolderOpen, Shield, User } from 'lucide-react';
 import { LogoutButton } from '@/components/actions/logout-button';
 import { listCollections, subscribeToCollectionChanges } from '@/lib/api/collections';
 import { listFolders, subscribeToFolderChanges } from '@/lib/api/folders';
@@ -14,6 +14,7 @@ const STUDIO = [
   { href: '/folders',     label: 'Folders',    icon: FolderOpen, count: 4 },
 ];
 const ACCOUNT = [
+  { href: '/dashboard/admin', label: 'Admin', icon: Shield },
   { href: '/profile',       label: 'Profile', icon: User },
 ];
 
@@ -65,7 +66,8 @@ export function Sidebar() {
 }
 
 function isActive(pathname: string, href: string) {
-  if (href === '/dashboard') return pathname === '/' || pathname.startsWith('/dashboard');
+  if (href === '/dashboard/admin') return pathname === href;
+  if (href === '/dashboard') return pathname === '/' || (pathname.startsWith('/dashboard') && !pathname.startsWith('/dashboard/admin'));
   return pathname === href || pathname.startsWith(href + '/');
 }
 

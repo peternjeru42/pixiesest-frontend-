@@ -67,6 +67,38 @@ export type DashboardOverview = {
   } | null;
 };
 
+export type AdminDashboard = {
+  users: Array<{
+    id: string;
+    email: string;
+    name: string;
+    business_name: string;
+    is_active: boolean;
+    is_staff: boolean;
+    date_joined: string;
+    last_login: string | null;
+    collections_count: number;
+    folders_count: number;
+    photos_count: number;
+    storage: {
+      total_bytes: number;
+      original_bytes: number;
+      preview_bytes: number;
+      thumbnail_bytes: number;
+    };
+  }>;
+  stats: {
+    collections_created: number;
+    folders_created: number;
+    photos_uploaded: number;
+    total_space_consumed_bytes: number;
+    shared_collections: number;
+    total_users: number;
+    deleted_folders: number;
+    deleted_collections: number;
+  };
+};
+
 export async function getDashboardOverview(accessToken: string): Promise<DashboardOverview> {
   const response = await fetch(`${getApiBaseUrl()}/dashboard/overview/`, {
     headers: {
@@ -77,6 +109,21 @@ export async function getDashboardOverview(accessToken: string): Promise<Dashboa
 
   if (!response.ok) {
     throw new DashboardApiError(response.status, `Dashboard request failed with status ${response.status}`);
+  }
+
+  return response.json();
+}
+
+export async function getAdminDashboard(accessToken: string): Promise<AdminDashboard> {
+  const response = await fetch(`${getApiBaseUrl()}/dashboard/admin/`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    cache: 'no-store',
+  });
+
+  if (!response.ok) {
+    throw new DashboardApiError(response.status, `Admin dashboard request failed with status ${response.status}`);
   }
 
   return response.json();

@@ -3,7 +3,7 @@ import * as React from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FolderOpen, Grid3x3, Home, Menu, User, X, type LucideIcon } from 'lucide-react';
+import { FolderOpen, Grid3x3, Home, Menu, Shield, User, X, type LucideIcon } from 'lucide-react';
 import { LogoutButton } from '@/components/actions/logout-button';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -15,6 +15,7 @@ const STUDIO = [
 ];
 
 const ACCOUNT = [
+  { href: '/dashboard/admin', label: 'Admin', icon: Shield },
   { href: '/profile', label: 'Profile', icon: User },
 ];
 
@@ -102,7 +103,8 @@ export function MobileNav() {
 }
 
 function isActive(pathname: string, href: string) {
-  if (href === '/dashboard') return pathname === '/' || pathname.startsWith('/dashboard');
+  if (href === '/dashboard/admin') return pathname === href;
+  if (href === '/dashboard') return pathname === '/' || (pathname.startsWith('/dashboard') && !pathname.startsWith('/dashboard/admin'));
   return pathname === href || pathname.startsWith(href + '/');
 }
 
