@@ -51,7 +51,7 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
         setCollection(nextCollection);
         setSets(nextSets);
         setMedia(nextMedia);
-        setSetId(nextSets[0]?.id ?? 'all');
+        setSetId('all');
       } catch (err) {
         if (!mounted) return;
         if (err instanceof PublicApiError && err.status === 403) {
@@ -102,7 +102,10 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
     );
   }
 
-  const tabs = sets.length > 0 ? sets : [{ id: 'all', slug: 'all', title: 'Gallery', photoCount: media.length, videoCount: 0, videoDurationSec: 0, visibility: 'public' as const, cover: '', order: 0 }];
+  const tabs = [
+    { id: 'all', slug: 'all', title: 'All photos', photoCount: media.length, videoCount: 0, videoDurationSec: 0, visibility: 'public' as const, cover: '', order: -1 },
+    ...sets,
+  ];
   const currentSet = tabs.find(set => set.id === setId) ?? tabs[0];
 
   return (
