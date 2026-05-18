@@ -15,7 +15,7 @@ export function PublicMasonryGrid({
   onToggleFavorite?: (id: string) => void;
 }) {
   return (
-    <div className="columns-1 gap-[9px] bg-white sm:columns-2 md:columns-3 lg:columns-4 2xl:columns-5">
+    <div className="columns-2 gap-[9px] bg-white md:columns-3 lg:columns-4 2xl:columns-5">
       {items.map((item, index) => {
         const imageSrc = item.src || item.thumb;
         const ratio = item.width > 0 && item.height > 0 ? item.width / item.height : 3 / 2;

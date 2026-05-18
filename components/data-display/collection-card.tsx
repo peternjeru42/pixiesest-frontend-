@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { Download, Eye, FolderInput, Heart, Image as ImageIcon, MoreHorizontal, Send, Trash2 } from 'lucide-react';
+import { Download, Eye, FolderInput, Heart, Image as ImageIcon, Mail, MoreHorizontal, Send, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { DeleteCollectionDialog } from '@/components/actions/delete-collection-dialog';
-import { CollectionShareDialog, publicCollectionPath, publicCollectionPreviewPath } from '@/components/actions/share-dialog';
+import { CollectionEmailShareDialog, CollectionShareDialog, publicCollectionPath, publicCollectionPreviewPath } from '@/components/actions/share-dialog';
 import { listFolders } from '@/lib/api/folders';
 import { moveCollectionToFolder } from '@/lib/api/collections';
 import { cn } from '@/lib/utils';
@@ -38,6 +38,7 @@ export function CollectionCard({
   const triggerRef = React.useRef<HTMLButtonElement>(null);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [shareOpen, setShareOpen] = React.useState(false);
+  const [emailShareOpen, setEmailShareOpen] = React.useState(false);
   const [moveOpen, setMoveOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [menuStyle, setMenuStyle] = React.useState<React.CSSProperties>({});
@@ -109,6 +110,10 @@ export function CollectionCard({
               setMenuOpen(false);
               setShareOpen(true);
             }}
+            onEmailShare={() => {
+              setMenuOpen(false);
+              setEmailShareOpen(true);
+            }}
             onMove={() => {
               setMenuOpen(false);
               setMoveOpen(true);
@@ -122,6 +127,12 @@ export function CollectionCard({
           <CollectionShareDialog
             open={shareOpen}
             onOpenChange={setShareOpen}
+            collection={c}
+            onPublished={onCollectionChange}
+          />
+          <CollectionEmailShareDialog
+            open={emailShareOpen}
+            onOpenChange={setEmailShareOpen}
             collection={c}
             onPublished={onCollectionChange}
           />
@@ -144,6 +155,7 @@ function CollectionActionDropdown({
   style,
   onClose,
   onShare,
+  onEmailShare,
   onMove,
   onDelete,
 }: {
@@ -152,6 +164,7 @@ function CollectionActionDropdown({
   style: React.CSSProperties;
   onClose: () => void;
   onShare: () => void;
+  onEmailShare: () => void;
   onMove: () => void;
   onDelete: () => void;
 }) {
@@ -182,6 +195,7 @@ function CollectionActionDropdown({
         onMouseDown={(event) => event.stopPropagation()}
       >
         <MenuButton icon={<Send size={15} strokeWidth={1.7}/>} onClick={onShare}>Share</MenuButton>
+        <MenuButton icon={<Mail size={15} strokeWidth={1.7}/>} onClick={onEmailShare}>Share by email</MenuButton>
         <MenuLink href={publicCollectionPreviewPath(collection.slug)} icon={<Eye size={15} strokeWidth={1.7}/>}>Preview</MenuLink>
         <MenuButton icon={<FolderInput size={15} strokeWidth={1.7}/>} onClick={onMove}>Move to</MenuButton>
         <MenuButton icon={<Trash2 size={15} strokeWidth={1.7}/>} danger onClick={onDelete}>Delete</MenuButton>

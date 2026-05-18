@@ -279,3 +279,13 @@ export async function moveCollectionToFolder(id: string, folderId: string | null
   notifyCollectionChanges();
   return collection;
 }
+
+export async function sendCollectionInvite(id: string, input: { recipientEmail: string; message?: string }) {
+  return request<{ detail: string }>(`/collections/${id}/send-invite/`, {
+    method: 'POST',
+    body: JSON.stringify({
+      recipient_email: input.recipientEmail,
+      message: input.message ?? '',
+    }),
+  });
+}
