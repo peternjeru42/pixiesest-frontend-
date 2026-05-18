@@ -81,6 +81,37 @@ type BackendMedia = {
   uploaded_at?: string | null;
 };
 
+type BackendDownloadJob = {
+  id: string;
+  collection: string;
+  favorite_list?: string | null;
+  requested_by_email?: string;
+  download_type: string;
+  download_quality: string;
+  status: 'queued' | 'running' | 'completed' | 'failed' | 'expired';
+  zip_file_key?: string;
+  file_size_bytes?: number | null;
+  expires_at?: string | null;
+  started_at?: string | null;
+  completed_at?: string | null;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type PublicDownloadJob = {
+  id: string;
+  collectionId: string;
+  favoriteListId?: string | null;
+  requestedByEmail: string;
+  type: string;
+  quality: string;
+  status: BackendDownloadJob['status'];
+  fileSizeBytes: number | null;
+  expiresAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+};
+
 export class PublicApiError extends Error {
   status: number;
 
@@ -235,6 +266,22 @@ function toMedia(media: BackendMedia): Media {
   };
 }
 
+function toDownloadJob(job: BackendDownloadJob): PublicDownloadJob {
+  return {
+    id: String(job.id),
+    collectionId: String(job.collection),
+    favoriteListId: job.favorite_list ? String(job.favorite_list) : null,
+    requestedByEmail: job.requested_by_email ?? '',
+    type: job.download_type,
+    quality: job.download_quality,
+    status: job.status,
+    fileSizeBytes: job.file_size_bytes ?? null,
+    expiresAt: job.expires_at ?? null,
+    completedAt: job.completed_at ?? null,
+    createdAt: job.created_at ?? '',
+  };
+}
+
 export async function getPublicFolder(slug: string) {
   return toFolder(await publicRequest<BackendFolder>(`/public/folders/${slug}/`));
 }
@@ -280,5 +327,22 @@ export async function downloadOriginalMedia(mediaId: string, pin: string) {
     method: 'POST',
     body: JSON.stringify({ pin }),
   });
+  return data.url;
+}
+
+export async function createPublicCollectionOriginalZip(collectionSlug: string, pin: string) {
+  const data = await publicRequest<BackendDownloadJob>(`/public/downloads/collections/${collectionSlug}/original-zip/`, {
+    method: 'POST',
+    body: JSON.stringify({ pin }),
+  });
+  return toDownloadJob(data);
+}
+
+export async function getPublicDownloadJob(jobId: string) {
+  return toDownloadJob(await publicRequest<BackendDownloadJob>(`/public/download-jobs/${jobId}/`));
+}
+
+export async function getPublicDownloadJobSignedUrl(jobId: string) {
+  const data = await publicRequest<{ url: string }>(`/public/download-jobs/${jobId}/signed-url/`);
   return data.url;
 }

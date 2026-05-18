@@ -14,13 +14,13 @@ export function PublicGalleryNav({ favCount, onOpenFavorites, onOpenDownload }: 
         <span className="serif text-[18px] uppercase tracking-[0.05em]">Droptop</span>
       </Link>
       <div className="flex items-center gap-2">
-        <Button variant="outline" size="icon" onClick={onOpenFavorites} className="relative">
+        <Button variant="outline" size="icon" onClick={onOpenFavorites} className="relative" aria-label="Open favourites">
           <Heart size={14}/>
           {favCount > 0 && (
             <span className="absolute -top-1.5 -right-1.5 bg-ink text-bg mono text-[9.5px] px-1.5 py-px rounded-full">{favCount}</span>
           )}
         </Button>
-        {onOpenDownload && <Button variant="outline" size="icon" onClick={onOpenDownload}><Download size={14}/></Button>}
+        {onOpenDownload && <Button variant="outline" size="icon" onClick={onOpenDownload} aria-label="Download all originals"><Download size={14}/></Button>}
       </div>
     </nav>
   );

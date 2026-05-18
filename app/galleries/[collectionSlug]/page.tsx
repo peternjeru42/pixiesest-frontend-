@@ -11,6 +11,7 @@ import { MediaLightbox } from '@/components/media/media-lightbox';
 import { PublicGalleryFooter, PublicGalleryNav } from '@/components/layout/public-gallery-layout';
 import {
   PublicApiError,
+  createPublicCollectionOriginalZip,
   downloadOriginalMedia,
   getPublicCollection,
   listPublicCollectionMedia,
@@ -32,6 +33,7 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
   const [setId, setSetId] = React.useState('all');
   const [favorites, setFavorites] = React.useState<Set<string>>(new Set());
   const [favPanel, setFavPanel] = React.useState(false);
+  const [downloadMode, setDownloadMode] = React.useState<'single' | 'gallery' | null>(null);
   const [downloadTarget, setDownloadTarget] = React.useState<Media | null>(null);
   const [downloadPin, setDownloadPin] = React.useState('');
   const [downloading, setDownloading] = React.useState(false);
@@ -90,31 +92,55 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
   const scrollToGallery = () => galleryRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   function openDownload(media: Media | null) {
+    setDownloadMode('single');
     setDownloadTarget(media);
     setDownloadPin('');
     setDownloadError('');
   }
 
+  function openGalleryDownload() {
+    setDownloadMode('gallery');
+    setDownloadTarget(null);
+    setDownloadPin('');
+    setDownloadError('');
+  }
+
+  function closeDownloadDialog() {
+    setDownloadMode(null);
+    setDownloadTarget(null);
+  }
+
   async function submitDownloadPin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!downloadTarget || downloading) return;
+    if (!downloadMode || downloading) return;
     setDownloading(true);
     setDownloadError('');
     try {
+      if (downloadMode === 'gallery') {
+        const job = await createPublicCollectionOriginalZip(params.collectionSlug, downloadPin.trim());
+        router.push(`/download-jobs/${job.id}`);
+        return;
+      }
+
+      if (!downloadTarget) return;
       const url = await downloadOriginalMedia(downloadTarget.id, downloadPin.trim());
-      const anchor = document.createElement('a');
-      anchor.href = url;
-      anchor.download = downloadTarget.filename;
-      anchor.rel = 'noopener';
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      setDownloadTarget(null);
+      triggerBrowserDownload(url, downloadTarget.filename);
+      closeDownloadDialog();
     } catch (err) {
-      setDownloadError(err instanceof Error ? err.message : 'Unable to download this file.');
+      setDownloadError(err instanceof Error ? err.message : downloadMode === 'gallery' ? 'Unable to prepare this gallery download.' : 'Unable to download this file.');
     } finally {
       setDownloading(false);
     }
+  }
+
+  function triggerBrowserDownload(url: string, filename: string) {
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    anchor.rel = 'noopener';
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
   }
 
   if (loading) {
@@ -147,6 +173,7 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
       <PublicGalleryNav
         favCount={favorites.size}
         onOpenFavorites={() => setFavPanel(true)}
+        onOpenDownload={openGalleryDownload}
       />
 
       <header className="relative h-[calc(100dvh-61px)] min-h-[520px] overflow-hidden bg-panel">
@@ -258,13 +285,17 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
         />
       )}
 
-      <Dialog open={Boolean(downloadTarget)} onOpenChange={(open) => {
-        if (!open && !downloading) setDownloadTarget(null);
+      <Dialog open={Boolean(downloadMode)} onOpenChange={(open) => {
+        if (!open && !downloading) closeDownloadDialog();
       }}>
-        <DialogContent size="sm" onClose={() => !downloading && setDownloadTarget(null)}>
+        <DialogContent size="sm" onClose={() => !downloading && closeDownloadDialog()}>
           <DialogHeader>
-            <DialogTitle>Download original</DialogTitle>
-            <DialogDescription>Enter the download PIN from your photographer.</DialogDescription>
+            <DialogTitle>{downloadMode === 'gallery' ? 'Download all originals' : 'Download original'}</DialogTitle>
+            <DialogDescription>
+              {downloadMode === 'gallery'
+                ? 'Enter the download PIN from your photographer. We will package the full gallery as an original ZIP.'
+                : 'Enter the download PIN from your photographer.'}
+            </DialogDescription>
           </DialogHeader>
           <form onSubmit={submitDownloadPin}>
             <DialogBody>
@@ -290,9 +321,9 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
               )}
             </DialogBody>
             <DialogFooter>
-              <Button type="button" variant="ghost" disabled={downloading} onClick={() => setDownloadTarget(null)}>Cancel</Button>
+              <Button type="button" variant="ghost" disabled={downloading} onClick={closeDownloadDialog}>Cancel</Button>
               <Button type="submit" variant="default" disabled={!downloadPin.trim() || downloading}>
-                <Download size={14}/>{downloading ? 'Preparing...' : 'Download original'}
+                <Download size={14}/>{downloading ? 'Preparing...' : downloadMode === 'gallery' ? 'Prepare ZIP' : 'Download original'}
               </Button>
             </DialogFooter>
           </form>
