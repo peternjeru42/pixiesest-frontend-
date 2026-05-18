@@ -2,13 +2,13 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, Download, Heart } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { PublicGalleryNav, PublicGalleryFooter } from '@/components/layout/public-gallery-layout';
 import { MediaLightbox } from '@/components/media/media-lightbox';
+import { PublicMasonryGrid } from '@/components/media/public-masonry-grid';
 import { Button } from '@/components/ui/button';
 import { COLLECTIONS, SETS, SET_MEDIA } from '@/lib/mock-data';
 import type { Media } from '@/lib/types';
-import { cn } from '@/lib/utils';
 
 export default function PublicSetPage({ params }: { params: { collectionSlug: string; setSlug: string } }) {
   const c = COLLECTIONS.find(x => x.slug === params.collectionSlug);
@@ -37,36 +37,13 @@ export default function PublicSetPage({ params }: { params: { collectionSlug: st
         </Button>
         <h1 className="serif text-5xl md:text-6xl font-medium tracking-tight">{s.title}</h1>
         <div className="mono text-[11px] tracking-wider text-muted mt-2 uppercase">{items.length} photos</div>
-        <div className="grid gap-1.5 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 mt-9">
-          {items.map((m, i) => (
-            <div key={m.id} onClick={() => setLightbox({ items, index: i })} className={cn('group relative overflow-hidden bg-panel cursor-pointer', i % 4 === 0 ? 'aspect-[3/4]' : 'aspect-[4/3]')}>
-              <img src={m.thumb} alt="" loading="lazy" className="w-full h-full object-cover"/>
-              <div className="absolute bottom-2 right-2 flex items-center gap-2">
-                <button
-                  type="button"
-                  aria-label={`Download ${m.filename}`}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    downloadItem(m);
-                  }}
-                  className="grid h-8 w-8 place-items-center rounded-full bg-ink/70 text-bg opacity-0 transition-opacity hover:bg-ink group-hover:opacity-100 focus:opacity-100"
-                >
-                  <Download size={15}/>
-                </button>
-                <button
-                  type="button"
-                  aria-label={m.faved ? `Remove ${m.filename} from favourites` : `Add ${m.filename} to favourites`}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    toggleFav(m.id);
-                  }}
-                  className={cn('grid h-8 w-8 place-items-center rounded-full bg-ink/70 transition-opacity hover:bg-ink', m.faved ? 'text-rose-400 opacity-100' : 'text-bg opacity-0 group-hover:opacity-100 focus:opacity-100')}
-                >
-                  <Heart size={18} fill={m.faved ? 'currentColor' : 'none'}/>
-                </button>
-              </div>
-            </div>
-          ))}
+        <div className="mt-9">
+          <PublicMasonryGrid
+            items={items}
+            onOpen={(index) => setLightbox({ items, index })}
+            onDownload={downloadItem}
+            onToggleFavorite={toggleFav}
+          />
         </div>
         <PublicGalleryFooter coupleName={c.couple ?? c.title}/>
       </div>

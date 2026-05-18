@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogBody, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { EmptyState } from '@/components/data-display/empty-state';
 import { MediaLightbox } from '@/components/media/media-lightbox';
+import { PublicMasonryGrid } from '@/components/media/public-masonry-grid';
 import { PublicGalleryFooter, PublicGalleryNav } from '@/components/layout/public-gallery-layout';
 import {
   PublicApiError,
@@ -226,45 +227,12 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
         </div>
 
         {activeItems.length > 0 ? (
-          <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            {activeItems.map((item, index) => (
-              <div
-                key={item.id}
-                onClick={() => setLightbox({ items: activeItems, index })}
-                className={cn('group relative cursor-pointer overflow-hidden bg-panel', index % 5 === 0 ? 'aspect-[3/4]' : 'aspect-[4/3]')}
-              >
-                {item.thumb ? (
-                  <img src={item.thumb} alt="" loading="lazy" className="h-full w-full object-cover"/>
-                ) : (
-                  <div className="grid h-full w-full place-items-center text-muted"><ImageIcon size={24}/></div>
-                )}
-                <div className="absolute bottom-2 right-2 flex items-center gap-2">
-                  <button
-                    type="button"
-                    aria-label={`Download ${item.filename}`}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      openDownload(item);
-                    }}
-                    className="grid h-8 w-8 place-items-center rounded-full bg-ink/70 text-bg opacity-0 transition-opacity hover:bg-ink group-hover:opacity-100 focus:opacity-100"
-                  >
-                    <Download size={15}/>
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={item.faved ? `Remove ${item.filename} from favourites` : `Add ${item.filename} to favourites`}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      toggleFav(item.id);
-                    }}
-                    className={cn('grid h-8 w-8 place-items-center rounded-full bg-ink/70 transition-opacity hover:bg-ink', item.faved ? 'text-rose-400 opacity-100' : 'text-bg opacity-0 group-hover:opacity-100 focus:opacity-100')}
-                  >
-                    <Heart size={18} fill={item.faved ? 'currentColor' : 'none'}/>
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+          <PublicMasonryGrid
+            items={activeItems}
+            onOpen={(index) => setLightbox({ items: activeItems, index })}
+            onDownload={openDownload}
+            onToggleFavorite={toggleFav}
+          />
         ) : (
           <EmptyState icon={ImageIcon} title="There are no photos here." body="This gallery does not have visible files yet."/>
         )}
