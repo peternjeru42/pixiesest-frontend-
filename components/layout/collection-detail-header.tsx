@@ -2,9 +2,10 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Image as ImageIcon, Share2 } from 'lucide-react';
+import { ArrowLeft, Image as ImageIcon, Share2, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { StatsCard } from '@/components/data-display/stats-card';
+import { DeleteCollectionDialog } from '@/components/actions/delete-collection-dialog';
 import { CollectionShareDialog } from '@/components/actions/share-dialog';
 import { cn } from '@/lib/utils';
 import type { Collection } from '@/lib/types';
@@ -18,6 +19,7 @@ const TABS = [
 
 export function CollectionDetailHeader({ c, activeTab }: { c: Collection; activeTab: string }) {
   const [shareOpen, setShareOpen] = React.useState(false);
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
   const router = useRouter();
 
   function navigateTab(event: React.MouseEvent<HTMLAnchorElement>, href: string) {
@@ -58,9 +60,14 @@ export function CollectionDetailHeader({ c, activeTab }: { c: Collection; active
         <Button asChild size="sm" className="absolute top-5 left-6 lg:left-10 bg-bg/95 hover:bg-bg">
           <Link href="/collections"><ArrowLeft size={12}/>Collections</Link>
         </Button>
-        <Button size="sm" className="absolute top-5 right-6 lg:right-10 bg-bg/95 hover:bg-bg" onClick={() => setShareOpen(true)}>
-          <Share2 size={12}/>Share
-        </Button>
+        <div className="absolute top-5 right-6 flex gap-2 lg:right-10">
+          <Button size="sm" className="bg-bg/95 hover:bg-bg" onClick={() => setShareOpen(true)}>
+            <Share2 size={12}/>Share
+          </Button>
+          <Button size="sm" variant="danger" onClick={() => setDeleteOpen(true)}>
+            <Trash2 size={12}/>Delete
+          </Button>
+        </div>
         <div className="absolute left-6 lg:left-10 right-6 lg:right-10 bottom-6 text-bg">
           <div className="mono text-[10.5px] tracking-wider text-bg/85 mb-2.5">{(c.folderName ?? 'No folder').toUpperCase()}</div>
           <h1 className="serif text-5xl font-medium tracking-tight">{c.title}</h1>
@@ -71,6 +78,12 @@ export function CollectionDetailHeader({ c, activeTab }: { c: Collection; active
         open={shareOpen}
         onOpenChange={setShareOpen}
         collection={c}
+      />
+      <DeleteCollectionDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        collection={c}
+        onDeleted={() => router.push('/collections')}
       />
 
       <div className="px-6 lg:px-10 py-5">

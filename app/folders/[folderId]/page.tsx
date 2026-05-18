@@ -41,6 +41,10 @@ export default function FolderDetailPage({ params }: { params: { folderId: strin
       .map(collection => collection.id === updated.id ? updated : collection)
       .filter(collection => collection.folderId === folder?.id));
   }
+
+  function removeCollection(collectionId: string) {
+    setCollections(current => current.filter(collection => collection.id !== collectionId));
+  }
   const visibleFileCount = collections.reduce((total, collection) => (
     total + collection.counts.photos + collection.counts.videos
   ), 0);
@@ -113,6 +117,7 @@ export default function FolderDetailPage({ params }: { params: { folderId: strin
                 key={collection.id}
                 c={collection}
                 onCollectionChange={updateCollection}
+                onCollectionDeleted={removeCollection}
               />
             ))}
           </div>
