@@ -9,16 +9,13 @@ import { getCachedCollections, getCollection, subscribeToCollectionChanges } fro
 import type { Collection } from '@/lib/types';
 
 export default function SettingsIndex({ params }: { params: { collectionId: string } }) {
-  const initialCollection = React.useMemo(
-    () => getCachedCollections().find(item => item.id === params.collectionId) ?? null,
-    [params.collectionId],
-  );
-  const [collection, setCollection] = React.useState<Collection | null>(initialCollection);
+  const [collection, setCollection] = React.useState<Collection | null>(null);
   const [loaded, setLoaded] = React.useState(false);
 
   React.useEffect(() => {
     let mounted = true;
     const load = async () => {
+      setCollection(getCachedCollections().find(item => item.id === params.collectionId) ?? null);
       const current = await getCollection(params.collectionId);
       if (!mounted) return;
       setCollection(current);

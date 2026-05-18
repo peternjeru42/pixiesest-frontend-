@@ -9,17 +9,14 @@ import { listActivity } from '@/lib/api/activity';
 import type { ActivityEvent, Collection } from '@/lib/types';
 
 export default function CollectionActivityPage({ params }: { params: { collectionId: string } }) {
-  const initialCollection = React.useMemo(
-    () => getCachedCollections().find(item => item.id === params.collectionId) ?? null,
-    [params.collectionId],
-  );
-  const [collection, setCollection] = React.useState<Collection | null>(initialCollection);
+  const [collection, setCollection] = React.useState<Collection | null>(null);
   const [activity, setActivity] = React.useState<ActivityEvent[]>([]);
   const [loaded, setLoaded] = React.useState(false);
 
   React.useEffect(() => {
     let mounted = true;
     const load = async () => {
+      setCollection(getCachedCollections().find(item => item.id === params.collectionId) ?? null);
       const current = await getCollection(params.collectionId);
       const events = current ? await listActivity({ collectionId: current.id }) : [];
       if (!mounted) return;

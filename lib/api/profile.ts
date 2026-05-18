@@ -1,4 +1,5 @@
 import type { Photographer } from '../types';
+import { getStoredAccessToken, handleUnauthorizedResponse } from './session';
 
 const PRODUCTION_API_BASE_URL = 'https://pixiesest-backend-production.up.railway.app/api/v1';
 
@@ -63,11 +64,6 @@ function getApiBaseUrl() {
   return (configuredUrl ?? fallbackUrl).replace(/\/$/, '');
 }
 
-function getStoredAccessToken() {
-  if (typeof window === 'undefined') return null;
-  return window.localStorage.getItem('droptop.accessToken');
-}
-
 async function request<T>(path: string, accessToken: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${getApiBaseUrl()}${path}`, {
     ...init,
@@ -82,6 +78,7 @@ async function request<T>(path: string, accessToken: string, init?: RequestInit)
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
+    if (handleUnauthorizedResponse(response)) return new Promise<T>(() => {});
     throw new ProfileApiError(response.status, getErrorMessage(data) || `Profile request failed with status ${response.status}`);
   }
 

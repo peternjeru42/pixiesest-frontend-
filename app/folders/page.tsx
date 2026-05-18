@@ -11,7 +11,7 @@ import { getCachedFolders, listFolders, subscribeToFolderChanges } from '@/lib/a
 import type { Collection, Folder } from '@/lib/types';
 
 export default function FoldersPage() {
-  const [folders, setFolders] = React.useState<Folder[]>(() => getCachedFolders());
+  const [folders, setFolders] = React.useState<Folder[]>([]);
   const [collections, setCollections] = React.useState<Collection[]>([]);
 
   React.useEffect(() => {

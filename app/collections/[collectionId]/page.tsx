@@ -13,11 +13,7 @@ import { createSet, listSets } from '@/lib/api/sets';
 import type { Collection, Set } from '@/lib/types';
 
 export default function CollectionDetailPage({ params }: { params: { collectionId: string } }) {
-  const initialCollection = React.useMemo(
-    () => getCachedCollections().find(item => item.id === params.collectionId) ?? null,
-    [params.collectionId],
-  );
-  const [collection, setCollection] = React.useState<Collection | null>(initialCollection);
+  const [collection, setCollection] = React.useState<Collection | null>(null);
   const [sets, setSets] = React.useState<Set[]>([]);
   const [loaded, setLoaded] = React.useState(false);
   const [setDialogOpen, setSetDialogOpen] = React.useState(false);
@@ -27,6 +23,7 @@ export default function CollectionDetailPage({ params }: { params: { collectionI
   React.useEffect(() => {
     let mounted = true;
     const load = async () => {
+      setCollection(getCachedCollections().find(item => item.id === params.collectionId) ?? null);
       const current = await getCollection(params.collectionId);
       const setItems = current ? await listSets(current.id) : [];
       if (!mounted) return;

@@ -1,4 +1,5 @@
 import type { ActivityEvent } from '../types';
+import { getStoredAccessToken, handleUnauthorizedResponse } from './session';
 
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api/v1').replace(/\/$/, '');
 
@@ -22,11 +23,6 @@ function unpackList<T>(data: T[] | Paginated<T>) {
   return Array.isArray(data) ? data : data.results;
 }
 
-function getStoredAccessToken() {
-  if (typeof window === 'undefined') return null;
-  return window.localStorage.getItem('droptop.accessToken');
-}
-
 async function request<T>(path: string): Promise<T> {
   const token = getStoredAccessToken();
   if (!token) throw new Error('You need to sign in before loading activity.');
@@ -36,7 +32,10 @@ async function request<T>(path: string): Promise<T> {
   });
   const data = await response.json().catch(() => null);
 
-  if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
+  if (!response.ok) {
+    if (handleUnauthorizedResponse(response)) return new Promise<T>(() => {});
+    throw new Error(`Request failed with status ${response.status}`);
+  }
   return data as T;
 }
 

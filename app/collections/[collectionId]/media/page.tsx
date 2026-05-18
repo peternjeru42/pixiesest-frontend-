@@ -18,11 +18,7 @@ import { cn } from '@/lib/utils';
 
 export default function CollectionMediaPage({ params }: { params: { collectionId: string } }) {
   const router = useRouter();
-  const initialCollection = React.useMemo(
-    () => getCachedCollections().find(item => item.id === params.collectionId) ?? null,
-    [params.collectionId],
-  );
-  const [collection, setCollection] = React.useState<Collection | null>(initialCollection);
+  const [collection, setCollection] = React.useState<Collection | null>(null);
   const [media, setMedia] = React.useState<Media[]>([]);
   const [sets, setSets] = React.useState<CollectionSet[]>([]);
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
@@ -36,6 +32,7 @@ export default function CollectionMediaPage({ params }: { params: { collectionId
   React.useEffect(() => {
     let mounted = true;
     const load = async () => {
+      setCollection(getCachedCollections().find(item => item.id === params.collectionId) ?? null);
       const current = await getCollection(params.collectionId);
       const [items, setItems] = current
         ? await Promise.all([listMedia({ collectionId: current.id }), listSets(current.id)])

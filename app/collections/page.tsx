@@ -11,7 +11,7 @@ import { searchFolders } from '@/lib/api/folders';
 import type { Collection } from '@/lib/types';
 
 export default function CollectionsPage() {
-  const [collections, setCollections] = React.useState<Collection[]>(() => filterCachedCollections(''));
+  const [collections, setCollections] = React.useState<Collection[]>([]);
   const [search, setSearch] = React.useState('');
 
   React.useEffect(() => {
