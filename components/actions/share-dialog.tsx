@@ -11,6 +11,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { publishCollection } from '@/lib/api/collections';
+import type { Collection } from '@/lib/types';
 
 export function publicCollectionPath(slug: string) {
   return `/galleries/${slug}`;
@@ -36,6 +38,9 @@ export function ShareDialog({
   description,
   path,
   details = [],
+  notice,
+  copyLinkLabel = 'Copy link',
+  onBeforeCopyLink,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -43,14 +48,28 @@ export function ShareDialog({
   description: string;
   path: string;
   details?: Array<{ label: string; value: string; helper?: string }>;
+  notice?: string;
+  copyLinkLabel?: string;
+  onBeforeCopyLink?: () => Promise<void>;
 }) {
   const [copied, setCopied] = React.useState(false);
+  const [copying, setCopying] = React.useState(false);
+  const [copyError, setCopyError] = React.useState('');
   const url = absoluteUrl(path);
 
-  async function copyValue(value: string) {
-    await navigator.clipboard?.writeText(value);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1400);
+  async function copyValue(value: string, beforeCopy?: () => Promise<void>) {
+    setCopying(true);
+    setCopyError('');
+    try {
+      await beforeCopy?.();
+      await navigator.clipboard?.writeText(value);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1400);
+    } catch (error) {
+      setCopyError(error instanceof Error ? error.message : 'Unable to copy this link.');
+    } finally {
+      setCopying(false);
+    }
   }
 
   return (
@@ -61,7 +80,23 @@ export function ShareDialog({
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         <DialogBody className="gap-5 px-5 pb-3 sm:px-6">
-          <CopyBlock label="Public URL" value={url} copied={copied} onCopy={() => copyValue(url)} />
+          {notice && (
+            <div className="rounded-md border border-line bg-panel px-3 py-2 text-[12.5px] leading-5 text-muted">
+              {notice}
+            </div>
+          )}
+          {copyError && (
+            <div role="alert" className="rounded-md border border-danger/30 bg-danger/5 px-3 py-2 text-[12.5px] leading-5 text-danger">
+              {copyError}
+            </div>
+          )}
+          <CopyBlock
+            label="Public URL"
+            value={url}
+            copied={copied}
+            copying={copying}
+            onCopy={() => copyValue(url, onBeforeCopyLink)}
+          />
           {details.map(detail => (
             <CopyBlock
               key={detail.label}
@@ -73,12 +108,55 @@ export function ShareDialog({
           ))}
         </DialogBody>
         <DialogFooter className="px-5 pb-6 sm:px-6">
-          <Button type="button" variant="outline" onClick={() => copyValue(url)}>
-            <Copy size={14}/>{copied ? 'Copied' : 'Copy link'}
+          <Button type="button" variant="outline" disabled={copying} onClick={() => copyValue(url, onBeforeCopyLink)}>
+            <Copy size={14}/>{copied ? 'Copied' : copying ? 'Copying...' : copyLinkLabel}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+export function CollectionShareDialog({
+  open,
+  onOpenChange,
+  collection,
+  onPublished,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  collection: Collection;
+  onPublished?: (collection: Collection) => void;
+}) {
+  const [isPublished, setIsPublished] = React.useState(collection.status === 'published');
+
+  React.useEffect(() => {
+    setIsPublished(collection.status === 'published');
+  }, [collection.id, collection.status]);
+
+  async function publishBeforeCopy() {
+    if (isPublished) return;
+    const published = await publishCollection(collection.id);
+    setIsPublished(published.status === 'published');
+    onPublished?.(published);
+  }
+
+  return (
+    <ShareDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Share collection"
+      description={isPublished ? 'Copy the public link for this collection.' : 'Publish this collection before copying its public link.'}
+      path={publicCollectionPath(collection.slug)}
+      copyLinkLabel={isPublished ? 'Copy link' : 'Publish & copy link'}
+      notice={isPublished ? undefined : 'This collection is still a draft. Publishing makes the shared gallery link viewable.'}
+      onBeforeCopyLink={publishBeforeCopy}
+      details={collection.downloadPin ? [{
+        label: 'Download PIN',
+        value: collection.downloadPin,
+        helper: 'Share this PIN only with clients who should be able to download files.',
+      }] : []}
+    />
   );
 }
 
@@ -87,12 +165,14 @@ function CopyBlock({
   value,
   helper,
   copied,
+  copying,
   onCopy,
 }: {
   label: string;
   value: string;
   helper?: string;
   copied?: boolean;
+  copying?: boolean;
   onCopy: () => void;
 }) {
   return (
@@ -100,8 +180,8 @@ function CopyBlock({
       <div className="mb-2 text-[13.5px] font-medium">{label}</div>
       <div className="flex min-h-11 items-center justify-between gap-3 rounded-md bg-panel px-3 text-[13px]">
         <span className="min-w-0 truncate">{value}</span>
-        <button type="button" onClick={onCopy} className="inline-flex shrink-0 items-center gap-1.5 text-[12.5px] font-medium text-teal-600">
-          <Copy size={14}/>{copied ? 'Copied' : 'Copy'}
+        <button type="button" disabled={copying} onClick={onCopy} className="inline-flex shrink-0 items-center gap-1.5 text-[12.5px] font-medium text-teal-600 disabled:cursor-not-allowed disabled:opacity-60">
+          <Copy size={14}/>{copied ? 'Copied' : copying ? 'Copying...' : 'Copy'}
         </button>
       </div>
       {helper && <p className="mt-2 text-[12.5px] leading-5 text-muted">{helper}</p>}

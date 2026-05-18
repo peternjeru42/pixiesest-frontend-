@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Image as ImageIcon, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { StatsCard } from '@/components/data-display/stats-card';
-import { publicCollectionPath, ShareDialog } from '@/components/actions/share-dialog';
+import { CollectionShareDialog } from '@/components/actions/share-dialog';
 import { cn } from '@/lib/utils';
 import type { Collection } from '@/lib/types';
 
@@ -67,17 +67,10 @@ export function CollectionDetailHeader({ c, activeTab }: { c: Collection; active
           <div className="mono text-[11px] tracking-wider mt-1.5 opacity-85">{c.date.toUpperCase()}</div>
         </div>
       </div>
-      <ShareDialog
+      <CollectionShareDialog
         open={shareOpen}
         onOpenChange={setShareOpen}
-        title="Share collection"
-        description="Copy the public link for this collection."
-        path={publicCollectionPath(c.slug)}
-        details={c.downloadPin ? [{
-          label: 'Download PIN',
-          value: c.downloadPin,
-          helper: 'Share this PIN only with clients who should be able to download files.',
-        }] : []}
+        collection={c}
       />
 
       <div className="px-6 lg:px-10 py-5">

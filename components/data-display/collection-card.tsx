@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { publicCollectionPath, publicCollectionPreviewPath, ShareDialog } from '@/components/actions/share-dialog';
+import { CollectionShareDialog, publicCollectionPreviewPath } from '@/components/actions/share-dialog';
 import { listFolders } from '@/lib/api/folders';
 import { moveCollectionToFolder } from '@/lib/api/collections';
 import { cn } from '@/lib/utils';
@@ -96,17 +96,11 @@ export function CollectionCard({ c, onCollectionChange }: { c: Collection; onCol
         }}
       />
 
-      <ShareDialog
+      <CollectionShareDialog
         open={shareOpen}
         onOpenChange={setShareOpen}
-        title="Share collection"
-        description="Copy the public link for this collection."
-        path={publicCollectionPath(c.slug)}
-        details={c.downloadPin ? [{
-          label: 'Download PIN',
-          value: c.downloadPin,
-          helper: 'Share this PIN only with clients who should be able to download files.',
-        }] : []}
+        collection={c}
+        onPublished={onCollectionChange}
       />
       <MoveToFolderDialog collection={c} open={moveOpen} onOpenChange={setMoveOpen} onMoved={onCollectionChange}/>
     </article>
