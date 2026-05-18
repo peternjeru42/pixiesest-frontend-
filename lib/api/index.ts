@@ -11,3 +11,4 @@ export * from './activity';
 export * from './uploads';
 export * from './profile';
 export * from './dashboard';
+export * from './notifications';
