@@ -1,7 +1,8 @@
 'use client';
 import * as React from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowDown, Download, Heart, Image as ImageIcon, Send, X } from 'lucide-react';
+import { ArrowDown, ArrowLeft, Download, Heart, Image as ImageIcon, Send, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -176,6 +177,16 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
         onOpenFavorites={() => setFavPanel(true)}
         onOpenDownload={openGalleryDownload}
       />
+      {preview && (
+        <Button
+          asChild
+          type="button"
+          size="sm"
+          className="fixed left-6 top-[76px] z-30 bg-bg/95 text-ink shadow-lift backdrop-blur hover:bg-bg md:left-9"
+        >
+          <Link href={`/collections/${collection.id}`}><ArrowLeft size={12}/>Collections</Link>
+        </Button>
+      )}
 
       <header className="relative h-[calc(100dvh-61px)] min-h-[520px] overflow-hidden bg-panel">
         {collection.cover ? (

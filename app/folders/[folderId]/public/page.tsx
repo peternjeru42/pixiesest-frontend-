@@ -1,12 +1,16 @@
 'use client';
 import * as React from 'react';
 import Link from 'next/link';
-import { Image as ImageIcon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, FolderOpen, Image as ImageIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { CollectionCard } from '@/components/data-display/collection-card';
 import { PasswordAccessForm } from '@/components/forms/password-access-form';
 import { PublicApiError, getPublicFolder, listPublicFolderCollections } from '@/lib/api/public-gallery';
 import type { Collection, Folder } from '@/lib/types';
 
 export default function FolderPublicPage({ params }: { params: { folderId: string } }) {
+  const router = useRouter();
   const [folder, setFolder] = React.useState<Folder | null>(null);
   const [collections, setCollections] = React.useState<Collection[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -81,6 +85,14 @@ export default function FolderPublicPage({ params }: { params: { folderId: strin
           <span className="grid h-6 w-6 place-items-center rounded-full bg-ink text-[12px] text-bg serif italic">D</span>
           <span className="serif text-[18px] uppercase tracking-[0.05em]">Droptop</span>
         </Link>
+        <div className="flex items-center gap-2">
+          <Button type="button" size="sm" variant="ghost" onClick={() => router.back()}>
+            <ArrowLeft size={12}/>Back
+          </Button>
+          <Button asChild size="sm" variant="outline">
+            <Link href="/folders"><FolderOpen size={13}/>View folders</Link>
+          </Button>
+        </div>
       </nav>
       <header className="relative h-[52vh] min-h-[360px] overflow-hidden bg-ink">
         {folder.cover ? (
@@ -99,15 +111,9 @@ export default function FolderPublicPage({ params }: { params: { folderId: strin
       </header>
       <div className="mx-auto max-w-7xl px-6 py-16 lg:px-10">
         {collections.length > 0 && visibleFileCount > 0 ? (
-          <div className="grid grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {collections.map(collection => (
-              <Link key={collection.id} href={`/galleries/${collection.slug}`} className="group rounded-md border border-line bg-surface p-5 transition-transform hover:-translate-y-0.5 hover:shadow-lift">
-                <div className="mb-4 grid aspect-[16/10] place-items-center overflow-hidden rounded-sm bg-panel text-muted">
-                  {collection.cover ? <img src={collection.cover} alt="" className="h-full w-full object-cover"/> : <ImageIcon size={24} strokeWidth={1.5}/>}
-                </div>
-                <div className="serif text-[24px] leading-tight group-hover:underline">{collection.title}</div>
-                {collection.description && <p className="mt-2 line-clamp-2 text-sm text-muted">{collection.description}</p>}
-              </Link>
+              <CollectionCard key={collection.id} c={collection} readOnly href={`/galleries/${collection.slug}`}/>
             ))}
           </div>
         ) : (

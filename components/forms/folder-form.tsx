@@ -7,8 +7,15 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { createFolder } from '@/lib/api/folders';
+import type { Folder } from '@/lib/types';
 
-export function FolderForm() {
+export function FolderForm({
+  onCreated,
+  onCancel,
+}: {
+  onCreated?: (folder: Folder) => void;
+  onCancel?: () => void;
+}) {
   const router = useRouter();
   const [name, setName] = React.useState('');
   const [description, setDescription] = React.useState('');
@@ -30,14 +37,18 @@ export function FolderForm() {
     setSaving(true);
     setError('');
     try {
-      await createFolder({
+      const folder = await createFolder({
         name: cleanName,
         description: description.trim(),
         showOnHomepage: showHome,
         hasPassword,
         password: hasPassword ? password.trim() : undefined,
       });
-      router.push('/folders');
+      if (onCreated) {
+        onCreated(folder);
+      } else {
+        router.push('/folders');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to create folder.');
     } finally {
@@ -69,7 +80,7 @@ export function FolderForm() {
         </div>
       )}
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="ghost" onClick={() => router.back()}>Cancel</Button>
+        <Button type="button" variant="ghost" onClick={() => onCancel?.() ?? router.back()}>Cancel</Button>
         <Button type="submit" variant="default" disabled={!name.trim() || saving}>{saving ? 'Creating...' : 'Create folder'}</Button>
       </div>
     </form>

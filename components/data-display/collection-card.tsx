@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { DeleteCollectionDialog } from '@/components/actions/delete-collection-dialog';
-import { CollectionShareDialog, publicCollectionPreviewPath } from '@/components/actions/share-dialog';
+import { CollectionShareDialog, publicCollectionPath, publicCollectionPreviewPath } from '@/components/actions/share-dialog';
 import { listFolders } from '@/lib/api/folders';
 import { moveCollectionToFolder } from '@/lib/api/collections';
 import { cn } from '@/lib/utils';
@@ -26,10 +26,14 @@ export function CollectionCard({
   c,
   onCollectionChange,
   onCollectionDeleted,
+  readOnly = false,
+  href,
 }: {
   c: Collection;
   onCollectionChange?: (collection: Collection) => void;
   onCollectionDeleted?: (collectionId: string) => void;
+  readOnly?: boolean;
+  href?: string;
 }) {
   const triggerRef = React.useRef<HTMLButtonElement>(null);
   const [menuOpen, setMenuOpen] = React.useState(false);
@@ -37,6 +41,7 @@ export function CollectionCard({
   const [moveOpen, setMoveOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [menuStyle, setMenuStyle] = React.useState<React.CSSProperties>({});
+  const cardHref = href ?? (readOnly ? publicCollectionPath(c.slug) : `/collections/${c.id}`);
 
   function openMenu() {
     const rect = triggerRef.current?.getBoundingClientRect();
@@ -53,7 +58,7 @@ export function CollectionCard({
   return (
     <article className="group bg-surface border border-line rounded-md overflow-hidden flex flex-col transition-transform hover:-translate-y-0.5 hover:shadow-lift">
       <div className="relative aspect-[16/11] bg-panel overflow-hidden">
-        <Link href={`/collections/${c.id}`} className="block h-full">
+        <Link href={cardHref} className="block h-full">
           {c.cover ? (
             <img src={c.cover} alt="" className="w-full h-full object-cover transition-transform group-hover:scale-[1.02]"/>
           ) : (
@@ -65,18 +70,20 @@ export function CollectionCard({
             {c.date}
           </span>
         </Link>
-        <button
-          ref={triggerRef}
-          type="button"
-          aria-label={`Open actions for ${c.title}`}
-          onClick={openMenu}
-          className="absolute top-2 right-2 grid h-8 w-8 place-items-center rounded-md border border-bg/25 bg-ink/85 text-bg shadow-soft backdrop-blur transition-colors hover:bg-ink focus:outline-none focus:ring-2 focus:ring-bg/40"
-        >
-          <MoreHorizontal size={13}/>
-        </button>
+        {!readOnly && (
+          <button
+            ref={triggerRef}
+            type="button"
+            aria-label={`Open actions for ${c.title}`}
+            onClick={openMenu}
+            className="absolute top-2 right-2 grid h-8 w-8 place-items-center rounded-md border border-bg/25 bg-ink/85 text-bg shadow-soft backdrop-blur transition-colors hover:bg-ink focus:outline-none focus:ring-2 focus:ring-bg/40"
+          >
+            <MoreHorizontal size={13}/>
+          </button>
+        )}
       </div>
       <div className="p-3.5">
-        <Link href={`/collections/${c.id}`} className="serif text-[21px] leading-tight hover:underline">{c.title}</Link>
+        <Link href={cardHref} className="serif text-[21px] leading-tight hover:underline">{c.title}</Link>
         <div className="mono text-[10.5px] uppercase tracking-wider text-muted mt-2 flex gap-2 whitespace-nowrap">
           <span>{c.counts.photos} photos</span>
           {c.counts.videos > 0 && (<><span className="text-line-2">/</span><span>{c.counts.videos} video</span></>)}
@@ -91,38 +98,42 @@ export function CollectionCard({
         </div>
       </div>
 
-      <CollectionActionDropdown
-        collection={c}
-        open={menuOpen}
-        style={menuStyle}
-        onClose={() => setMenuOpen(false)}
-        onShare={() => {
-          setMenuOpen(false);
-          setShareOpen(true);
-        }}
-        onMove={() => {
-          setMenuOpen(false);
-          setMoveOpen(true);
-        }}
-        onDelete={() => {
-          setMenuOpen(false);
-          setDeleteOpen(true);
-        }}
-      />
+      {!readOnly && (
+        <>
+          <CollectionActionDropdown
+            collection={c}
+            open={menuOpen}
+            style={menuStyle}
+            onClose={() => setMenuOpen(false)}
+            onShare={() => {
+              setMenuOpen(false);
+              setShareOpen(true);
+            }}
+            onMove={() => {
+              setMenuOpen(false);
+              setMoveOpen(true);
+            }}
+            onDelete={() => {
+              setMenuOpen(false);
+              setDeleteOpen(true);
+            }}
+          />
 
-      <CollectionShareDialog
-        open={shareOpen}
-        onOpenChange={setShareOpen}
-        collection={c}
-        onPublished={onCollectionChange}
-      />
-      <MoveToFolderDialog collection={c} open={moveOpen} onOpenChange={setMoveOpen} onMoved={onCollectionChange}/>
-      <DeleteCollectionDialog
-        collection={c}
-        open={deleteOpen}
-        onOpenChange={setDeleteOpen}
-        onDeleted={onCollectionDeleted}
-      />
+          <CollectionShareDialog
+            open={shareOpen}
+            onOpenChange={setShareOpen}
+            collection={c}
+            onPublished={onCollectionChange}
+          />
+          <MoveToFolderDialog collection={c} open={moveOpen} onOpenChange={setMoveOpen} onMoved={onCollectionChange}/>
+          <DeleteCollectionDialog
+            collection={c}
+            open={deleteOpen}
+            onOpenChange={setDeleteOpen}
+            onDeleted={onCollectionDeleted}
+          />
+        </>
+      )}
     </article>
   );
 }

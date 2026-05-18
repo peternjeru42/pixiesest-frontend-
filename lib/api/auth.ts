@@ -1,6 +1,6 @@
 const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000/api/v1').replace(/\/$/, '');
 
-type AuthUser = {
+export type AuthUser = {
   id: string;
   email: string;
   first_name: string;
@@ -8,6 +8,8 @@ type AuthUser = {
   business_name?: string;
   phone_number?: string;
   profile_photo_url?: string;
+  is_staff?: boolean;
+  is_superuser?: boolean;
 };
 
 type AuthResponse = {
@@ -90,6 +92,23 @@ function persistAuthTokens(auth: AuthResponse) {
   window.localStorage.setItem('droptop.refreshToken', auth.refresh);
   window.localStorage.setItem('droptop.user', JSON.stringify(auth.user));
   setAuthCookie(auth.access);
+}
+
+function persistAuthUser(user: AuthUser) {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem('droptop.user', JSON.stringify(user));
+}
+
+export function getStoredAuthUser(): AuthUser | null {
+  if (typeof window === 'undefined') return null;
+  const stored = window.localStorage.getItem('droptop.user');
+  if (!stored) return null;
+  try {
+    return JSON.parse(stored) as AuthUser;
+  } catch {
+    window.localStorage.removeItem('droptop.user');
+    return null;
+  }
 }
 
 function cachePendingRegistration(input: RegisterInput) {
@@ -188,6 +207,15 @@ export async function googleAuth(credential: string, intent: GoogleAuthIntent = 
 
   persistAuthTokens(auth);
   return auth;
+}
+
+export async function getCurrentUser(accessToken: string) {
+  const user = await request<AuthUser>('/auth/me/', {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+  persistAuthUser(user);
+  return user;
 }
 
 export async function requestPasswordReset(email: string) {

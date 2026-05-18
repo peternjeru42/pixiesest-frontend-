@@ -3,19 +3,22 @@ import * as React from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FolderOpen, Grid3x3, Home, Menu, Shield, User, X, type LucideIcon } from 'lucide-react';
+import { FolderOpen, Grid3x3, Menu, Shield, User, X, type LucideIcon } from 'lucide-react';
 import { LogoutButton } from '@/components/actions/logout-button';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useAuthRole } from './use-auth-role';
 
 const STUDIO = [
-  { href: '/dashboard', label: 'Dashboard', icon: Home },
   { href: '/collections', label: 'Collections', icon: Grid3x3 },
   { href: '/folders', label: 'Folders', icon: FolderOpen },
 ];
 
-const ACCOUNT = [
-  { href: '/dashboard/admin', label: 'Admin', icon: Shield },
+const ADMIN = [
+  { href: '/ops/admin', label: 'Dashboard', icon: Shield },
+];
+
+const PROFILE = [
   { href: '/profile', label: 'Profile', icon: User },
 ];
 
@@ -23,6 +26,8 @@ export function MobileNav() {
   const [open, setOpen] = React.useState(false);
   const [mounted, setMounted] = React.useState(false);
   const pathname = usePathname();
+  const { isAdmin, resolved } = useAuthRole();
+  const homeHref = resolved && isAdmin ? '/ops/admin' : '/collections';
 
   React.useEffect(() => {
     setMounted(true);
@@ -59,7 +64,7 @@ export function MobileNav() {
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-line px-5 py-4">
-              <Link href="/dashboard" onClick={() => setOpen(false)} className="flex min-w-0 items-center gap-2.5">
+              <Link href={homeHref} onClick={() => setOpen(false)} className="flex min-w-0 items-center gap-2.5">
                 <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-ink text-bg serif italic text-base">D</span>
                 <span className="serif text-[24px] tracking-wide">Droptop</span>
               </Link>
@@ -69,18 +74,31 @@ export function MobileNav() {
             </div>
 
             <nav className="flex-1 overflow-y-auto px-3 py-4">
-              <NavGroup label="Studio">
-                {STUDIO.map(item => (
-                  <MobileNavItem
-                    key={item.href}
-                    {...item}
-                    active={isActive(pathname, item.href)}
-                    onSelect={() => setOpen(false)}
-                  />
-                ))}
-              </NavGroup>
+              {!resolved ? null : isAdmin ? (
+                <NavGroup label="Admin">
+                  {ADMIN.map(item => (
+                    <MobileNavItem
+                      key={item.href}
+                      {...item}
+                      active={isActive(pathname, item.href)}
+                      onSelect={() => setOpen(false)}
+                    />
+                  ))}
+                </NavGroup>
+              ) : (
+                <NavGroup label="Studio">
+                  {STUDIO.map(item => (
+                    <MobileNavItem
+                      key={item.href}
+                      {...item}
+                      active={isActive(pathname, item.href)}
+                      onSelect={() => setOpen(false)}
+                    />
+                  ))}
+                </NavGroup>
+              )}
               <NavGroup label="Account">
-                {ACCOUNT.map(item => (
+                {PROFILE.map(item => (
                   <MobileNavItem
                     key={item.href}
                     {...item}
@@ -103,8 +121,7 @@ export function MobileNav() {
 }
 
 function isActive(pathname: string, href: string) {
-  if (href === '/dashboard/admin') return pathname === href;
-  if (href === '/dashboard') return pathname === '/' || (pathname.startsWith('/dashboard') && !pathname.startsWith('/dashboard/admin'));
+  if (href === '/ops/admin') return pathname === href;
   return pathname === href || pathname.startsWith(href + '/');
 }
 
