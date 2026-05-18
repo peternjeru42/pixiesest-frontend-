@@ -3,13 +3,14 @@ import * as React from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FolderOpen, Grid3x3, Menu, Shield, User, X, type LucideIcon } from 'lucide-react';
+import { FolderOpen, Grid3x3, LayoutDashboard, Menu, Shield, User, X, type LucideIcon } from 'lucide-react';
 import { LogoutButton } from '@/components/actions/logout-button';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useAuthRole } from './use-auth-role';
 
 const STUDIO = [
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/collections', label: 'Collections', icon: Grid3x3 },
   { href: '/folders', label: 'Folders', icon: FolderOpen },
 ];
@@ -27,7 +28,7 @@ export function MobileNav() {
   const [mounted, setMounted] = React.useState(false);
   const pathname = usePathname();
   const { isAdmin, resolved } = useAuthRole();
-  const homeHref = resolved && isAdmin ? '/ops/admin' : '/collections';
+  const homeHref = resolved && isAdmin ? '/ops/admin' : '/dashboard';
 
   React.useEffect(() => {
     setMounted(true);

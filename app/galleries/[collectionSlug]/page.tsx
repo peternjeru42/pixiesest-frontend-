@@ -177,17 +177,6 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
         onOpenFavorites={() => setFavPanel(true)}
         onOpenDownload={openGalleryDownload}
       />
-      {preview && (
-        <Button
-          asChild
-          type="button"
-          size="sm"
-          className="fixed left-6 top-[76px] z-30 bg-bg/95 text-ink shadow-lift backdrop-blur hover:bg-bg md:left-9"
-        >
-          <Link href={`/collections/${collection.id}`}><ArrowLeft size={12}/>Collections</Link>
-        </Button>
-      )}
-
       <header className="relative h-[calc(100dvh-61px)] min-h-[520px] overflow-hidden bg-panel">
         {collection.cover ? (
           <img src={collection.cover} alt="" className="h-full w-full object-cover"/>
@@ -202,14 +191,26 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
           <h1 className="serif max-w-4xl text-6xl font-normal tracking-tight md:text-7xl lg:text-8xl">{collection.title}</h1>
           {collection.description && <p className="mt-4 max-w-xl text-sm leading-6 text-bg/85">{collection.description}</p>}
         </div>
-        <Button
-          type="button"
-          size="sm"
-          onClick={scrollToGallery}
-          className="absolute bottom-6 left-6 bg-bg/95 text-ink hover:bg-bg lg:left-10"
-        >
-          <ArrowDown size={12}/>View gallery
-        </Button>
+        <div className="absolute bottom-6 left-6 flex flex-wrap gap-2 lg:left-10">
+          {preview && (
+            <Button
+              asChild
+              type="button"
+              size="sm"
+              className="bg-bg/95 text-ink shadow-lift backdrop-blur hover:bg-bg"
+            >
+              <Link href={`/collections/${collection.id}`}><ArrowLeft size={12}/>Collections</Link>
+            </Button>
+          )}
+          <Button
+            type="button"
+            size="sm"
+            onClick={scrollToGallery}
+            className="bg-bg/95 text-ink hover:bg-bg"
+          >
+            <ArrowDown size={12}/>View gallery
+          </Button>
+        </div>
       </header>
 
       <div ref={galleryRef} className="sticky top-[60px] z-20 flex scroll-mt-[60px] items-center justify-between overflow-x-auto border-b border-line bg-bg/95 px-6 backdrop-blur md:px-9">

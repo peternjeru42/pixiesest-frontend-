@@ -2,7 +2,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Grid3x3, FolderOpen, Shield, User } from 'lucide-react';
+import { FolderOpen, Grid3x3, LayoutDashboard, Shield, User } from 'lucide-react';
 import { LogoutButton } from '@/components/actions/logout-button';
 import { listCollections, subscribeToCollectionChanges } from '@/lib/api/collections';
 import { listFolders, subscribeToFolderChanges } from '@/lib/api/folders';
@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { useAuthRole } from './use-auth-role';
 
 const STUDIO = [
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/collections', label: 'Collections', icon: Grid3x3, count: 12 },
   { href: '/folders',     label: 'Folders',    icon: FolderOpen, count: 4 },
 ];
@@ -24,7 +25,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const { isAdmin, resolved } = useAuthRole();
   const [counts, setCounts] = React.useState({ collections: 0, folders: 0 });
-  const homeHref = resolved && isAdmin ? '/ops/admin' : '/collections';
+  const homeHref = resolved && isAdmin ? '/ops/admin' : '/dashboard';
 
   React.useEffect(() => {
     if (!resolved || isAdmin) return;

@@ -77,12 +77,12 @@ export function ShareDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="md" className="rounded-md" onClose={() => onOpenChange(false)}>
-        <DialogHeader className="px-5 pt-6 pb-2 sm:px-6">
+      <DialogContent size="md" className="w-[calc(100vw-1rem)] rounded-md sm:w-[90vw]" onClose={() => onOpenChange(false)}>
+        <DialogHeader className="px-4 pt-6 pb-2 sm:px-6">
           <DialogTitle className="font-sans text-[14px] font-semibold uppercase tracking-[0.16em]">{title}</DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
-        <DialogBody className="gap-5 px-5 pb-3 sm:px-6">
+        <DialogBody className="gap-5 px-4 pb-3 sm:px-6">
           {notice && (
             <div className="rounded-md border border-line bg-panel px-3 py-2 text-[12.5px] leading-5 text-muted">
               {notice}
@@ -112,8 +112,8 @@ export function ShareDialog({
             />
           ))}
         </DialogBody>
-        <DialogFooter className="px-5 pb-6 sm:px-6">
-          <Button type="button" variant="outline" disabled={Boolean(copyingKey)} onClick={() => copyValue('public-url', url, onBeforeCopyLink)}>
+        <DialogFooter className="px-4 pb-6 sm:px-6">
+          <Button type="button" variant="outline" className="w-full sm:w-auto" disabled={Boolean(copyingKey)} onClick={() => copyValue('public-url', url, onBeforeCopyLink)}>
             <Copy size={14}/>{copiedKey === 'public-url' ? 'Copied' : copyingKey === 'public-url' ? 'Copying...' : copyLinkLabel}
           </Button>
         </DialogFooter>
@@ -241,15 +241,15 @@ export function CollectionEmailShareDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent size="md" className="rounded-md" onClose={() => onOpenChange(false)}>
+      <DialogContent size="md" className="w-[calc(100vw-1rem)] rounded-md sm:w-[90vw]" onClose={() => onOpenChange(false)}>
         <form onSubmit={sendInvites}>
-          <DialogHeader className="px-5 pt-6 pb-2 sm:px-6">
+          <DialogHeader className="px-4 pt-6 pb-2 sm:px-6">
             <DialogTitle className="font-sans text-[14px] font-semibold uppercase tracking-[0.16em]">Share by email</DialogTitle>
             <DialogDescription>
               {isPublished ? `Email the public gallery link for ${collection.title}.` : 'Publishing makes the emailed gallery link viewable.'}
             </DialogDescription>
           </DialogHeader>
-          <DialogBody className="gap-4 px-5 pb-3 sm:px-6">
+          <DialogBody className="gap-4 px-4 pb-3 sm:px-6">
             {!isPublished && (
               <div className="rounded-md border border-line bg-panel px-3 py-2 text-[12.5px] leading-5 text-muted">
                 This collection is still a draft. Sending will publish it first.
@@ -290,9 +290,9 @@ export function CollectionEmailShareDialog({
               />
             </div>
           </DialogBody>
-          <DialogFooter className="px-5 pb-6 sm:px-6">
-            <Button type="button" variant="ghost" disabled={sending} onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" variant="default" disabled={sending || recipientList.length === 0}>
+          <DialogFooter className="flex-col-reverse px-4 pb-6 sm:flex-row sm:px-6">
+            <Button type="button" variant="ghost" className="w-full sm:w-auto" disabled={sending} onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button type="submit" variant="default" className="w-full sm:w-auto" disabled={sending || recipientList.length === 0}>
               <Send size={14}/>{sending ? 'Sending...' : isPublished ? 'Send email' : 'Publish & send'}
             </Button>
           </DialogFooter>
@@ -320,8 +320,8 @@ function CopyBlock({
   return (
     <div>
       <div className="mb-2 text-[13.5px] font-medium">{label}</div>
-      <div className="flex min-h-11 items-center justify-between gap-3 rounded-md bg-panel px-3 text-[13px]">
-        <span className="min-w-0 truncate">{value}</span>
+      <div className="flex min-h-11 flex-col items-start justify-between gap-2 rounded-md bg-panel px-3 py-2 text-[13px] sm:flex-row sm:items-center">
+        <span className="min-w-0 max-w-full break-all sm:truncate">{value}</span>
         <button type="button" disabled={copying} onClick={onCopy} className="inline-flex shrink-0 items-center gap-1.5 text-[12.5px] font-medium text-teal-600 disabled:cursor-not-allowed disabled:opacity-60">
           <Copy size={14}/>{copied ? 'Copied' : copying ? 'Copying...' : 'Copy'}
         </button>
