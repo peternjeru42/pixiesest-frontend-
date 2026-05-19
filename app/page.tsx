@@ -1,13 +1,9 @@
 import Link from 'next/link';
 import {
   ArrowRight,
-  CalendarCheck,
   Check,
   Download,
-  Image as ImageIcon,
-  LayoutTemplate,
   Menu,
-  ShoppingBag,
   Sparkles,
 } from 'lucide-react';
 
@@ -18,37 +14,73 @@ const galleryImages = [
   'https://images.unsplash.com/photo-1529636798458-92182e662485?auto=format&fit=crop&w=900&q=80',
 ];
 
-const products = [
+const masonryImages = [
   {
-    icon: ImageIcon,
-    title: 'Client Gallery',
-    text: 'Share, proof, download and sell photos through polished online galleries.',
+    src: 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=700&q=80',
+    className: 'row-span-2',
   },
   {
-    icon: LayoutTemplate,
-    title: 'Website',
-    status: 'Coming soon',
-    text: 'Build a portfolio site that carries the same quiet brand experience.',
+    src: 'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=700&q=80',
+    className: 'row-span-1',
   },
   {
-    icon: CalendarCheck,
-    title: 'Studio Manager',
-    status: 'Coming soon',
-    text: 'Keep bookings, invoices and client communication close to delivery.',
+    src: 'https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=700&q=80',
+    className: 'row-span-2',
   },
   {
-    icon: ShoppingBag,
-    title: 'Store',
-    status: 'Coming soon',
-    text: 'Sell prints, products and digital downloads without extra handoff.',
+    src: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=700&q=80',
+    className: 'row-span-1',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=700&q=80',
+    className: 'row-span-1',
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=700&q=80',
+    className: 'row-span-2',
   },
 ];
 
 const plans = [
-  { name: 'Free', price: 'Free', storage: '5 GB', note: 'Start delivering client galleries.' },
-  { name: 'Starter', price: '500 KSh', suffix: '/month', storage: '20 GB', note: 'For active solo photographers.' },
-  { name: 'Studio', price: '1,000 KSh', suffix: '/month', storage: '200 GB', note: 'For growing studios and frequent shoots.' },
-  { name: 'Scale', price: '3,000 KSh', suffix: '/month', storage: '1000 GB', note: 'For high-volume gallery delivery.' },
+  {
+    name: 'Free',
+    price: 'Free',
+    storage: '5 GB',
+    note: 'A clean starting point for every new user.',
+    features: ['5 GB storage', 'Beautiful client galleries', 'Shareable gallery links', 'Photo and video uploads'],
+  },
+  {
+    name: 'Starter',
+    price: '250 KSh',
+    suffix: '/month',
+    storage: '12 GB',
+    note: 'For light shoots and small client deliveries.',
+    features: ['12 GB storage', 'Private client galleries', 'Favorites for client selection', 'High-quality downloads'],
+  },
+  {
+    name: 'Pro',
+    price: '500 KSh',
+    suffix: '/month',
+    storage: '25 GB',
+    note: 'Best value for active photographers and videographers.',
+    recommended: true,
+    features: ['25 GB storage', 'Priority gallery delivery', 'Favorites and proofing', 'Best for regular paid shoots'],
+  },
+  {
+    name: 'Studio',
+    price: '1,000 KSh',
+    suffix: '/month',
+    storage: '100 GB',
+    note: 'For studios handling many galleries each month.',
+    features: ['100 GB storage', 'More room for video files', 'Multiple client projects', 'Built for busy teams'],
+  },
+  {
+    name: 'Custom',
+    price: 'Custom',
+    storage: 'As needed',
+    note: 'Need more storage or a tailored setup? Call us for a quote.',
+    features: ['Custom storage', 'Flexible package size', 'Quote based on your workload', 'Support for high-volume delivery'],
+  },
 ];
 
 export default function Home() {
@@ -63,7 +95,6 @@ export default function Home() {
             <span className="text-[15px] font-semibold tracking-[0.18em]">DROPTOP</span>
           </Link>
           <nav className="hidden items-center gap-8 text-[13px] font-medium text-[#514c43] md:flex">
-            <a href="#products">Products</a>
             <a href="#pricing">Pricing</a>
           </nav>
           <div className="hidden items-center gap-3 md:flex">
@@ -89,14 +120,19 @@ export default function Home() {
 
       <section className="mx-auto grid max-w-7xl gap-12 px-5 pb-16 pt-14 lg:grid-cols-[0.9fr_1.1fr] lg:px-8 lg:pb-24 lg:pt-20">
         <div className="flex flex-col justify-center">
-          <p className="mb-5 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#786f61]">
-            Photographer platform
-          </p>
+          <div className="mb-5 flex flex-wrap gap-2">
+            <span className="rounded-full border border-[#d7cec0] bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#5f594f]">
+              Free 5GB for every new user
+            </span>
+            <span className="rounded-full bg-[#171512] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-white">
+              Works like Pixieset but 10 times cheaper
+            </span>
+          </div>
           <h1 className="max-w-2xl font-display text-[48px] font-medium leading-[0.98] tracking-normal text-[#171512] sm:text-[64px] lg:text-[76px]">
-            Designed for photographers. Built to help you grow.
+            Share your work beautifully and professionally.
           </h1>
           <p className="mt-7 max-w-xl text-lg leading-8 text-[#5f594f]">
-            Deliver client galleries, launch your portfolio, sell prints and run the business side of your studio from one refined workspace.
+            Droptop is built for photographers and videographers who need a simple, polished way to deliver galleries, videos and client projects online.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row">
             <Link
@@ -106,19 +142,11 @@ export default function Home() {
               Get Started <ArrowRight size={16} />
             </Link>
             <Link
-              href="#products"
+              href="#pricing"
               className="inline-flex h-12 items-center justify-center rounded-[4px] border border-[#cfc7b7] bg-white px-6 text-sm font-semibold text-[#171512] transition-colors hover:bg-[#efebe3]"
             >
-              Explore Products
+              View Pricing
             </Link>
-          </div>
-          <div className="mt-9 grid max-w-lg grid-cols-2 gap-x-8 gap-y-3 text-sm text-[#514c43]">
-            {['Free to start', 'No credit card required', 'Gallery proofing', 'Print sales ready'].map((item) => (
-              <div key={item} className="flex items-center gap-2">
-                <Check size={15} className="text-[#5f7b62]" />
-                {item}
-              </div>
-            ))}
           </div>
         </div>
 
@@ -148,53 +176,28 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="products" className="border-y border-[#ded8cc] bg-white">
-        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-20 lg:grid-cols-[0.85fr_1.15fr] lg:px-8">
-          <div>
-            <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#786f61]">All-in-one platform</p>
-            <h2 className="font-display text-5xl font-medium leading-none tracking-normal">Everything you need. All in one place.</h2>
-            <p className="mt-5 max-w-md leading-7 text-[#625c52]">
-              A suite of products intentionally shaped for the key stages of a photography business.
-            </p>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {products.map(({ icon: Icon, title, status, text }) => (
-              <article key={title} className="rounded-[6px] border border-[#e0dacf] bg-[#fbfaf7] p-6">
-                <Icon size={22} className="mb-8 text-[#496d71]" />
-                <div className="flex items-center justify-between gap-3">
-                  <h3 className="text-lg font-semibold">{title}</h3>
-                  {status && (
-                    <span className="rounded-full border border-[#cfc7b7] bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#786f61]">
-                      {status}
-                    </span>
-                  )}
-                </div>
-                <p className="mt-3 leading-7 text-[#625c52]">{text}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
       <section className="mx-auto max-w-7xl px-5 py-20 lg:px-8">
-        <div className="grid gap-10 lg:grid-cols-[1fr_1fr]">
-          <div className="overflow-hidden rounded-[6px] bg-[#dfe6e0]">
-            <img
-              src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80"
-              alt="Outdoor portrait gallery"
-              className="h-full min-h-[460px] w-full object-cover"
-            />
+        <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+          <div className="grid auto-rows-[120px] grid-cols-2 gap-3 overflow-hidden rounded-[6px] sm:auto-rows-[140px] sm:grid-cols-3 lg:auto-rows-[145px]">
+            {masonryImages.map((image, index) => (
+              <img
+                key={image.src}
+                src={image.src}
+                alt={`Droptop gallery sample ${index + 1}`}
+                className={`${image.className} h-full w-full rounded-[4px] object-cover`}
+              />
+            ))}
           </div>
           <div className="flex flex-col justify-center">
             <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#786f61]">Client Gallery</p>
             <h2 className="font-display text-5xl font-medium leading-none tracking-normal">
-              The gallery experience clients remember.
+              Send photos and videos your clients can open in seconds.
             </h2>
             <p className="mt-6 max-w-lg leading-8 text-[#625c52]">
-              Present full-resolution work with favorites, proofing, digital delivery and print sales in a branded flow that feels deliberate from the first click.
+              Upload your work, share a private link and let clients view, select and download their files from a clean gallery that looks good on phone and desktop.
             </p>
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              {['Private access controls', 'Favorites and proofing', 'High-res delivery', 'Integrated store'].map((item) => (
+              {['Share with a simple link', 'Clients can pick favorites', 'Downloads stay organized', 'Looks professional on every screen'].map((item) => (
                 <div key={item} className="flex items-center gap-3 border-t border-[#d8d1c4] pt-4 text-sm font-medium">
                   <Sparkles size={16} className="text-[#496d71]" />
                   {item}
@@ -211,7 +214,7 @@ export default function Home() {
           <div>
             <h2 className="font-display text-5xl font-medium leading-none tracking-normal">Simple storage-based pricing.</h2>
             <p className="mt-5 max-w-xl leading-8 text-[#625c52]">
-              Start with a free gallery workspace, then upgrade when your studio needs more storage.
+              Every new user gets 5 GB free. Upgrade only when you need more room for client galleries and video projects.
             </p>
           </div>
           <Link
@@ -221,10 +224,20 @@ export default function Home() {
             Get Started <ArrowRight size={16} />
           </Link>
         </div>
-        <div className="mt-10 grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-10 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
           {plans.map((plan) => (
-            <article key={plan.name} className="rounded-[6px] border border-[#ded8cc] bg-white p-6">
-              <h3 className="text-lg font-semibold">{plan.name}</h3>
+            <article
+              key={plan.name}
+              className={`relative rounded-[6px] border bg-white p-6 ${
+                plan.recommended ? 'border-[#171512] shadow-deep' : 'border-[#ded8cc]'
+              }`}
+            >
+              {plan.recommended && (
+                <span className="absolute right-4 top-4 rounded-full bg-[#171512] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-white">
+                  Recommended
+                </span>
+              )}
+              <h3 className="pr-24 text-lg font-semibold">{plan.name}</h3>
               <div className="mt-5 flex items-end gap-1">
                 <span className="font-display text-4xl leading-none">{plan.price}</span>
                 {plan.suffix && <span className="pb-1 text-sm text-[#786f61]">{plan.suffix}</span>}
@@ -234,11 +247,29 @@ export default function Home() {
                 <p className="mt-2 text-2xl font-semibold">{plan.storage}</p>
               </div>
               <p className="mt-5 min-h-12 leading-6 text-[#625c52]">{plan.note}</p>
+              <ul className="mt-6 space-y-3 border-t border-[#e4ded3] pt-5">
+                {plan.features.map((feature) => (
+                  <li key={feature} className="flex gap-2 text-sm leading-6 text-[#514c43]">
+                    <Check size={15} className="mt-1 shrink-0 text-[#5f7b62]" />
+                    <span>{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              {plan.name === 'Custom' && (
+                <div className="mt-6 space-y-2 text-sm font-semibold">
+                  <a href="tel:0716333142" className="block text-[#171512] hover:text-[#496d71]">
+                    0716333142
+                  </a>
+                  <a href="tel:+254746149916" className="block text-[#171512] hover:text-[#496d71]">
+                    +254 746 149916
+                  </a>
+                </div>
+              )}
             </article>
           ))}
         </div>
         <p className="mt-8 text-center text-sm text-[#625c52]">
-          Upgrade, downgrade or stay on the free tier as your gallery storage needs change.
+          Works like Pixieset but 10 times cheaper, with storage packages that fit local creators.
         </p>
       </section>
 
@@ -246,7 +277,6 @@ export default function Home() {
         <div className="mx-auto flex max-w-7xl flex-col gap-6 px-5 py-10 text-sm text-[#625c52] sm:flex-row sm:items-center sm:justify-between lg:px-8">
           <div className="font-semibold tracking-[0.18em] text-[#171512]">DROPTOP</div>
           <div className="flex flex-wrap gap-5">
-            <Link href="#products">Products</Link>
             <Link href="#pricing">Pricing</Link>
             <Link href="/login">Log In</Link>
             <Link href="/register">Get Started</Link>
