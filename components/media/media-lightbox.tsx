@@ -1,6 +1,7 @@
 'use client';
 import * as React from 'react';
 import { X, ChevronLeft, ChevronRight, Heart, Download, Info, Play } from 'lucide-react';
+import { VideoPreview } from '@/components/media/video-preview';
 import { cn } from '@/lib/utils';
 import type { Media } from '@/lib/types';
 
@@ -48,7 +49,7 @@ export function MediaLightbox({ items, index, onClose, onIndex, onToggleFavorite
           <LbButton><Info size={14}/></LbButton>
         </div>
       </div>
-      <div className="grid place-items-center relative p-6 min-h-0" onClick={onClose}>
+      <div className="grid place-items-center relative min-h-0 p-3 sm:p-6" onClick={onClose}>
         {videoSource ? (
           <video
             key={cur.id}
@@ -57,7 +58,7 @@ export function MediaLightbox({ items, index, onClose, onIndex, onToggleFavorite
             controls
             autoPlay
             playsInline
-            className="max-h-full max-w-full bg-black shadow-deep"
+            className="h-full max-h-full w-full max-w-full bg-black object-contain shadow-deep"
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
@@ -90,9 +91,8 @@ export function MediaLightbox({ items, index, onClose, onIndex, onToggleFavorite
 }
 
 function LightboxThumb({ item }: { item: Media }) {
-  const videoSource = item.type === 'video' ? item.playbackUrl : '';
-  if (videoSource) {
-    return <video src={videoSource} poster={item.thumb || undefined} preload="metadata" muted playsInline className="h-full w-full object-cover"/>;
+  if (item.type === 'video') {
+    return <VideoPreview item={item} showDuration={false} badgePosition="center"/>;
   }
 
   return <img src={item.thumb || item.src} alt="" className="w-full h-full object-cover"/>;

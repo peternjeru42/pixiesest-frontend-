@@ -57,4 +57,12 @@
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--line-2)) transparent;
   }
+
+  .video-preview-frame::-webkit-media-controls,
+  .video-preview-frame::-webkit-media-controls-panel,
+  .video-preview-frame::-webkit-media-controls-start-playback-button {
+    display: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
 }

@@ -1,6 +1,7 @@
 'use client';
 import * as React from 'react';
-import { AlertCircle, Check, Download, Heart, Image as ImageIcon, Loader2, Lock, Play } from 'lucide-react';
+import { AlertCircle, Check, Download, Heart, Image as ImageIcon, Loader2, Lock } from 'lucide-react';
+import { VideoPreview } from '@/components/media/video-preview';
 import { cn } from '@/lib/utils';
 import type { Media } from '@/lib/types';
 
@@ -14,7 +15,6 @@ export function MediaTile({ m, onClick, selected, onToggleSelect, onToggleFavori
   anySelected?: boolean;
 }) {
   const hasImage = Boolean(m.thumb || m.src);
-  const videoPreview = m.type === 'video' ? m.playbackUrl : '';
   const isProcessing = m.status === 'processing' || m.status === 'uploading';
   const isFailed = m.status === 'failed';
 
@@ -26,15 +26,8 @@ export function MediaTile({ m, onClick, selected, onToggleSelect, onToggleFavori
         selected && 'outline outline-[3px] -outline-offset-[3px] outline-ink',
       )}
     >
-      {videoPreview ? (
-        <video
-          src={videoPreview}
-          poster={m.thumb || undefined}
-          preload="metadata"
-          muted
-          playsInline
-          className="h-full w-full object-cover"
-        />
+      {m.type === 'video' ? (
+        <VideoPreview item={m} badgePosition="top-right"/>
       ) : hasImage ? (
         <img src={m.thumb || m.src} alt="" loading="lazy" className="w-full h-full object-cover"/>
       ) : (
@@ -59,11 +52,6 @@ export function MediaTile({ m, onClick, selected, onToggleSelect, onToggleFavori
           selected ? 'bg-ink border-ink text-bg opacity-100' : 'bg-bg/85 border-bg/95 opacity-0 group-hover:opacity-100',
         )}
       >{selected && <Check size={11} strokeWidth={3}/>}</button>
-      {m.type === 'video' && (
-        <span className="absolute top-2 right-2 mono text-[9.5px] bg-ink/55 text-bg px-1.5 py-0.5 rounded inline-flex items-center gap-1">
-          <Play size={8}/>{Math.floor((m.durationSec ?? 0) / 60)}:{String((m.durationSec ?? 0) % 60).padStart(2, '0')}
-        </span>
-      )}
       {m.private && (
         <span className="absolute top-2 right-2 mono text-[9.5px] bg-ink/55 text-bg px-1.5 py-0.5 rounded inline-flex items-center gap-1" style={{ top: m.type === 'video' ? 26 : 8 }}>
           <Lock size={9}/>
