@@ -245,9 +245,9 @@ function toSet(set: BackendSet): Set & { slug: string } {
 }
 
 function toMedia(media: BackendMedia): Media {
-  const width = media.original_width ?? 1600;
-  const height = media.original_height ?? 1067;
   const isVideoAsset = media.media_type === 'video';
+  const width = media.original_width ?? (isVideoAsset ? 0 : 1600);
+  const height = media.original_height ?? (isVideoAsset ? 0 : 1067);
   const src = media.preview_url ?? media.thumbnail_url ?? (isVideoAsset ? media.playback_url ?? '' : '');
   return {
     id: String(media.id),

@@ -16,6 +16,11 @@ function durationLabel(seconds?: number) {
   return `${Math.floor(safeSeconds / 60)}:${String(safeSeconds % 60).padStart(2, '0')}`;
 }
 
+export function mediaAspectRatio(item: Media) {
+  if (item.width > 0 && item.height > 0) return item.width / item.height;
+  return item.type === 'video' ? 9 / 16 : 3 / 2;
+}
+
 export function VideoPreview({
   item,
   className,
@@ -32,13 +37,14 @@ export function VideoPreview({
   const [frameReady, setFrameReady] = React.useState(false);
   const poster = item.thumb && item.thumb !== item.playbackUrl ? item.thumb : '';
   const previewSource = videoFrameUrl(item.playbackUrl || item.src);
+  const ratio = mediaAspectRatio(item);
 
   React.useEffect(() => {
     setFrameReady(false);
   }, [previewSource]);
 
   return (
-    <div className={cn('relative h-full w-full overflow-hidden bg-panel', className)}>
+    <div className={cn('relative h-full w-full overflow-hidden bg-panel', className)} style={{ aspectRatio: ratio }}>
       {!poster && (
         <div className="absolute inset-0 grid place-items-center text-muted">
           <Film size={24}/>

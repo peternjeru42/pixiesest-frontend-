@@ -1,6 +1,6 @@
 'use client';
 import { Download, Heart, Image as ImageIcon } from 'lucide-react';
-import { VideoPreview } from '@/components/media/video-preview';
+import { VideoPreview, mediaAspectRatio } from '@/components/media/video-preview';
 import { cn } from '@/lib/utils';
 import type { Media } from '@/lib/types';
 
@@ -19,7 +19,7 @@ export function PublicMasonryGrid({
     <div className="columns-2 gap-[9px] bg-white md:columns-3 lg:columns-4 2xl:columns-5">
       {items.map((item, index) => {
         const imageSrc = item.src || item.thumb;
-        const ratio = item.width > 0 && item.height > 0 ? item.width / item.height : 3 / 2;
+        const ratio = mediaAspectRatio(item);
 
         return (
           <div

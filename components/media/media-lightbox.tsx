@@ -1,7 +1,7 @@
 'use client';
 import * as React from 'react';
 import { X, ChevronLeft, ChevronRight, Heart, Download, Info, Play } from 'lucide-react';
-import { VideoPreview } from '@/components/media/video-preview';
+import { VideoPreview, mediaAspectRatio } from '@/components/media/video-preview';
 import { cn } from '@/lib/utils';
 import type { Media } from '@/lib/types';
 
@@ -31,6 +31,10 @@ export function MediaLightbox({ items, index, onClose, onIndex, onToggleFavorite
   if (!cur) return null;
 
   const videoSource = cur.type === 'video' ? cur.playbackUrl : '';
+  const videoRatio = mediaAspectRatio(cur);
+  const videoFrameStyle = videoRatio >= 1
+    ? { aspectRatio: videoRatio, width: '100%', maxHeight: '100%' }
+    : { aspectRatio: videoRatio, height: '100%', maxWidth: '100%' };
 
   return (
     <div className="fixed inset-0 z-50 bg-ink/95 text-bg grid grid-rows-[56px_1fr_84px] animate-in fade-in-0">
@@ -51,16 +55,17 @@ export function MediaLightbox({ items, index, onClose, onIndex, onToggleFavorite
       </div>
       <div className="grid place-items-center relative min-h-0 p-3 sm:p-6" onClick={onClose}>
         {videoSource ? (
-          <video
-            key={cur.id}
-            src={videoSource}
-            poster={cur.thumb || undefined}
-            controls
-            autoPlay
-            playsInline
-            className="h-full max-h-full w-full max-w-full bg-black object-contain shadow-deep"
-            onClick={(e) => e.stopPropagation()}
-          />
+          <div className="relative max-h-full max-w-full bg-black shadow-deep" style={videoFrameStyle} onClick={(e) => e.stopPropagation()}>
+            <video
+              key={cur.id}
+              src={videoSource}
+              poster={cur.thumb || undefined}
+              controls
+              autoPlay
+              playsInline
+              className="absolute inset-0 h-full w-full object-contain"
+            />
+          </div>
         ) : (
           <img src={cur.src || cur.thumb} alt="" className="max-w-full max-h-full object-contain shadow-deep" onClick={(e) => e.stopPropagation()}/>
         )}
