@@ -65,6 +65,7 @@ export interface Media {
   filename: string;
   src: string;
   thumb: string;
+  playbackUrl?: string;
   width: number;
   height: number;
   sizeMB: number;

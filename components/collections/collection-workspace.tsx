@@ -256,7 +256,7 @@ export function CollectionWorkspace({
           !loaded ? (
             <div className="rounded-md border border-line bg-surface px-5 py-8 text-sm text-muted">Loading sets...</div>
           ) : visibleFileCount === 0 ? (
-            <div className="rounded-md border border-line bg-surface px-5 py-8 text-sm text-muted">There are no photos here.</div>
+            <div className="rounded-md border border-line bg-surface px-5 py-8 text-sm text-muted">There is no media here.</div>
           ) : sets.length > 0 ? (
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {sets.map(set => <SetCard key={set.id} s={set}/>)}
@@ -280,7 +280,7 @@ export function CollectionWorkspace({
               onDownload={downloadMediaItem}
             />
           ) : (
-            <div className="rounded-md border border-line bg-surface px-5 py-8 text-sm text-muted">There are no photos here.</div>
+            <div className="rounded-md border border-line bg-surface px-5 py-8 text-sm text-muted">There is no media here.</div>
           )
         )}
 

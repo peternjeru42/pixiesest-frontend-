@@ -14,6 +14,7 @@ export function MediaTile({ m, onClick, selected, onToggleSelect, onToggleFavori
   anySelected?: boolean;
 }) {
   const hasImage = Boolean(m.thumb || m.src);
+  const videoPreview = m.type === 'video' ? m.playbackUrl : '';
   const isProcessing = m.status === 'processing' || m.status === 'uploading';
   const isFailed = m.status === 'failed';
 
@@ -25,7 +26,16 @@ export function MediaTile({ m, onClick, selected, onToggleSelect, onToggleFavori
         selected && 'outline outline-[3px] -outline-offset-[3px] outline-ink',
       )}
     >
-      {hasImage ? (
+      {videoPreview ? (
+        <video
+          src={videoPreview}
+          poster={m.thumb || undefined}
+          preload="metadata"
+          muted
+          playsInline
+          className="h-full w-full object-cover"
+        />
+      ) : hasImage ? (
         <img src={m.thumb || m.src} alt="" loading="lazy" className="w-full h-full object-cover"/>
       ) : (
         <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-panel px-3 text-center text-muted">

@@ -165,7 +165,7 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
   }
 
   const tabs = [
-    { id: 'all', slug: 'all', title: 'All photos', photoCount: media.length, videoCount: 0, videoDurationSec: 0, visibility: 'public' as const, cover: '', order: -1 },
+    { id: 'all', slug: 'all', title: 'All media', photoCount: media.length, videoCount: 0, videoDurationSec: 0, visibility: 'public' as const, cover: '', order: -1 },
     ...sets,
   ];
   const currentSet = tabs.find(set => set.id === setId) ?? tabs[0];
@@ -246,7 +246,7 @@ export default function PublicGalleryPage({ params }: { params: { collectionSlug
             onToggleFavorite={toggleFav}
           />
         ) : (
-          <EmptyState icon={ImageIcon} title="There are no photos here." body="This gallery does not have visible files yet."/>
+          <EmptyState icon={ImageIcon} title="There is no media here." body="This gallery does not have visible files yet."/>
         )}
 
         <PublicGalleryFooter coupleName={collection.title}/>

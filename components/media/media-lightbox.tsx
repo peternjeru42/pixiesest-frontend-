@@ -29,6 +29,8 @@ export function MediaLightbox({ items, index, onClose, onIndex, onToggleFavorite
 
   if (!cur) return null;
 
+  const videoSource = cur.type === 'video' ? cur.playbackUrl : '';
+
   return (
     <div className="fixed inset-0 z-50 bg-ink/95 text-bg grid grid-rows-[56px_1fr_84px] animate-in fade-in-0">
       <div className="flex items-center justify-between px-5 border-b border-bg/10" onClick={(e) => e.stopPropagation()}>
@@ -47,7 +49,20 @@ export function MediaLightbox({ items, index, onClose, onIndex, onToggleFavorite
         </div>
       </div>
       <div className="grid place-items-center relative p-6 min-h-0" onClick={onClose}>
-        <img src={cur.src} alt="" className="max-w-full max-h-full object-contain shadow-deep" onClick={(e) => e.stopPropagation()}/>
+        {videoSource ? (
+          <video
+            key={cur.id}
+            src={videoSource}
+            poster={cur.thumb || undefined}
+            controls
+            autoPlay
+            playsInline
+            className="max-h-full max-w-full bg-black shadow-deep"
+            onClick={(e) => e.stopPropagation()}
+          />
+        ) : (
+          <img src={cur.src || cur.thumb} alt="" className="max-w-full max-h-full object-contain shadow-deep" onClick={(e) => e.stopPropagation()}/>
+        )}
         <button onClick={(e) => { e.stopPropagation(); onIndex(Math.max(0, index - 1)); }}
           disabled={index === 0}
           className="absolute top-1/2 -translate-y-1/2 left-5 w-11 h-11 rounded-full bg-bg/[0.06] border border-bg/15 grid place-items-center hover:bg-bg/15 disabled:opacity-30">
@@ -65,13 +80,22 @@ export function MediaLightbox({ items, index, onClose, onIndex, onToggleFavorite
             'w-12 h-12 shrink-0 rounded overflow-hidden relative',
             i === index ? 'opacity-100 outline outline-[1.5px] outline-bg outline-offset-[2px]' : 'opacity-50 hover:opacity-90',
           )}>
-            <img src={m.thumb} alt="" className="w-full h-full object-cover"/>
+            <LightboxThumb item={m}/>
             {m.type === 'video' && <Play size={10} className="absolute inset-0 m-auto"/>}
           </button>
         ))}
       </div>
     </div>
   );
+}
+
+function LightboxThumb({ item }: { item: Media }) {
+  const videoSource = item.type === 'video' ? item.playbackUrl : '';
+  if (videoSource) {
+    return <video src={videoSource} poster={item.thumb || undefined} preload="metadata" muted playsInline className="h-full w-full object-cover"/>;
+  }
+
+  return <img src={item.thumb || item.src} alt="" className="w-full h-full object-cover"/>;
 }
 
 function LbButton({ children, onClick, className }: { children: React.ReactNode; onClick?: () => void; className?: string }) {

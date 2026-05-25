@@ -71,6 +71,7 @@ type BackendMedia = {
   original_filename?: string;
   preview_url?: string;
   thumbnail_url?: string;
+  playback_url?: string;
   original_width?: number | null;
   original_height?: number | null;
   file_size_bytes?: number;
@@ -246,15 +247,18 @@ function toSet(set: BackendSet): Set & { slug: string } {
 function toMedia(media: BackendMedia): Media {
   const width = media.original_width ?? 1600;
   const height = media.original_height ?? 1067;
+  const isVideoAsset = media.media_type === 'video';
+  const src = media.preview_url ?? media.thumbnail_url ?? (isVideoAsset ? media.playback_url ?? '' : '');
   return {
     id: String(media.id),
     filename: media.display_filename ?? media.original_filename ?? 'Untitled file',
-    src: media.preview_url ?? media.thumbnail_url ?? '',
-    thumb: media.thumbnail_url ?? media.preview_url ?? '',
+    src,
+    thumb: media.thumbnail_url ?? src,
+    playbackUrl: media.playback_url ?? (isVideoAsset ? src : undefined),
     width,
     height,
     sizeMB: (media.file_size_bytes ?? 0) / 1024 / 1024,
-    type: media.media_type === 'video' ? 'video' : 'photo',
+    type: isVideoAsset ? 'video' : 'photo',
     status: media.status === 'failed' ? 'failed' : 'ready',
     durationSec: media.duration_seconds ?? undefined,
     faved: false,

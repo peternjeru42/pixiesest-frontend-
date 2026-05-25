@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import { Check, FolderUp, Upload, X } from 'lucide-react';
+import { Check, FolderUp, Play, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { addUploadedMedia } from '@/lib/api/media';
@@ -13,6 +13,7 @@ interface UploadFile {
   name: string;
   sizeMB: number;
   thumb: string;
+  type: 'photo' | 'video';
   progress: number;
   status: 'queued' | 'uploading' | 'done' | 'failed';
   committed: boolean;
@@ -32,6 +33,7 @@ export function UploadDropzone({
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const folderInputRef = React.useRef<HTMLInputElement>(null);
   const committingRef = React.useRef(false);
+  const filesRef = React.useRef<UploadFile[]>([]);
   const [files, setFiles] = React.useState<UploadFile[]>([]);
   const [over, setOver] = React.useState(false);
   const [error, setError] = React.useState('');
@@ -39,6 +41,16 @@ export function UploadDropzone({
   React.useEffect(() => {
     folderInputRef.current?.setAttribute('webkitdirectory', '');
     folderInputRef.current?.setAttribute('directory', '');
+  }, []);
+
+  React.useEffect(() => {
+    filesRef.current = files;
+  }, [files]);
+
+  React.useEffect(() => {
+    return () => {
+      filesRef.current.forEach(file => URL.revokeObjectURL(file.thumb));
+    };
   }, []);
 
   React.useEffect(() => {
@@ -100,14 +112,15 @@ export function UploadDropzone({
     setError('');
     setFiles(current => [
       ...selected.map((file, index): UploadFile => {
-        const isImage = file.type.startsWith('image/');
-        const preview = isImage ? URL.createObjectURL(file) : fallbackThumb;
+        const isVideo = file.type.startsWith('video/');
+        const preview = URL.createObjectURL(file);
         return {
           id: `queue-${now}-${index}`,
           file,
           name: file.webkitRelativePath || file.name,
           sizeMB: Number((file.size / (1024 * 1024)).toFixed(1)),
-          thumb: preview,
+          thumb: preview || fallbackThumb,
+          type: isVideo ? 'video' : 'photo',
           progress: 0,
           status: 'queued',
           committed: false,
@@ -123,7 +136,11 @@ export function UploadDropzone({
   }
 
   function removeQueued(id: string) {
-    setFiles(current => current.filter(file => file.id !== id || file.status === 'done'));
+    setFiles(current => current.filter(file => {
+      const keep = file.id !== id || file.status === 'done';
+      if (!keep) URL.revokeObjectURL(file.thumb);
+      return keep;
+    }));
   }
 
   return (
@@ -188,7 +205,16 @@ export function UploadDropzone({
         <div className="flex flex-col gap-1.5 max-h-72 overflow-y-auto scrollbar-thin">
           {files.map(file => (
             <div key={file.id} className={cn('grid grid-cols-[40px_1fr_120px_64px_24px] gap-3 items-center px-3.5 py-2.5 bg-surface border border-line rounded-lg text-[12.5px]', file.status === 'done' && 'opacity-90')}>
-              <img src={file.thumb} className="w-9 h-9 rounded object-cover" alt=""/>
+              <div className="relative h-9 w-9 overflow-hidden rounded bg-panel">
+                {file.type === 'video' ? (
+                  <>
+                    <video src={file.thumb} className="h-full w-full object-cover" muted playsInline preload="metadata"/>
+                    <Play size={10} className="absolute inset-0 m-auto text-bg drop-shadow"/>
+                  </>
+                ) : (
+                  <img src={file.thumb} className="h-full w-full object-cover" alt=""/>
+                )}
+              </div>
               <div className="min-w-0">
                 <div className="mono text-xs truncate">{file.name}</div>
                 <div className="mono text-[10.5px] text-muted mt-0.5">{file.sizeMB.toFixed(1)} MB</div>
