@@ -25,18 +25,27 @@ export default function DownloadJobPage({ params }: { params: { jobId: string } 
     if (isDemoJob) return;
 
     let active = true;
+    let timeoutId: number | undefined;
+
+    const scheduleNextLoad = () => {
+      if (active) timeoutId = window.setTimeout(loadJob, 2500);
+    };
+
     async function loadJob() {
+      timeoutId = undefined;
+      if (!active || document.hidden) return;
       try {
         const nextJob = await getPublicDownloadJob(params.jobId);
         if (!active) return;
         setJob(nextJob);
         setError('');
-        setStage(
+        const nextStage =
           nextJob.status === 'completed' ? 'ready' :
           nextJob.status === 'failed' ? 'failed' :
           nextJob.status === 'expired' ? 'expired' :
-          'preparing',
-        );
+          'preparing';
+        setStage(nextStage);
+        if (nextStage === 'preparing') scheduleNextLoad();
       } catch (err) {
         if (!active) return;
         setError(err instanceof Error ? err.message : 'Unable to load this download job.');
@@ -44,11 +53,16 @@ export default function DownloadJobPage({ params }: { params: { jobId: string } 
       }
     }
 
+    const handleVisibilityChange = () => {
+      if (!document.hidden && active && timeoutId === undefined) loadJob();
+    };
+
     loadJob();
-    const interval = window.setInterval(loadJob, 2500);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => {
       active = false;
-      window.clearInterval(interval);
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [isDemoJob, params.jobId]);
 

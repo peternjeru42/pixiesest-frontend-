@@ -101,6 +101,7 @@ export function CollectionWorkspace({
 
     let active = true;
     const refreshProcessingMedia = async () => {
+      if (document.hidden) return;
       try {
         const [items, setItems] = await Promise.all([listMedia({ collectionId: collection.id }), listSets(collection.id)]);
         if (!active) return;
@@ -111,7 +112,7 @@ export function CollectionWorkspace({
         // Keep current content visible while background processing updates retry.
       }
     };
-    const interval = window.setInterval(refreshProcessingMedia, 3000);
+    const interval = window.setInterval(refreshProcessingMedia, 5000);
     return () => {
       active = false;
       window.clearInterval(interval);

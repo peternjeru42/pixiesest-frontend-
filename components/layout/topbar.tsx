@@ -32,9 +32,16 @@ export function Topbar({ crumbs, search }: { crumbs: { label: string; href?: str
   }, []);
 
   React.useEffect(() => {
-    refreshNotifications();
-    const interval = window.setInterval(refreshNotifications, 15000);
-    return () => window.clearInterval(interval);
+    const refreshWhenVisible = () => {
+      if (!document.hidden) refreshNotifications();
+    };
+    refreshWhenVisible();
+    const interval = window.setInterval(refreshWhenVisible, 15000);
+    document.addEventListener('visibilitychange', refreshWhenVisible);
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener('visibilitychange', refreshWhenVisible);
+    };
   }, [refreshNotifications]);
 
   React.useEffect(() => {
