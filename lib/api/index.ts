@@ -12,3 +12,4 @@ export * from './uploads';
 export * from './profile';
 export * from './dashboard';
 export * from './notifications';
+export * from './billing';

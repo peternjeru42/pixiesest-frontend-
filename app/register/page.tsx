@@ -2,7 +2,10 @@ import Link from 'next/link';
 import { AuthLayout } from '@/components/layout/auth-layout';
 import { RegisterForm } from '@/components/forms/register-form';
 
-export default function RegisterPage() {
+const PAID_PLANS = new Set(['basic', 'plus', 'pro']);
+
+export default function RegisterPage({ searchParams }: { searchParams?: { plan?: string } }) {
+  const selectedPlan = searchParams?.plan && PAID_PLANS.has(searchParams.plan) ? searchParams.plan : undefined;
   return (
     <AuthLayout
       image="https://images.unsplash.com/photo-1525772764200-be829a350797?auto=format&fit=crop&w=1400&q=80"
@@ -18,7 +21,7 @@ export default function RegisterPage() {
           Log in
         </Link>
       </p>
-      <RegisterForm />
+      <RegisterForm selectedPlan={selectedPlan} />
     </AuthLayout>
   );
 }

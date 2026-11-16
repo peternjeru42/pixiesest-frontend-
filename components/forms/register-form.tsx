@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import * as api from '@/lib/api';
 import { GoogleAuthButton } from './google-auth-button';
 
-export function RegisterForm() {
+export function RegisterForm({ selectedPlan }: { selectedPlan?: string }) {
   const router = useRouter();
   const [form, setForm] = React.useState({
     firstName: '',
@@ -31,7 +31,8 @@ export function RegisterForm() {
 
     try {
       await api.register(form);
-      router.push(`/verify-email?email=${encodeURIComponent(form.email)}`);
+      const planQuery = selectedPlan ? `&plan=${encodeURIComponent(selectedPlan)}` : '';
+      router.push(`/verify-email?email=${encodeURIComponent(form.email)}${planQuery}`);
     } catch (error) {
       setErr(error instanceof Error ? error.message : 'Account creation failed');
       setLoading(false);
@@ -41,7 +42,13 @@ export function RegisterForm() {
   return (
     <div className="mt-8">
       <div className="grid gap-3">
-        <GoogleAuthButton text="signup_with" intent="signup" onError={setErr} onLoadingChange={setGoogleLoading} />
+        <GoogleAuthButton
+          text="signup_with"
+          intent="signup"
+          redirectTo={selectedPlan ? `/dashboard/billing?plan=${encodeURIComponent(selectedPlan)}` : '/dashboard'}
+          onError={setErr}
+          onLoadingChange={setGoogleLoading}
+        />
       </div>
 
       <div className="my-7 flex items-center gap-4">

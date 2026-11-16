@@ -20,6 +20,7 @@ export function SignupVerificationForm() {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isResending, setIsResending] = React.useState(false);
   const email = pending?.email ?? searchParams.get('email') ?? '';
+  const selectedPlan = searchParams.get('plan');
 
   React.useEffect(() => {
     const stored = getPendingRegistration();
@@ -40,7 +41,7 @@ export function SignupVerificationForm() {
     setIsSubmitting(true);
     try {
       await verifySignupCode(code, pending);
-      router.push('/dashboard');
+      router.push(selectedPlan ? `/dashboard/billing?plan=${encodeURIComponent(selectedPlan)}` : '/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to verify this code.');
     } finally {
@@ -90,7 +91,7 @@ export function SignupVerificationForm() {
       <Button type="button" size="lg" variant="outline" disabled={isResending || !email} onClick={handleResend}>
         {isResending ? 'Sending...' : 'Resend code'}
       </Button>
-      <Link href="/register" className="text-sm text-muted inline-flex items-center gap-1.5 justify-center mt-2 hover:text-ink">
+      <Link href={selectedPlan ? `/register?plan=${encodeURIComponent(selectedPlan)}` : '/register'} className="text-sm text-muted inline-flex items-center gap-1.5 justify-center mt-2 hover:text-ink">
         <ArrowLeft size={13}/>Back to signup
       </Link>
     </form>

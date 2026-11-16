@@ -2,7 +2,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FolderOpen, Grid3x3, LayoutDashboard, Shield, User } from 'lucide-react';
+import { CreditCard, FolderOpen, Grid3x3, LayoutDashboard, Shield, User } from 'lucide-react';
 import { LogoutButton } from '@/components/actions/logout-button';
 import { listCollections, subscribeToCollectionChanges } from '@/lib/api/collections';
 import { listFolders, subscribeToFolderChanges } from '@/lib/api/folders';
@@ -19,6 +19,7 @@ const ADMIN = [
 ];
 const PROFILE = [
   { href: '/profile',       label: 'Profile', icon: User },
+  { href: '/dashboard/billing', label: 'Billing', icon: CreditCard },
 ];
 
 export function Sidebar() {
@@ -82,7 +83,7 @@ export function Sidebar() {
 }
 
 function isActive(pathname: string, href: string) {
-  if (href === '/ops/admin') return pathname === href;
+  if (href === '/ops/admin' || href === '/dashboard') return pathname === href;
   return pathname === href || pathname.startsWith(href + '/');
 }
 
