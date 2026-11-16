@@ -75,28 +75,31 @@ export function MobileNav() {
             </div>
 
             <nav className="flex-1 overflow-y-auto px-3 py-4">
-              {!resolved ? null : isAdmin ? (
-                <NavGroup label="Admin">
-                  {ADMIN.map(item => (
-                    <MobileNavItem
-                      key={item.href}
-                      {...item}
-                      active={isActive(pathname, item.href)}
-                      onSelect={() => setOpen(false)}
-                    />
-                  ))}
-                </NavGroup>
-              ) : (
-                <NavGroup label="Studio">
-                  {STUDIO.map(item => (
-                    <MobileNavItem
-                      key={item.href}
-                      {...item}
-                      active={isActive(pathname, item.href)}
-                      onSelect={() => setOpen(false)}
-                    />
-                  ))}
-                </NavGroup>
+              {!resolved ? null : (
+                <>
+                  <NavGroup label="Studio">
+                    {STUDIO.map(item => (
+                      <MobileNavItem
+                        key={item.href}
+                        {...item}
+                        active={isActive(pathname, item.href)}
+                        onSelect={() => setOpen(false)}
+                      />
+                    ))}
+                  </NavGroup>
+                  {isAdmin ? (
+                    <NavGroup label="Admin">
+                      {ADMIN.map(item => (
+                        <MobileNavItem
+                          key={item.href}
+                          {...item}
+                          active={isActive(pathname, item.href)}
+                          onSelect={() => setOpen(false)}
+                        />
+                      ))}
+                    </NavGroup>
+                  ) : null}
+                </>
               )}
               <NavGroup label="Account">
                 {PROFILE.map(item => (

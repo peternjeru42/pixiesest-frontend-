@@ -28,7 +28,7 @@ export function Sidebar() {
   const homeHref = resolved && isAdmin ? '/ops/admin' : '/dashboard';
 
   React.useEffect(() => {
-    if (!resolved || isAdmin) return;
+    if (!resolved) return;
     let mounted = true;
     const loadCounts = async () => {
       const [collections, folders] = await Promise.all([listCollections(), listFolders()]);
@@ -42,7 +42,7 @@ export function Sidebar() {
       unsubscribeCollections();
       unsubscribeFolders();
     };
-  }, [isAdmin, resolved]);
+  }, [resolved]);
 
   const studioItems = STUDIO.map(item => {
     if (item.href === '/collections') return { ...item, count: counts.collections };
@@ -58,15 +58,16 @@ export function Sidebar() {
       </Link>
 
       <nav className="flex flex-1 flex-col gap-0.5">
-        {!resolved ? null : isAdmin ? (
-          <>
-            <SidebarLabel>Admin</SidebarLabel>
-            {ADMIN.map(it => <SidebarItem key={it.href} {...it} active={isActive(pathname, it.href)}/>)}
-          </>
-        ) : (
+        {!resolved ? null : (
           <>
             <SidebarLabel>Studio</SidebarLabel>
             {studioItems.map(it => <SidebarItem key={it.href} {...it} active={isActive(pathname, it.href)}/>)}
+            {isAdmin ? (
+              <>
+                <SidebarLabel>Admin</SidebarLabel>
+                {ADMIN.map(it => <SidebarItem key={it.href} {...it} active={isActive(pathname, it.href)}/>)}
+              </>
+            ) : null}
           </>
         )}
         <SidebarLabel>Account</SidebarLabel>
