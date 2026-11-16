@@ -37,14 +37,6 @@ type CompleteUploadResponse = {
   media_asset?: string | BackendMedia | null;
 };
 
-type BulkPresignUploadResponse = {
-  uploads: UploadResponse[];
-};
-
-type BulkCompleteUploadResponse = {
-  uploads: CompleteUploadResponse[];
-};
-
 type Paginated<T> = {
   results: T[];
 };
@@ -126,26 +118,6 @@ function isVideo(file: File) {
   return file.type.startsWith('video/') || /\.(mp4|mov|m4v|webm)$/i.test(file.name);
 }
 
-async function mapWithConcurrency<T, R>(
-  items: T[],
-  limit: number,
-  mapper: (item: T, index: number) => Promise<R>,
-) {
-  const results = new Array<R>(items.length);
-  let nextIndex = 0;
-  const workerCount = Math.min(limit, items.length);
-
-  await Promise.all(Array.from({ length: workerCount }, async () => {
-    while (nextIndex < items.length) {
-      const currentIndex = nextIndex;
-      nextIndex += 1;
-      results[currentIndex] = await mapper(items[currentIndex], currentIndex);
-    }
-  }));
-
-  return results;
-}
-
 export function subscribeToMediaChanges(callback: () => void) {
   if (typeof window === 'undefined') return () => {};
   window.addEventListener(MEDIA_CHANGED_EVENT, callback);
@@ -219,44 +191,127 @@ export async function setCover(collectionOrSetId: string, mediaId: string) {
   return { ok: true };
 }
 
-export async function addUploadedMedia(input: { collectionId: string; setId?: string | null; files: File[] }) {
+export async function uploadMediaFile(input: {
+  collectionId: string;
+  setId?: string | null;
+  file: File;
+  onProgress?: (percent: number) => void;
+  signal?: AbortSignal;
+}) {
   const setId = input.setId && input.setId !== 'general' ? input.setId : null;
-  const uploadRequests = input.files.map(file => ({
-    collection_id: input.collectionId,
-    set_id: setId,
-    original_filename: file.name,
-    mime_type: file.type || (isVideo(file) ? 'video/mp4' : 'image/jpeg'),
-    file_size_bytes: file.size,
-  }));
+  const contentType = input.file.type || (isVideo(input.file) ? 'video/mp4' : 'image/jpeg');
+  let uploadId = '';
 
-  const presigned = await request<BulkPresignUploadResponse>('/uploads/bulk/presign/', {
-    method: 'POST',
-    body: JSON.stringify({ files: uploadRequests }),
-  });
-
-  await mapWithConcurrency(presigned.uploads, 3, async (upload, index) => {
-    const file = input.files[index];
-    const uploadResponse = await fetch(upload.upload_url, {
-      method: 'PUT',
-      headers: { 'Content-Type': file.type || 'application/octet-stream' },
-      body: file,
+  try {
+    const presigned = await request<UploadResponse>('/uploads/presign/', {
+      method: 'POST',
+      body: JSON.stringify({
+        collection_id: input.collectionId,
+        set_id: setId,
+        original_filename: input.file.name,
+        mime_type: contentType,
+        file_size_bytes: input.file.size,
+      }),
+      signal: input.signal,
     });
-    if (!uploadResponse.ok) throw new Error(`Upload failed with status ${uploadResponse.status}`);
+    uploadId = presigned.upload.upload_id;
+
+    await retryOperation(
+      () => putFile(presigned.upload_url, input.file, contentType, input.onProgress, input.signal),
+      3,
+      input.signal,
+    );
+
+    const completed = await retryOperation(
+      () => request<CompleteUploadResponse>('/uploads/complete/', {
+        method: 'POST',
+        body: JSON.stringify({ upload_id: uploadId }),
+        signal: input.signal,
+      }),
+      3,
+      input.signal,
+    );
+
+    const media = completed.media_asset && typeof completed.media_asset === 'object'
+      ? toMedia(completed.media_asset)
+      : completed.media_asset
+        ? await getMedia(String(completed.media_asset))
+        : null;
+
+    if (!media) throw new Error('The file was uploaded, but its media record could not be loaded.');
+    notifyMediaChanges();
+    return media;
+  } catch (error) {
+    if (uploadId) await cancelUpload(uploadId);
+    throw error;
+  }
+}
+
+async function cancelUpload(uploadId: string) {
+  try {
+    await request('/uploads/cancel/', {
+      method: 'POST',
+      body: JSON.stringify({ upload_id: uploadId }),
+    });
+  } catch {
+    // Expired sessions are also cleaned up by the backend. Preserve the original upload error.
+  }
+}
+
+async function retryOperation<T>(operation: () => Promise<T>, attempts: number, signal?: AbortSignal): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    if (signal?.aborted) throw new DOMException('Upload cancelled.', 'AbortError');
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+      if (attempt === attempts || signal?.aborted) throw error;
+      await waitForRetry(500 * (2 ** (attempt - 1)), signal);
+    }
+  }
+  throw lastError;
+}
+
+function waitForRetry(delayMs: number, signal?: AbortSignal) {
+  return new Promise<void>((resolve, reject) => {
+    const handleAbort = () => {
+      window.clearTimeout(timeout);
+      reject(new DOMException('Upload cancelled.', 'AbortError'));
+    };
+    const timeout = window.setTimeout(() => {
+      signal?.removeEventListener('abort', handleAbort);
+      resolve();
+    }, delayMs);
+    signal?.addEventListener('abort', handleAbort, { once: true });
   });
+}
 
-  const completed = await request<BulkCompleteUploadResponse>('/uploads/bulk/complete/', {
-    method: 'POST',
-    body: JSON.stringify({
-      uploads: presigned.uploads.map(upload => ({ upload_id: upload.upload.upload_id })),
-    }),
+function putFile(
+  uploadUrl: string,
+  file: File,
+  contentType: string,
+  onProgress?: (percent: number) => void,
+  signal?: AbortSignal,
+) {
+  return new Promise<void>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('PUT', uploadUrl);
+    xhr.setRequestHeader('Content-Type', contentType);
+    xhr.upload.addEventListener('progress', event => {
+      if (event.lengthComputable) onProgress?.(Math.min(99, (event.loaded / event.total) * 100));
+    });
+    xhr.addEventListener('load', () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        onProgress?.(100);
+        resolve();
+      } else {
+        reject(new Error(`Upload failed with status ${xhr.status}.`));
+      }
+    });
+    xhr.addEventListener('error', () => reject(new Error('The network interrupted this upload.')));
+    xhr.addEventListener('abort', () => reject(new DOMException('Upload cancelled.', 'AbortError')));
+    signal?.addEventListener('abort', () => xhr.abort(), { once: true });
+    xhr.send(file);
   });
-
-  const uploaded = (await mapWithConcurrency(completed.uploads, 5, async complete => {
-    if (complete.media_asset && typeof complete.media_asset === 'object') return toMedia(complete.media_asset);
-    if (complete.media_asset) return getMedia(String(complete.media_asset));
-    return null;
-  })).filter((media): media is Media => Boolean(media));
-
-  notifyMediaChanges();
-  return uploaded;
 }
