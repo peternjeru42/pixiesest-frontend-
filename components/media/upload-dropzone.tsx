@@ -3,7 +3,13 @@ import * as React from 'react';
 import { AlertTriangle, Check, FolderUp, Play, RefreshCw, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { deleteMedia, uploadMediaFile, type DuplicateMedia } from '@/lib/api/media';
+import {
+  checkUploadDuplicates,
+  createFileFingerprint,
+  deleteMedia,
+  uploadMediaFile,
+  type DuplicateMedia,
+} from '@/lib/api/media';
 import { cn } from '@/lib/utils';
 import type { Media } from '@/lib/types';
 
@@ -15,15 +21,39 @@ interface UploadFile {
   thumb: string;
   type: 'photo' | 'video';
   progress: number;
-  status: 'queued' | 'uploading' | 'done' | 'failed' | 'duplicate';
+  status: 'checking' | 'queued' | 'uploading' | 'done' | 'failed' | 'skipped' | 'duplicate';
   targetSetId: string;
   error: string;
+  checksum: string;
+  allowDuplicate: boolean;
   media?: Media;
   duplicateOf?: DuplicateMedia;
+  localDuplicateName?: string;
   resolvingDuplicate: boolean;
 }
 
 const MAX_CONCURRENT_UPLOADS = 3;
+const DUPLICATE_CHECK_BATCH_SIZE = 12;
+
+async function mapWithConcurrency<T, R>(items: T[], limit: number, mapper: (item: T) => Promise<R>) {
+  const results = new Array<R>(items.length);
+  let nextIndex = 0;
+  const workers = Math.min(limit, items.length);
+  await Promise.all(Array.from({ length: workers }, async () => {
+    while (nextIndex < items.length) {
+      const index = nextIndex;
+      nextIndex += 1;
+      results[index] = await mapper(items[index]);
+    }
+  }));
+  return results;
+}
+
+function duplicateKey(file: Pick<UploadFile, 'checksum' | 'file'>) {
+  return file.checksum
+    ? `${file.file.size}:${file.checksum}`
+    : `${file.file.size}:${file.file.name.toLocaleLowerCase()}`;
+}
 
 export function UploadDropzone({
   collectionId,
@@ -73,13 +103,17 @@ export function UploadDropzone({
   const total = files.length;
   const done = files.filter(file => file.status === 'done').length;
   const duplicates = files.filter(file => file.status === 'duplicate').length;
+  const skipped = files.filter(file => file.status === 'skipped').length;
+  const checking = files.filter(file => file.status === 'checking').length;
   const uploaded = done + duplicates;
   const uploading = files.filter(file => file.status === 'uploading').length;
   const queued = files.filter(file => file.status === 'queued').length;
   const failed = files.filter(file => file.status === 'failed').length;
-  const allDone = total > 0 && done === total;
-  const pending = queued + uploading + duplicates > 0;
-  const overallProgress = total > 0 ? files.reduce((sum, file) => sum + file.progress, 0) / total : 0;
+  const allDone = total > 0 && done + skipped === total;
+  const pending = checking + queued + uploading + duplicates > 0;
+  const overallProgress = total > 0
+    ? files.reduce((sum, file) => sum + (file.status === 'skipped' ? 100 : file.progress), 0) / total
+    : 0;
 
   React.useEffect(() => {
     const availableSlots = MAX_CONCURRENT_UPLOADS - activeUploadsRef.current.size;
@@ -100,6 +134,7 @@ export function UploadDropzone({
           collectionId,
           setId: file.targetSetId,
           file: file.file,
+          checksum: file.checksum,
           signal: controller.signal,
           onProgress: progress => {
             if (!mountedRef.current) return;
@@ -114,7 +149,7 @@ export function UploadDropzone({
               item.id === file.id
                 ? {
                   ...item,
-                  status: duplicateOf ? 'duplicate' : 'done',
+                  status: duplicateOf && !file.allowDuplicate ? 'duplicate' : 'done',
                   progress: 100,
                   error: '',
                   media,
@@ -122,7 +157,7 @@ export function UploadDropzone({
                 }
                 : item
             )));
-            if (!duplicateOf) onCompleteRef.current?.([media]);
+            if (!duplicateOf || file.allowDuplicate) onCompleteRef.current?.([media]);
           })
           .catch(uploadError => {
             if (!mountedRef.current) return;
@@ -158,26 +193,70 @@ export function UploadDropzone({
 
     const now = Date.now();
     setError('');
-    setFiles(current => [
-      ...selected.map((file, index): UploadFile => {
-        const isVideo = file.type.startsWith('video/');
-        const preview = URL.createObjectURL(file);
+    const added = selected.map((file, index): UploadFile => {
+      const isVideo = file.type.startsWith('video/');
+      const preview = URL.createObjectURL(file);
+      return {
+        id: `queue-${now}-${index}-${file.lastModified}`,
+        file,
+        name: file.webkitRelativePath || file.name,
+        sizeMB: Number((file.size / (1024 * 1024)).toFixed(1)),
+        thumb: preview || fallbackThumb,
+        type: isVideo ? 'video' : 'photo',
+        progress: 0,
+        status: 'checking',
+        targetSetId: setId,
+        error: '',
+        checksum: '',
+        allowDuplicate: false,
+        resolvingDuplicate: false,
+      };
+    });
+    setFiles(current => [...added, ...current]);
+    void prepareFiles(added);
+  }
+
+  async function prepareFiles(added: UploadFile[]) {
+    const addedIds = new Set(added.map(file => file.id));
+    const seen = new Map<string, UploadFile>();
+    filesRef.current
+      .filter(file => !addedIds.has(file.id) && file.status !== 'failed' && file.status !== 'checking')
+      .forEach(file => seen.set(duplicateKey(file), file));
+
+    for (let offset = 0; offset < added.length; offset += DUPLICATE_CHECK_BATCH_SIZE) {
+      const batch = added.slice(offset, offset + DUPLICATE_CHECK_BATCH_SIZE);
+      const fingerprinted = await mapWithConcurrency(batch, MAX_CONCURRENT_UPLOADS, async file => ({
+        ...file,
+        checksum: await createFileFingerprint(file.file).catch(() => ''),
+      }));
+      if (!mountedRef.current) return;
+
+      let serverMatches = new Map<string, DuplicateMedia | null>();
+      try {
+        serverMatches = await checkUploadDuplicates({
+          collectionId,
+          files: fingerprinted.map(file => ({ clientId: file.id, file: file.file, checksum: file.checksum })),
+        });
+      } catch {
+        // The post-upload duplicate check remains as a safety net if preflight is unavailable.
+      }
+      if (!mountedRef.current) return;
+
+      const prepared = fingerprinted.map(file => {
+        const key = duplicateKey(file);
+        const localMatch = seen.get(key);
+        const serverMatch = serverMatches.get(file.id) ?? null;
+        if (!localMatch) seen.set(key, file);
         return {
-          id: `queue-${now}-${index}-${file.lastModified}`,
-          file,
-          name: file.webkitRelativePath || file.name,
-          sizeMB: Number((file.size / (1024 * 1024)).toFixed(1)),
-          thumb: preview || fallbackThumb,
-          type: isVideo ? 'video' : 'photo',
-          progress: 0,
-          status: 'queued',
-          targetSetId: setId,
-          error: '',
-          resolvingDuplicate: false,
+          ...file,
+          status: serverMatch || localMatch ? 'skipped' as const : 'queued' as const,
+          duplicateOf: serverMatch ?? undefined,
+          localDuplicateName: localMatch?.name,
         };
-      }),
-      ...current,
-    ]);
+      });
+      const preparedById = new Map(prepared.map(file => [file.id, file]));
+      setFiles(current => current.map(file => preparedById.get(file.id) ?? file));
+    }
   }
 
   function handleInputChange(event: React.ChangeEvent<HTMLInputElement>) {
@@ -204,6 +283,14 @@ export function UploadDropzone({
     setError('');
     setFiles(current => current.map(file => (
       file.status === 'failed' ? { ...file, status: 'queued', progress: 0, error: '' } : file
+    )));
+  }
+
+  function uploadSkippedDuplicate(file: UploadFile) {
+    setFiles(current => current.map(item => (
+      item.id === file.id
+        ? { ...item, status: 'queued', allowDuplicate: true, error: '' }
+        : item
     )));
   }
 
@@ -287,11 +374,17 @@ export function UploadDropzone({
 
       <div className="flex items-center justify-between">
         <div className="mono text-[11px] tracking-wider text-muted">
-          {uploaded} OF {total} UPLOADED &middot; {uploading} IN PROGRESS &middot; {queued} QUEUED
+          {uploaded} OF {total} UPLOADED &middot; {skipped} SKIPPED &middot; {uploading} IN PROGRESS &middot; {queued + checking} QUEUED
         </div>
         {allDone ? <div className="mono text-[11px] tracking-wider text-ok">ALL DONE</div> : null}
       </div>
       <Progress value={overallProgress}/>
+
+      {skipped > 0 ? (
+        <div className="rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-sm text-amber-700">
+          {skipped} duplicate{skipped === 1 ? '' : 's'} skipped before upload. Review or upload anyway below.
+        </div>
+      ) : null}
 
       {duplicates > 0 ? (
         <div className="rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-sm text-amber-700">
@@ -325,22 +418,22 @@ export function UploadDropzone({
               <div className="min-w-0">
                 <div className="mono text-xs truncate">{file.name}</div>
                 <div className="mono text-[10.5px] text-muted mt-0.5">{file.sizeMB.toFixed(1)} MB</div>
-                {file.status === 'duplicate' ? (
+                {file.status === 'duplicate' || file.status === 'skipped' ? (
                   <div className="mt-0.5 truncate text-[10.5px] text-amber-700">
-                    Matches {file.duplicateOf?.display_filename || file.duplicateOf?.original_filename || 'an existing file'}
+                    Matches {file.duplicateOf?.display_filename || file.duplicateOf?.original_filename || file.localDuplicateName || 'an existing file'}
                   </div>
                 ) : null}
                 {file.error ? <div className="mt-0.5 truncate text-[10.5px] text-danger" title={file.error}>{file.error}</div> : null}
               </div>
-              <Progress value={file.progress} className="h-1" barClassName={file.status === 'done' ? 'bg-ok' : file.status === 'failed' ? 'bg-danger' : ''}/>
-              <div className={cn('mono text-[10.5px] tracking-wider', file.status === 'done' ? 'text-ok' : file.status === 'failed' ? 'text-danger' : file.status === 'duplicate' ? 'text-amber-700' : 'text-muted')}>
-                {file.status === 'done' ? 'READY' : file.status === 'failed' ? 'FAILED' : file.status === 'duplicate' ? 'DUPLICATE' : file.status === 'uploading' ? Math.round(file.progress) + '%' : 'QUEUED'}
+              <Progress value={file.status === 'skipped' ? 100 : file.progress} className="h-1" barClassName={file.status === 'done' ? 'bg-ok' : file.status === 'failed' ? 'bg-danger' : file.status === 'skipped' ? 'bg-amber-500' : ''}/>
+              <div className={cn('mono text-[10.5px] tracking-wider', file.status === 'done' ? 'text-ok' : file.status === 'failed' ? 'text-danger' : file.status === 'duplicate' || file.status === 'skipped' ? 'text-amber-700' : 'text-muted')}>
+                {file.status === 'done' ? 'READY' : file.status === 'failed' ? 'FAILED' : file.status === 'duplicate' ? 'DUPLICATE' : file.status === 'skipped' ? 'SKIPPED' : file.status === 'checking' ? 'CHECKING' : file.status === 'uploading' ? Math.round(file.progress) + '%' : 'QUEUED'}
               </div>
               {file.status === 'failed' ? (
                 <button type="button" className="text-danger hover:text-ink" onClick={() => retryFile(file.id)} aria-label={`Retry ${file.name}`}>
                   <RefreshCw size={13}/>
                 </button>
-              ) : file.status === 'duplicate' ? (
+              ) : file.status === 'duplicate' || file.status === 'skipped' ? (
                 <AlertTriangle size={14} className="text-amber-600" aria-label={`${file.name} is a duplicate`}/>
               ) : file.status === 'done' ? (
                 <Check size={13} className="text-ok" aria-label={`${file.name} uploaded`}/>
@@ -376,6 +469,19 @@ export function UploadDropzone({
                       onClick={() => keepDuplicate(file)}
                     >
                       <Check size={12}/>Keep
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+              {file.status === 'skipped' ? (
+                <div className="col-span-5 flex flex-wrap items-center justify-between gap-2 border-t border-amber-500/20 pt-2">
+                  <span className="text-[11px] text-amber-800">Skipped before transfer, so no upload bandwidth or storage was used.</span>
+                  <div className="flex items-center gap-2">
+                    <Button type="button" size="sm" variant="ghost" onClick={() => removeQueued(file.id)}>
+                      <X size={12}/>Remove from queue
+                    </Button>
+                    <Button type="button" size="sm" variant="outline" onClick={() => uploadSkippedDuplicate(file)}>
+                      <Upload size={12}/>Upload anyway
                     </Button>
                   </div>
                 </div>

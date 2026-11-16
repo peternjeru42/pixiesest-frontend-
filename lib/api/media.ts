@@ -46,6 +46,13 @@ export type DuplicateMedia = {
   created_at?: string;
 };
 
+type DuplicateCheckResponse = {
+  files: Array<{
+    client_id: string;
+    duplicate_of?: DuplicateMedia | null;
+  }>;
+};
+
 type Paginated<T> = {
   results: T[];
 };
@@ -206,10 +213,11 @@ export async function uploadMediaFile(input: {
   file: File;
   onProgress?: (percent: number) => void;
   signal?: AbortSignal;
+  checksum?: string;
 }) {
   const setId = input.setId && input.setId !== 'general' ? input.setId : null;
   const contentType = input.file.type || (isVideo(input.file) ? 'video/mp4' : 'image/jpeg');
-  const checksum = await createFileFingerprint(input.file).catch(() => '');
+  const checksum = input.checksum ?? await createFileFingerprint(input.file).catch(() => '');
   let uploadId = '';
 
   try {
@@ -257,7 +265,26 @@ export async function uploadMediaFile(input: {
   }
 }
 
-async function createFileFingerprint(file: File) {
+export async function checkUploadDuplicates(input: {
+  collectionId: string;
+  files: Array<{ clientId: string; file: File; checksum: string }>;
+}) {
+  const response = await request<DuplicateCheckResponse>('/uploads/duplicates/check/', {
+    method: 'POST',
+    body: JSON.stringify({
+      files: input.files.map(item => ({
+        client_id: item.clientId,
+        collection_id: input.collectionId,
+        original_filename: item.file.name,
+        file_size_bytes: item.file.size,
+        checksum: item.checksum,
+      })),
+    }),
+  });
+  return new Map(response.files.map(item => [item.client_id, item.duplicate_of ?? null]));
+}
+
+export async function createFileFingerprint(file: File) {
   const chunkSize = 1024 * 1024;
   const fullHashLimit = 64 * 1024 * 1024;
   let bytes: Uint8Array;
@@ -285,7 +312,7 @@ async function createFileFingerprint(file: File) {
     mode = 'sampled';
   }
 
-  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  const digest = await crypto.subtle.digest('SHA-256', bytes.buffer as ArrayBuffer);
   const hex = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
   return `sha256-${mode}:${hex}`;
 }
