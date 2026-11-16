@@ -35,6 +35,15 @@ type UploadResponse = {
 
 type CompleteUploadResponse = {
   media_asset?: string | BackendMedia | null;
+  duplicate_of?: DuplicateMedia | null;
+};
+
+export type DuplicateMedia = {
+  id: string;
+  display_filename?: string;
+  original_filename?: string;
+  status?: string;
+  created_at?: string;
 };
 
 type Paginated<T> = {
@@ -200,6 +209,7 @@ export async function uploadMediaFile(input: {
 }) {
   const setId = input.setId && input.setId !== 'general' ? input.setId : null;
   const contentType = input.file.type || (isVideo(input.file) ? 'video/mp4' : 'image/jpeg');
+  const checksum = await createFileFingerprint(input.file).catch(() => '');
   let uploadId = '';
 
   try {
@@ -225,7 +235,7 @@ export async function uploadMediaFile(input: {
     const completed = await retryOperation(
       () => request<CompleteUploadResponse>('/uploads/complete/', {
         method: 'POST',
-        body: JSON.stringify({ upload_id: uploadId }),
+        body: JSON.stringify({ upload_id: uploadId, checksum }),
         signal: input.signal,
       }),
       3,
@@ -240,11 +250,44 @@ export async function uploadMediaFile(input: {
 
     if (!media) throw new Error('The file was uploaded, but its media record could not be loaded.');
     notifyMediaChanges();
-    return media;
+    return { media, duplicateOf: completed.duplicate_of ?? null };
   } catch (error) {
     if (uploadId) await cancelUpload(uploadId);
     throw error;
   }
+}
+
+async function createFileFingerprint(file: File) {
+  const chunkSize = 1024 * 1024;
+  const fullHashLimit = 64 * 1024 * 1024;
+  let bytes: Uint8Array;
+  let mode: 'full' | 'sampled';
+
+  if (file.size <= fullHashLimit) {
+    bytes = new Uint8Array(await file.arrayBuffer());
+    mode = 'full';
+  } else {
+    const middleStart = Math.max(0, Math.floor((file.size - chunkSize) / 2));
+    const endStart = Math.max(0, file.size - chunkSize);
+    const chunks = await Promise.all([
+      file.slice(0, chunkSize).arrayBuffer(),
+      file.slice(middleStart, middleStart + chunkSize).arrayBuffer(),
+      file.slice(endStart, endStart + chunkSize).arrayBuffer(),
+    ]);
+    const sizeBytes = new TextEncoder().encode(String(file.size));
+    bytes = new Uint8Array(chunks.reduce((total, chunk) => total + chunk.byteLength, sizeBytes.byteLength));
+    let offset = 0;
+    chunks.forEach(chunk => {
+      bytes.set(new Uint8Array(chunk), offset);
+      offset += chunk.byteLength;
+    });
+    bytes.set(sizeBytes, offset);
+    mode = 'sampled';
+  }
+
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  const hex = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, '0')).join('');
+  return `sha256-${mode}:${hex}`;
 }
 
 async function cancelUpload(uploadId: string) {

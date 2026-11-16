@@ -1,9 +1,9 @@
 'use client';
 import * as React from 'react';
-import { Check, FolderUp, Play, RefreshCw, Upload, X } from 'lucide-react';
+import { AlertTriangle, Check, FolderUp, Play, RefreshCw, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { uploadMediaFile } from '@/lib/api/media';
+import { deleteMedia, uploadMediaFile, type DuplicateMedia } from '@/lib/api/media';
 import { cn } from '@/lib/utils';
 import type { Media } from '@/lib/types';
 
@@ -15,9 +15,12 @@ interface UploadFile {
   thumb: string;
   type: 'photo' | 'video';
   progress: number;
-  status: 'queued' | 'uploading' | 'done' | 'failed';
+  status: 'queued' | 'uploading' | 'done' | 'failed' | 'duplicate';
   targetSetId: string;
   error: string;
+  media?: Media;
+  duplicateOf?: DuplicateMedia;
+  resolvingDuplicate: boolean;
 }
 
 const MAX_CONCURRENT_UPLOADS = 3;
@@ -69,11 +72,13 @@ export function UploadDropzone({
 
   const total = files.length;
   const done = files.filter(file => file.status === 'done').length;
+  const duplicates = files.filter(file => file.status === 'duplicate').length;
+  const uploaded = done + duplicates;
   const uploading = files.filter(file => file.status === 'uploading').length;
   const queued = files.filter(file => file.status === 'queued').length;
   const failed = files.filter(file => file.status === 'failed').length;
   const allDone = total > 0 && done === total;
-  const pending = queued + uploading > 0;
+  const pending = queued + uploading + duplicates > 0;
   const overallProgress = total > 0 ? files.reduce((sum, file) => sum + file.progress, 0) / total : 0;
 
   React.useEffect(() => {
@@ -103,12 +108,21 @@ export function UploadDropzone({
             )));
           },
         })
-          .then(media => {
+          .then(({ media, duplicateOf }) => {
             if (!mountedRef.current) return;
             setFiles(current => current.map(item => (
-              item.id === file.id ? { ...item, status: 'done', progress: 100, error: '' } : item
+              item.id === file.id
+                ? {
+                  ...item,
+                  status: duplicateOf ? 'duplicate' : 'done',
+                  progress: 100,
+                  error: '',
+                  media,
+                  duplicateOf: duplicateOf ?? undefined,
+                }
+                : item
             )));
-            onCompleteRef.current?.([media]);
+            if (!duplicateOf) onCompleteRef.current?.([media]);
           })
           .catch(uploadError => {
             if (!mountedRef.current) return;
@@ -159,6 +173,7 @@ export function UploadDropzone({
           status: 'queued',
           targetSetId: setId,
           error: '',
+          resolvingDuplicate: false,
         };
       }),
       ...current,
@@ -190,6 +205,34 @@ export function UploadDropzone({
     setFiles(current => current.map(file => (
       file.status === 'failed' ? { ...file, status: 'queued', progress: 0, error: '' } : file
     )));
+  }
+
+  function keepDuplicate(file: UploadFile) {
+    if (!file.media || file.resolvingDuplicate) return;
+    setFiles(current => current.map(item => (
+      item.id === file.id
+        ? { ...item, status: 'done', duplicateOf: undefined, resolvingDuplicate: false }
+        : item
+    )));
+    onCompleteRef.current?.([file.media]);
+  }
+
+  async function removeDuplicate(file: UploadFile) {
+    if (!file.media || file.resolvingDuplicate) return;
+    setFiles(current => current.map(item => (
+      item.id === file.id ? { ...item, resolvingDuplicate: true } : item
+    )));
+    try {
+      await deleteMedia(file.media.id);
+      URL.revokeObjectURL(file.thumb);
+      setFiles(current => current.filter(item => item.id !== file.id));
+    } catch (removeError) {
+      const message = removeError instanceof Error ? removeError.message : 'Unable to remove the duplicate.';
+      setFiles(current => current.map(item => (
+        item.id === file.id ? { ...item, resolvingDuplicate: false, error: message } : item
+      )));
+      setError(message);
+    }
   }
 
   return (
@@ -244,11 +287,17 @@ export function UploadDropzone({
 
       <div className="flex items-center justify-between">
         <div className="mono text-[11px] tracking-wider text-muted">
-          {done} OF {total} UPLOADED &middot; {uploading} IN PROGRESS &middot; {queued} QUEUED
+          {uploaded} OF {total} UPLOADED &middot; {uploading} IN PROGRESS &middot; {queued} QUEUED
         </div>
         {allDone ? <div className="mono text-[11px] tracking-wider text-ok">ALL DONE</div> : null}
       </div>
       <Progress value={overallProgress}/>
+
+      {duplicates > 0 ? (
+        <div className="rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-sm text-amber-700">
+          {duplicates} duplicate{duplicates === 1 ? '' : 's'} uploaded. Review whether to keep or remove below.
+        </div>
+      ) : null}
 
       {failed > 0 ? (
         <div className="flex items-center justify-between gap-3 rounded-md border border-danger/30 bg-danger/5 px-3 py-2">
@@ -276,16 +325,23 @@ export function UploadDropzone({
               <div className="min-w-0">
                 <div className="mono text-xs truncate">{file.name}</div>
                 <div className="mono text-[10.5px] text-muted mt-0.5">{file.sizeMB.toFixed(1)} MB</div>
+                {file.status === 'duplicate' ? (
+                  <div className="mt-0.5 truncate text-[10.5px] text-amber-700">
+                    Matches {file.duplicateOf?.display_filename || file.duplicateOf?.original_filename || 'an existing file'}
+                  </div>
+                ) : null}
                 {file.error ? <div className="mt-0.5 truncate text-[10.5px] text-danger" title={file.error}>{file.error}</div> : null}
               </div>
               <Progress value={file.progress} className="h-1" barClassName={file.status === 'done' ? 'bg-ok' : file.status === 'failed' ? 'bg-danger' : ''}/>
-              <div className={cn('mono text-[10.5px] tracking-wider', file.status === 'done' ? 'text-ok' : file.status === 'failed' ? 'text-danger' : 'text-muted')}>
-                {file.status === 'done' ? 'READY' : file.status === 'failed' ? 'FAILED' : file.status === 'uploading' ? Math.round(file.progress) + '%' : 'QUEUED'}
+              <div className={cn('mono text-[10.5px] tracking-wider', file.status === 'done' ? 'text-ok' : file.status === 'failed' ? 'text-danger' : file.status === 'duplicate' ? 'text-amber-700' : 'text-muted')}>
+                {file.status === 'done' ? 'READY' : file.status === 'failed' ? 'FAILED' : file.status === 'duplicate' ? 'DUPLICATE' : file.status === 'uploading' ? Math.round(file.progress) + '%' : 'QUEUED'}
               </div>
               {file.status === 'failed' ? (
                 <button type="button" className="text-danger hover:text-ink" onClick={() => retryFile(file.id)} aria-label={`Retry ${file.name}`}>
                   <RefreshCw size={13}/>
                 </button>
+              ) : file.status === 'duplicate' ? (
+                <AlertTriangle size={14} className="text-amber-600" aria-label={`${file.name} is a duplicate`}/>
               ) : file.status === 'done' ? (
                 <Check size={13} className="text-ok" aria-label={`${file.name} uploaded`}/>
               ) : (
@@ -299,6 +355,31 @@ export function UploadDropzone({
                   <X size={13}/>
                 </button>
               )}
+              {file.status === 'duplicate' ? (
+                <div className="col-span-5 flex flex-wrap items-center justify-between gap-2 border-t border-amber-500/20 pt-2">
+                  <span className="text-[11px] text-amber-800">This upload is safely stored. Choose what to do with the new copy.</span>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      disabled={file.resolvingDuplicate}
+                      onClick={() => removeDuplicate(file)}
+                    >
+                      <X size={12}/>{file.resolvingDuplicate ? 'Removing...' : 'Remove'}
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      disabled={file.resolvingDuplicate}
+                      onClick={() => keepDuplicate(file)}
+                    >
+                      <Check size={12}/>Keep
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
             </div>
           ))}
         </div>
