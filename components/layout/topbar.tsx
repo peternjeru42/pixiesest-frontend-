@@ -1,9 +1,10 @@
 'use client';
 import * as React from 'react';
 import Link from 'next/link';
-import { AlertCircle, Bell, Check, Mail, Search } from 'lucide-react';
+import { AlertCircle, Bell, Check, Mail, Search, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { listUnreadNotifications, markNotificationsRead, type AppNotification } from '@/lib/api/notifications';
+import { useBackgroundUploads } from '@/lib/uploads/use-background-uploads';
 import { cn } from '@/lib/utils';
 import { MobileNav } from './mobile-nav';
 
@@ -15,10 +16,17 @@ type TopbarSearch = {
 
 export function Topbar({ crumbs, search }: { crumbs: { label: string; href?: string }[]; search?: TopbarSearch }) {
   const currentCrumb = crumbs[crumbs.length - 1]?.label ?? 'Droptop';
+  const uploads = useBackgroundUploads();
   const notificationRef = React.useRef<HTMLDivElement>(null);
   const [notifications, setNotifications] = React.useState<AppNotification[]>([]);
   const [notificationsOpen, setNotificationsOpen] = React.useState(false);
   const [loadingNotifications, setLoadingNotifications] = React.useState(false);
+  const activeUploads = uploads.filter(upload => ['checking', 'queued', 'uploading'].includes(upload.status));
+  const failedUploads = uploads.filter(upload => upload.status === 'failed');
+  const visibleUpload = activeUploads[0] ?? failedUploads[0];
+  const uploadProgress = activeUploads.length
+    ? Math.round(activeUploads.reduce((sum, upload) => sum + upload.progress, 0) / activeUploads.length)
+    : 0;
 
   const refreshNotifications = React.useCallback(async () => {
     setLoadingNotifications(true);
@@ -92,6 +100,25 @@ export function Topbar({ crumbs, search }: { crumbs: { label: string; href?: str
           readOnly={!search}
         />
       </div>
+      {visibleUpload ? (
+        <Link
+          href={`/collections/${visibleUpload.collectionId}/media/upload`}
+          className={cn(
+            'flex h-10 shrink-0 items-center gap-2 rounded-md border bg-surface px-3 text-xs font-medium transition-colors hover:bg-panel',
+            activeUploads.length ? 'border-line text-ink' : 'border-danger/30 text-danger',
+          )}
+          aria-label={activeUploads.length
+            ? `${activeUploads.length} uploads in progress, ${uploadProgress} percent complete`
+            : `${failedUploads.length} uploads need attention`}
+        >
+          <Upload size={14} className={activeUploads.length ? 'animate-pulse' : ''}/>
+          <span className="hidden sm:inline">
+            {activeUploads.length
+              ? `${activeUploads.length} upload${activeUploads.length === 1 ? '' : 's'} · ${uploadProgress}%`
+              : `${failedUploads.length} need attention`}
+          </span>
+        </Link>
+      ) : null}
       <div ref={notificationRef} className="relative">
         <Button
           size="icon"
