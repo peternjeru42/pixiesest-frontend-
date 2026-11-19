@@ -1,11 +1,11 @@
 import Link from 'next/link';
 import {
-  ArrowRight,
   Check,
   Download,
   Menu,
   Sparkles,
 } from 'lucide-react';
+import { SiteFooter } from '@/components/marketing/site-footer';
 
 const galleryImages = [
   'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=900&q=80',
@@ -109,7 +109,7 @@ export default function Home() {
           </Link>
           <nav className="hidden items-center gap-8 text-[13px] font-medium text-[#515154] md:flex">
             <a href="#pricing">Pricing</a>
-            <Link href="/blog">Journal</Link>
+            <Link href="/blog">Blog</Link>
           </nav>
           <div className="hidden items-center gap-3 md:flex">
             <Link href="/login" className="text-[13px] font-medium text-[#515154]">
@@ -132,7 +132,7 @@ export default function Home() {
         </div>
       </header>
 
-      <section className="mx-auto grid max-w-7xl gap-12 px-5 pb-16 pt-14 lg:grid-cols-[0.9fr_1.1fr] lg:px-8 lg:pb-24 lg:pt-20">
+      <section id="about" className="mx-auto grid max-w-7xl gap-12 px-5 pb-16 pt-14 lg:grid-cols-[0.9fr_1.1fr] lg:px-8 lg:pb-24 lg:pt-20">
         <div className="flex flex-col justify-center">
           <h1 className="max-w-2xl text-[48px] font-semibold leading-[0.98] tracking-[-0.045em] text-[#1d1d1f] sm:text-[64px] lg:text-[76px]">
             Share your work beautifully and professionally.
@@ -145,7 +145,7 @@ export default function Home() {
               href="/register"
               className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#1d1d1f] px-6 text-sm font-semibold text-white transition-colors hover:bg-black"
             >
-              Get Started <ArrowRight size={16} />
+              Get Started
             </Link>
             <Link
               href="#pricing"
@@ -182,7 +182,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-5 py-20 lg:px-8">
+      <section id="client-galleries" className="mx-auto max-w-7xl px-5 py-20 lg:px-8">
         <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <div className="grid auto-rows-[120px] grid-cols-2 gap-3 overflow-hidden rounded-[24px] sm:auto-rows-[140px] sm:grid-cols-3 lg:auto-rows-[145px]">
             {masonryImages.map((image, index) => (
@@ -194,7 +194,7 @@ export default function Home() {
               />
             ))}
           </div>
-          <div className="flex flex-col justify-center">
+          <div id="photo-video-delivery" className="flex scroll-mt-24 flex-col justify-center">
             <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#6e6e73]">Client Gallery</p>
             <h2 className="text-5xl font-semibold leading-none tracking-[-0.04em]">
               Send photos and videos your clients can open in seconds.
@@ -277,17 +277,7 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className="border-t border-[#d2d2d7] bg-white">
-        <div className="mx-auto flex max-w-7xl flex-col gap-6 px-5 py-10 text-sm text-[#6e6e73] sm:flex-row sm:items-center sm:justify-between lg:px-8">
-          <div className="font-semibold tracking-[0.18em] text-[#1d1d1f]">DROPTOP</div>
-          <div className="flex flex-wrap gap-5">
-            <Link href="#pricing">Pricing</Link>
-            <Link href="/blog">Journal</Link>
-            <Link href="/login">Log In</Link>
-            <Link href="/register">Get Started</Link>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter/>
     </main>
   );
 }

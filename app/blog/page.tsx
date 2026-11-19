@@ -61,7 +61,7 @@ export default function BlogIndexPage() {
         </Link>
       </section>
 
-      <section className="mx-auto max-w-[1400px] px-5 pb-24 lg:px-10">
+      <section id="pixieset-alternatives" className="mx-auto max-w-[1400px] scroll-mt-24 px-5 pb-24 lg:px-10">
         <div className="mb-8 flex items-end justify-between border-b border-black/10 pb-5">
           <h2 className="text-2xl font-semibold tracking-[-0.03em]">Pixieset alternatives</h2>
           <span className="text-xs text-[#77736b]">{pixiesetArticles.length + 1} articles</span>
@@ -81,7 +81,7 @@ export default function BlogIndexPage() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-[1400px] px-5 pb-24 lg:px-10">
+      <section id="platform-comparisons" className="mx-auto max-w-[1400px] scroll-mt-24 px-5 pb-24 lg:px-10">
         <div className="mb-8 flex items-end justify-between border-b border-black/10 pb-5">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.17em] text-[#77736b]">Compare before you subscribe</p>
