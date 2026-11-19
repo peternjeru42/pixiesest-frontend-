@@ -12,11 +12,10 @@ import * as api from '@/lib/api';
 import { GoogleAuthButton } from './google-auth-button';
 
 type LoginFormProps = {
-  initialMessage?: string;
   redirectTo?: string;
 };
 
-export function LoginForm({ initialMessage = '', redirectTo = '/dashboard' }: LoginFormProps) {
+export function LoginForm({ redirectTo = '/dashboard' }: LoginFormProps) {
   const router = useRouter();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -24,7 +23,7 @@ export function LoginForm({ initialMessage = '', redirectTo = '/dashboard' }: Lo
   const [remember, setRemember] = React.useState(true);
   const [loading, setLoading] = React.useState(false);
   const [googleLoading, setGoogleLoading] = React.useState(false);
-  const [err, setErr] = React.useState(initialMessage);
+  const [err, setErr] = React.useState('');
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();

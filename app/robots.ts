@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://droptop.studio';
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.droptop.app';
   return {
     rules: { userAgent: '*', allow: '/', disallow: ['/ops/', '/dashboard/', '/collections/', '/profile/'] },
     sitemap: `${baseUrl}/sitemap.xml`,

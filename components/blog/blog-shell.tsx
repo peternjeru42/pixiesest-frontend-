@@ -11,7 +11,6 @@ export function BlogHeader() {
         </Link>
         <nav className="flex items-center gap-5 text-sm text-[#5c5b57] sm:gap-8" aria-label="Blog navigation">
           <Link href="/blog" className="font-medium text-[#181816]">Journal</Link>
-          <Link href="/blog/editorial-policy" className="hidden hover:text-[#181816] sm:block">How we review</Link>
           <Link href="/#pricing" className="hidden hover:text-[#181816] sm:block">Pricing</Link>
           <Link href="/register" className="inline-flex h-9 items-center gap-2 rounded-full bg-[#181816] px-4 text-xs font-semibold text-white">
             Try Droptop <ArrowRight size={13}/>
@@ -28,11 +27,10 @@ export function BlogFooter() {
       <div className="mx-auto grid max-w-[1400px] gap-10 px-5 py-14 sm:grid-cols-2 lg:px-10">
         <div>
           <div className="text-[13px] font-semibold tracking-[0.18em]">DROPTOP JOURNAL</div>
-          <p className="mt-4 max-w-md text-sm leading-6 text-white/60">Independent-minded guides for photographers choosing, pricing, and using client-gallery software.</p>
+          <p className="mt-4 max-w-md text-sm leading-6 text-white/60">Clear answers for photographers comparing client-gallery software.</p>
         </div>
         <div className="flex flex-wrap items-start gap-x-8 gap-y-3 text-sm text-white/70 sm:justify-end">
           <Link href="/blog">All articles</Link>
-          <Link href="/blog/editorial-policy">Editorial policy</Link>
           <Link href="/#pricing">Pricing</Link>
           <Link href="/register">Create an account</Link>
         </div>

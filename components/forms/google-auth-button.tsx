@@ -68,8 +68,15 @@ export function GoogleAuthButton({ text, intent = 'login', redirectTo = '/dashbo
         router.replace(redirectTo);
       } catch (error) {
         if (intent === 'signup' && error instanceof api.ApiError && error.code === 'google_account_exists') {
-          router.replace('/login?google=existing');
-          return;
+          try {
+            await api.googleAuth(response.credential, 'login');
+            router.replace(redirectTo);
+            return;
+          } catch (loginError) {
+            onError(loginError instanceof Error ? loginError.message : 'Google authentication failed');
+            onLoadingChange(false);
+            return;
+          }
         }
         onError(error instanceof Error ? error.message : 'Google authentication failed');
         onLoadingChange(false);
