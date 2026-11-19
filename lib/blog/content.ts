@@ -45,6 +45,7 @@ export type BlogArticle = {
 
 export const researchDate = 'November 17, 2026';
 export const publishedDate = '2026-11-17';
+export const modifiedDate = '2026-11-19';
 
 export const sources: BlogSource[] = [
   { id: 'droptop', name: 'Droptop pricing and product overview', url: '/#pricing', verified: researchDate },
