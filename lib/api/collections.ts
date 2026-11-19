@@ -289,3 +289,10 @@ export async function sendCollectionInvite(id: string, input: { recipientEmail: 
     }),
   });
 }
+
+export async function notifyCollectionUpdate(id: string, message = '') {
+  return request<{ detail: string; queued: number }>(`/collections/${id}/notify-update/`, {
+    method: 'POST',
+    body: JSON.stringify({ message }),
+  });
+}

@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import { Copy, Send } from 'lucide-react';
+import { Bell, Copy, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -14,7 +14,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { publishCollection, sendCollectionInvite } from '@/lib/api/collections';
+import { notifyCollectionUpdate, publishCollection, sendCollectionInvite } from '@/lib/api/collections';
 import type { Collection } from '@/lib/types';
 
 export function publicCollectionPath(slug: string) {
@@ -179,8 +179,10 @@ export function CollectionEmailShareDialog({
   const [recipients, setRecipients] = React.useState('');
   const [message, setMessage] = React.useState('');
   const [sending, setSending] = React.useState(false);
+  const [notifying, setNotifying] = React.useState(false);
   const [error, setError] = React.useState('');
   const [sentCount, setSentCount] = React.useState(0);
+  const [updateNotice, setUpdateNotice] = React.useState('');
   const [isPublished, setIsPublished] = React.useState(collection.status === 'published');
 
   React.useEffect(() => {
@@ -191,6 +193,7 @@ export function CollectionEmailShareDialog({
     if (!open) return;
     setError('');
     setSentCount(0);
+    setUpdateNotice('');
   }, [open]);
 
   const recipientList = React.useMemo(
@@ -239,6 +242,23 @@ export function CollectionEmailShareDialog({
     }
   }
 
+  async function notifyPreviousRecipients() {
+    setError('');
+    setUpdateNotice('');
+    setNotifying(true);
+    try {
+      await publishBeforeSend();
+      const result = await notifyCollectionUpdate(collection.id, message.trim());
+      setUpdateNotice(result.queued > 0
+        ? `Update email queued for ${result.queued} ${result.queued === 1 ? 'recipient' : 'recipients'}.`
+        : 'No previous email invite recipients were found for this gallery.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to notify previous recipients.');
+    } finally {
+      setNotifying(false);
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent size="md" className="w-[calc(100vw-1rem)] rounded-md sm:w-[90vw]" onClose={() => onOpenChange(false)}>
@@ -265,6 +285,11 @@ export function CollectionEmailShareDialog({
                 Email invite queued for {sentCount} {sentCount === 1 ? 'recipient' : 'recipients'}.
               </div>
             )}
+            {updateNotice && (
+              <div role="status" className="rounded-md border border-teal-600/20 bg-teal-600/5 px-3 py-2 text-[12.5px] leading-5 text-teal-700">
+                {updateNotice}
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor={`collection-email-recipients-${collection.id}`}>Recipients</Label>
               <Input
@@ -289,10 +314,19 @@ export function CollectionEmailShareDialog({
                 disabled={sending}
               />
             </div>
+            <div className="flex flex-col gap-3 rounded-md border border-line bg-panel px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div className="text-[13px] font-medium text-ink">Added more files?</div>
+                <p className="mt-0.5 text-[12.5px] leading-5 text-muted">Notify everyone previously invited by email that this gallery has been updated.</p>
+              </div>
+              <Button type="button" variant="outline" className="shrink-0" disabled={sending || notifying} onClick={notifyPreviousRecipients}>
+                <Bell size={14}/>{notifying ? 'Notifying...' : 'Notify recipients'}
+              </Button>
+            </div>
           </DialogBody>
           <DialogFooter className="flex-col-reverse px-4 pb-6 sm:flex-row sm:px-6">
-            <Button type="button" variant="ghost" className="w-full sm:w-auto" disabled={sending} onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit" variant="default" className="w-full sm:w-auto" disabled={sending || recipientList.length === 0}>
+            <Button type="button" variant="ghost" className="w-full sm:w-auto" disabled={sending || notifying} onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button type="submit" variant="default" className="w-full sm:w-auto" disabled={sending || notifying || recipientList.length === 0}>
               <Send size={14}/>{sending ? 'Sending...' : isPublished ? 'Send email' : 'Publish & send'}
             </Button>
           </DialogFooter>
