@@ -89,7 +89,7 @@ export default function ArticlePage({ params }: ArticlePageProps) {
       <article>
         <header className="mx-auto max-w-[1120px] px-5 pb-10 pt-12 lg:px-10 lg:pb-16 lg:pt-20">
           <nav className="text-xs text-[#77736b]" aria-label="Breadcrumb">
-            <Link href="/blog" className="hover:text-[#181816]">Journal</Link><span className="mx-2">/</span><span>{category}</span>
+            <Link href="/blog" className="hover:text-[#181816]">Blog</Link><span className="mx-2">/</span><span>{category}</span>
           </nav>
           <p className="mt-10 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#77736b]">{category}</p>
           <h1 className="mt-5 max-w-5xl text-[48px] font-semibold leading-[0.98] tracking-[-0.052em] sm:text-[66px] lg:text-[80px]">{article.h1}</h1>

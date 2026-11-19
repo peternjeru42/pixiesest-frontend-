@@ -6,11 +6,11 @@ import { BlogFooter, BlogHeader } from '@/components/blog/blog-shell';
 import { articles } from '@/lib/blog/content';
 
 export const metadata: Metadata = {
-  title: 'Droptop Journal — Client Galleries & Photography Business',
+  title: 'Droptop Blog — Client Galleries & Photography Business',
   description: 'Independent comparisons of Pixieset, Pic-Time, SmugMug, ShootProof, CloudSpot, Zenfolio, and other client-gallery platforms.',
   alternates: { canonical: '/blog' },
   openGraph: {
-    title: 'Droptop Journal',
+    title: 'Droptop Blog',
     description: 'Straightforward comparisons for photographers choosing client-gallery software.',
     type: 'website',
     url: '/blog',
@@ -28,7 +28,7 @@ export default function BlogIndexPage() {
       <section className="border-b border-black/10">
         <div className="mx-auto max-w-[1400px] px-5 py-16 lg:px-10 lg:py-24">
           <div className="max-w-4xl">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#74716a]">Droptop Journal</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#74716a]">Droptop Blog</p>
             <h1 className="mt-6 text-[54px] font-semibold leading-[0.94] tracking-[-0.055em] sm:text-[76px] lg:text-[96px]">
               Better decisions for a photography business.
             </h1>
