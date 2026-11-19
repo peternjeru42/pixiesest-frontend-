@@ -50,6 +50,18 @@
     color: hsl(var(--muted));
   }
   .page-title { font-family: var(--font-display); font-weight: 500; font-size: 36px; line-height: 1.05; letter-spacing: -0.015em; }
+  .blog-prose { color: #5f5c56; font-size: 16px; line-height: 1.8; }
+  .blog-prose .kicker { margin-bottom: 0.75rem; color: #77736b; font-size: 10px; font-weight: 700; letter-spacing: 0.17em; line-height: 1.4; text-transform: uppercase; }
+  .blog-prose h2 { margin-top: 0; margin-bottom: 1.25rem; color: #181816; font-size: clamp(2rem, 5vw, 3rem); font-weight: 600; letter-spacing: -0.045em; line-height: 1.04; }
+  .blog-prose h2:not(:first-of-type) { margin-top: 3.5rem; }
+  .blog-prose h3 { margin-top: 2.25rem; margin-bottom: 0.75rem; color: #181816; font-size: 1.45rem; font-weight: 600; letter-spacing: -0.03em; line-height: 1.2; }
+  .blog-prose p { margin-top: 1rem; }
+  .blog-prose strong { color: #181816; font-weight: 600; }
+  .blog-prose ul, .blog-prose ol { margin-top: 1.25rem; padding-left: 1.25rem; }
+  .blog-prose ul { list-style: disc; }
+  .blog-prose ol { list-style: decimal; }
+  .blog-prose li { margin-top: 0.65rem; padding-left: 0.35rem; }
+  .blog-prose a { color: #181816; text-decoration: underline; text-decoration-color: rgb(24 24 22 / 0.25); text-underline-offset: 4px; }
 }
 
 @layer utilities {

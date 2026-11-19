@@ -109,6 +109,7 @@ export default function Home() {
           </Link>
           <nav className="hidden items-center gap-8 text-[13px] font-medium text-[#515154] md:flex">
             <a href="#pricing">Pricing</a>
+            <Link href="/blog">Journal</Link>
           </nav>
           <div className="hidden items-center gap-3 md:flex">
             <Link href="/login" className="text-[13px] font-medium text-[#515154]">
@@ -281,6 +282,7 @@ export default function Home() {
           <div className="font-semibold tracking-[0.18em] text-[#1d1d1f]">DROPTOP</div>
           <div className="flex flex-wrap gap-5">
             <Link href="#pricing">Pricing</Link>
+            <Link href="/blog">Journal</Link>
             <Link href="/login">Log In</Link>
             <Link href="/register">Get Started</Link>
           </div>
