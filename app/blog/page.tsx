@@ -1,13 +1,13 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowUpRight, Clock3 } from 'lucide-react';
+import { Clock3 } from 'lucide-react';
 import { BlogFooter, BlogHeader } from '@/components/blog/blog-shell';
 import { articles } from '@/lib/blog/content';
 
 export const metadata: Metadata = {
   title: 'Droptop Journal — Client Galleries & Photography Business',
-  description: 'Clear answers about client galleries, Pixieset alternatives, photo delivery, storage, proofing, and selling photography online.',
+  description: 'Independent comparisons of Pixieset, Pic-Time, SmugMug, ShootProof, CloudSpot, Zenfolio, and other client-gallery platforms.',
   alternates: { canonical: '/blog' },
   openGraph: {
     title: 'Droptop Journal',
@@ -19,6 +19,8 @@ export const metadata: Metadata = {
 
 export default function BlogIndexPage() {
   const [featured, ...rest] = articles;
+  const pixiesetArticles = rest.filter(article => (article.category ?? 'Pixieset alternatives') === 'Pixieset alternatives');
+  const platformArticles = rest.filter(article => article.category === 'Platform comparisons');
   return (
     <main className="min-h-screen bg-[#fbfaf7] text-[#181816]">
       <BlogHeader/>
@@ -52,8 +54,8 @@ export default function BlogIndexPage() {
               <p className="mt-6 text-[16px] leading-7 text-[#66635d]">{featured.dek}</p>
             </div>
             <div className="mt-12 flex items-center justify-between border-t border-black/10 pt-6 text-sm font-semibold">
-              <span>Read article</span>
-              <span className="grid h-10 w-10 place-items-center rounded-full bg-[#181816] text-white transition group-hover:rotate-6"><ArrowUpRight size={17}/></span>
+              <span className="underline decoration-black/20 underline-offset-4 group-hover:decoration-black">Read article</span>
+              <span>{featured.category ?? 'Pixieset alternatives'}</span>
             </div>
           </div>
         </Link>
@@ -62,14 +64,37 @@ export default function BlogIndexPage() {
       <section className="mx-auto max-w-[1400px] px-5 pb-24 lg:px-10">
         <div className="mb-8 flex items-end justify-between border-b border-black/10 pb-5">
           <h2 className="text-2xl font-semibold tracking-[-0.03em]">Pixieset alternatives</h2>
-          <span className="text-xs text-[#77736b]">10 articles</span>
+          <span className="text-xs text-[#77736b]">{pixiesetArticles.length + 1} articles</span>
         </div>
         <div className="grid gap-x-7 gap-y-12 md:grid-cols-2 lg:grid-cols-3">
-          {rest.map((article, index) => (
+          {pixiesetArticles.map(article => (
             <Link key={article.slug} href={`/blog/${article.slug}`} className="group">
               <div className="relative aspect-[4/3] overflow-hidden rounded-[18px] bg-[#e7e4dc]">
                 <Image src={article.hero.src} alt={article.hero.alt} fill sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw" className="object-cover transition duration-500 group-hover:scale-[1.025]"/>
-                <div className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] backdrop-blur">Article {String(index + 2).padStart(2, '0')}</div>
+                <div className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] backdrop-blur">Pixieset alternatives</div>
+              </div>
+              <h3 className="mt-5 text-2xl font-semibold leading-[1.08] tracking-[-0.035em] group-hover:underline group-hover:decoration-1 group-hover:underline-offset-4">{article.h1}</h3>
+              <p className="mt-3 line-clamp-2 text-sm leading-6 text-[#68655f]">{article.dek}</p>
+              <div className="mt-4 flex items-center gap-2 text-xs font-medium text-[#77736b]"><Clock3 size={13}/> 8–12 min read</div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-[1400px] px-5 pb-24 lg:px-10">
+        <div className="mb-8 flex items-end justify-between border-b border-black/10 pb-5">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.17em] text-[#77736b]">Compare before you subscribe</p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.03em]">Platform comparisons</h2>
+          </div>
+          <span className="text-xs text-[#77736b]">{platformArticles.length} articles</span>
+        </div>
+        <div className="grid gap-x-7 gap-y-12 md:grid-cols-2 lg:grid-cols-3">
+          {platformArticles.map(article => (
+            <Link key={article.slug} href={`/blog/${article.slug}`} className="group">
+              <div className="relative aspect-[4/3] overflow-hidden rounded-[18px] bg-[#e7e4dc]">
+                <Image src={article.hero.src} alt={article.hero.alt} fill sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw" className="object-cover transition duration-500 group-hover:scale-[1.025]"/>
+                <div className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] backdrop-blur">{article.category}</div>
               </div>
               <h3 className="mt-5 text-2xl font-semibold leading-[1.08] tracking-[-0.035em] group-hover:underline group-hover:decoration-1 group-hover:underline-offset-4">{article.h1}</h3>
               <p className="mt-3 line-clamp-2 text-sm leading-6 text-[#68655f]">{article.dek}</p>
@@ -86,7 +111,7 @@ export default function BlogIndexPage() {
             <h2 className="mt-4 max-w-3xl text-4xl font-semibold leading-tight tracking-[-0.04em]">A simple place to deliver photos and videos to clients.</h2>
             <p className="mt-4 max-w-2xl leading-7 text-[#68655f]">Start free with 5 GB, private galleries, client favorites, password protection, and controlled downloads.</p>
           </div>
-          <Link href="/#pricing" className="inline-flex h-12 items-center gap-2 rounded-full border border-black/20 bg-white px-6 text-sm font-semibold">View pricing <ArrowUpRight size={15}/></Link>
+          <Link href="/#pricing" className="inline-flex h-12 items-center rounded-full border border-black/20 bg-white px-6 text-sm font-semibold">View pricing</Link>
         </div>
       </section>
       <BlogFooter/>

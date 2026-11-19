@@ -1,3 +1,5 @@
+import { competitorArticles } from './competitor-articles';
+
 export type BlogSource = {
   id: string;
   name: string;
@@ -41,9 +43,13 @@ export type BlogArticle = {
   related: string[];
   imagePlan: string[];
   score: { research: number; usefulness: number; accuracy: number; seo: number; editorial: number };
+  category?: string;
+  publishedDate?: string;
+  modifiedDate?: string;
+  sections?: { heading: string; paragraphs: string[] }[];
 };
 
-export const researchDate = 'November 17, 2026';
+export const researchDate = 'November 19, 2026';
 export const publishedDate = '2026-11-17';
 export const modifiedDate = '2026-11-19';
 
@@ -85,10 +91,10 @@ export const products: BlogProduct[] = [
     limitations: ['100 GB costs more than several delivery-first competitors', 'Commission-free sales require a qualifying setup'], sourceIds: ['pictime'],
   },
   {
-    id: 'shootproof', name: 'ShootProof', bestFor: 'Galleries plus contracts and invoices', entry: 'Free; Starter $8.33/month billed yearly', storage: '3 GB photo-only free; 20 GB Starter; up to unlimited photos', commerce: 'Commission-free sales on every plan; processing fees still apply',
+    id: 'shootproof', name: 'ShootProof', bestFor: 'Galleries plus contracts and invoices', entry: 'Free; paid plans with annual or monthly billing', storage: '100 photos free; paid tiers scale to unlimited photos', commerce: 'ShootProof advertises zero platform commission; processing fees still apply',
     summary: 'ShootProof combines galleries with invoicing, contracts, selling, mobile gallery apps, and optional booking. Its free plan is unusually practical for photographers who sell because ShootProof states that it takes no sales commission.',
-    strengths: ['Zero platform commission on sales', 'Contracts and invoices on paid plans', 'Unlimited galleries and a free photo-only tier'],
-    limitations: ['Free storage excludes video', 'Booking and archive services can add cost'], sourceIds: ['shootproof'],
+    strengths: ['Zero stated platform commission on sales', 'Contracts, invoices, booking, and galleries in one system', 'Unlimited galleries on the free plan'],
+    limitations: ['Free capacity is capped by photo count', 'The current pricing page uses promotional pricing, so renewal cost needs checking'], sourceIds: ['shootproof'],
   },
   {
     id: 'cloudspot', name: 'CloudSpot', bestFor: 'A combined gallery and studio workflow', entry: 'Free; Entry $7/month list price', storage: '5 GB free; 15 GB Entry; 100 GB Lite; unlimited tier', commerce: '15% on Free and Entry; commission-free from Lite, plus payment processing',
@@ -103,7 +109,7 @@ export const products: BlogProduct[] = [
     limitations: ['No permanent free plan', 'Commerce requires a higher tier and carries a markup share'], sourceIds: ['smugmug'],
   },
   {
-    id: 'zenfolio', name: 'Zenfolio', bestFor: 'Website, delivery, sales, and volume events', entry: '$7/month billed yearly for Basic', storage: '15 GB Basic; 150 GB Professional; unlimited JPEG on Advanced', commerce: 'Store on Professional and Advanced; verify regional fees before committing',
+    id: 'zenfolio', name: 'Zenfolio', bestFor: 'Website, delivery, sales, and volume events', entry: 'Basic pricing varies by region and billing term', storage: '15 GB Basic; 150 GB Professional; unlimited JPEG plus 150 GB video on Advanced', commerce: 'Store on Professional and Advanced; verify regional fees before committing',
     summary: 'Zenfolio combines a portfolio website, client galleries, proofing, selling, and higher-tier volume tools. Advanced adds booking and unlimited JPEG storage with a separate video allowance.',
     strengths: ['Strong storage value on annual billing', 'QR and volume workflows on higher tiers', 'Website and proofing included'],
     limitations: ['No permanent free plan', 'Annual and month-to-month prices differ substantially'], sourceIds: ['zenfolio'],
@@ -121,7 +127,7 @@ export const products: BlogProduct[] = [
     limitations: ['Promotional and renewal prices differ', 'Storage on low all-in-one tiers is modest'], sourceIds: ['pixpa'],
   },
   {
-    id: 'format', name: 'Format', bestFor: 'Portfolio-first photographers', entry: 'Pro $12/month billed yearly', storage: '100 GB Pro; 1 TB Pro Plus', commerce: 'Commission-free online store advertised',
+    id: 'format', name: 'Format', bestFor: 'Portfolio-first photographers', entry: 'Basic $10/month billed annually; promotions may apply', storage: '100 GB Pro; 1 TB Pro Plus', commerce: 'Commission-free online store advertised',
     summary: 'Format is primarily a portfolio website builder, with client galleries, proofing, contracts, file transfer, and a store layered into its professional plans.',
     strengths: ['Strong portfolio presentation', '100 GB at the Pro annual price', 'Proofing and workflow tools in one site'],
     limitations: ['Not a free gallery service', 'Sales automation is less central than on Pic-Time or PASS'], sourceIds: ['format'],
@@ -133,7 +139,7 @@ export const products: BlogProduct[] = [
     limitations: ['Free plan is small', 'No print-sales workflow'], sourceIds: ['picdrop'],
   },
   {
-    id: 'pass', name: 'PASS Gallery', bestFor: 'Automated print sales', entry: 'Starter $1/month billed yearly', storage: '10 GB introductory Starter; 20 GB Basic; 100 GB Standard; unlimited tier', commerce: 'Commission varies by tier; 0% on Basic according to current pricing',
+    id: 'pass', name: 'PASS Gallery', bestFor: 'Automated print sales', entry: 'Starter $1/month billed yearly', storage: '10 GB Starter; 20 GB Basic; 100 GB Standard; unlimited tier', commerce: 'Commission varies by tier; the current page lists 15% on Starter and 3% on Standard',
     summary: 'PASS focuses on gallery presentation and a SmartStore with automated campaigns. Its low entry prices are attractive, but photographers should compare the storage changes and sales fee on each tier carefully.',
     strengths: ['Low subscription entry', 'Print-store marketing and gallery templates', 'Unlimited-storage tier'],
     limitations: ['Starter storage changes after the introductory period', 'Commission and store functionality vary by plan'], sourceIds: ['pass'],
@@ -190,7 +196,7 @@ const standardFaqs = [
   { question: 'Are annual prices directly comparable?', answer: 'Only when the billing term and renewal price are the same. Several services show an effective monthly price that requires a full-year payment, while others use introductory discounts. The tables here label annual pricing and link to the vendor page for a final checkout check.' },
 ];
 
-export const articles: BlogArticle[] = [
+const pixiesetArticles: BlogArticle[] = [
   {
     slug: 'best-pixieset-alternatives', seoTitle: '15 Best Pixieset Alternatives for Photographers in 2027', h1: '15 Best Pixieset Alternatives for Photographers in 2027',
     description: 'Compare 15 Pixieset alternatives by storage, pricing, proofing, sales, video, and workflow. Official sources checked November 2026.', primaryQuery: 'best Pixieset alternatives 2027', audience: 'Professional and emerging photographers comparing client-gallery platforms', intent: 'Commercial comparison: build a shortlist and choose a replacement',
@@ -380,6 +386,8 @@ export const articles: BlogArticle[] = [
     imagePlan: ['A migration inventory spreadsheet with private values redacted.', 'A before-and-after client journey on Pixieset and the chosen destination.', 'A file-count and checksum validation report for one pilot gallery.'], score: { research: 20, usefulness: 20, accuracy: 20, seo: 18, editorial: 17 },
   },
 ];
+
+export const articles: BlogArticle[] = [...pixiesetArticles, ...competitorArticles];
 
 export function getArticle(slug: string) {
   return articles.find(article => article.slug === slug);

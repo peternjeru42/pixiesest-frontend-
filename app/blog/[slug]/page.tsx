@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowRight, ArrowUpRight, Check, ExternalLink, Minus, ShieldCheck } from 'lucide-react';
+import { Check, Minus, ShieldCheck } from 'lucide-react';
 import { BlogFooter, BlogHeader } from '@/components/blog/blog-shell';
 import {
   articles,
@@ -24,6 +24,8 @@ export function generateStaticParams() {
 export function generateMetadata({ params }: ArticlePageProps): Metadata {
   const article = getArticle(params.slug);
   if (!article) return {};
+  const articlePublishedDate = article.publishedDate ?? publishedDate;
+  const articleModifiedDate = article.modifiedDate ?? modifiedDate;
   return {
     title: article.seoTitle,
     description: article.description,
@@ -32,8 +34,8 @@ export function generateMetadata({ params }: ArticlePageProps): Metadata {
       title: article.seoTitle,
       description: article.description,
       type: 'article',
-      publishedTime: publishedDate,
-      modifiedTime: modifiedDate,
+      publishedTime: articlePublishedDate,
+      modifiedTime: articleModifiedDate,
       authors: ['Droptop Editorial'],
       images: [{ url: article.hero.src, alt: article.hero.alt }],
     },
@@ -44,6 +46,10 @@ export function generateMetadata({ params }: ArticlePageProps): Metadata {
 export default function ArticlePage({ params }: ArticlePageProps) {
   const article = getArticle(params.slug);
   if (!article) notFound();
+
+  const category = article.category ?? 'Pixieset alternatives';
+  const articlePublishedDate = article.publishedDate ?? publishedDate;
+  const articleModifiedDate = article.modifiedDate ?? modifiedDate;
 
   const picks = article.picks.map(pick => ({ ...pick, product: getProduct(pick.productId) })).filter(item => item.product);
   const sourceIds = new Set(['pixieset', ...picks.flatMap(item => item.product?.sourceIds ?? [])]);
@@ -57,8 +63,8 @@ export default function ArticlePage({ params }: ArticlePageProps) {
     '@type': 'Article',
     headline: article.h1,
     description: article.description,
-    datePublished: publishedDate,
-    dateModified: modifiedDate,
+    datePublished: articlePublishedDate,
+    dateModified: articleModifiedDate,
     author: { '@type': 'Organization', name: 'Droptop Editorial' },
     publisher: { '@type': 'Organization', name: 'Droptop' },
     mainEntityOfPage: `/blog/${article.slug}`,
@@ -83,9 +89,9 @@ export default function ArticlePage({ params }: ArticlePageProps) {
       <article>
         <header className="mx-auto max-w-[1120px] px-5 pb-10 pt-12 lg:px-10 lg:pb-16 lg:pt-20">
           <nav className="text-xs text-[#77736b]" aria-label="Breadcrumb">
-            <Link href="/blog" className="hover:text-[#181816]">Journal</Link><span className="mx-2">/</span><span>Pixieset alternatives</span>
+            <Link href="/blog" className="hover:text-[#181816]">Journal</Link><span className="mx-2">/</span><span>{category}</span>
           </nav>
-          <p className="mt-10 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#77736b]">Pixieset alternatives</p>
+          <p className="mt-10 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#77736b]">{category}</p>
           <h1 className="mt-5 max-w-5xl text-[48px] font-semibold leading-[0.98] tracking-[-0.052em] sm:text-[66px] lg:text-[80px]">{article.h1}</h1>
           <p className="mt-7 max-w-3xl text-xl leading-8 text-[#5f5c56]">{article.dek}</p>
           <div className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-black/10 pt-6 text-xs text-[#706d66]">
@@ -135,10 +141,17 @@ export default function ArticlePage({ params }: ArticlePageProps) {
               </table>
             </div>
 
+            {article.sections?.map(section => (
+              <section key={section.heading} className="blog-prose mt-16">
+                <h2>{section.heading}</h2>
+                {section.paragraphs.map(paragraph => <p key={paragraph}>{paragraph}</p>)}
+              </section>
+            ))}
+
             <section className="mt-16" aria-labelledby="reviews">
               <div className="blog-prose">
-                <p className="kicker">The options</p>
-                <h2 id="reviews">Which alternative is best for you?</h2>
+                <p className="kicker">The platforms</p>
+                <h2 id="reviews">How the leading options compare</h2>
               </div>
               <div className="mt-8 divide-y divide-black/10 border-y border-black/10">
                 {picks.map(({ product, angle }, index) => product && (
@@ -172,7 +185,7 @@ export default function ArticlePage({ params }: ArticlePageProps) {
               <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.13em] text-[#456044]"><ShieldCheck size={16}/> Where Droptop fits</div>
               <p className="mt-4 text-lg leading-8">Choose Droptop when you need affordable private photo and video delivery, client favorites, password protection, and controlled downloads. Choose Pic-Time, ShootProof, or another commerce platform when integrated print fulfillment is essential.</p>
               <div className="mt-6 flex flex-wrap gap-3">
-                <Link href="/register" className="inline-flex h-11 items-center gap-2 rounded-full bg-[#181816] px-5 text-sm font-semibold text-white">Create a free gallery <ArrowRight size={14}/></Link>
+                <Link href="/register" className="inline-flex h-11 items-center rounded-full bg-[#181816] px-5 text-sm font-semibold text-white">Create a free gallery</Link>
                 <Link href="/#pricing" className="inline-flex h-11 items-center rounded-full border border-black/15 bg-white px-5 text-sm font-semibold">See Droptop pricing</Link>
               </div>
             </section>
@@ -213,7 +226,7 @@ export default function ArticlePage({ params }: ArticlePageProps) {
             {related.map(item => item && (
               <Link key={item.slug} href={`/blog/${item.slug}`} className="group rounded-[18px] border border-black/10 bg-white p-6">
                 <h2 className="text-xl font-semibold leading-tight tracking-[-0.03em]">{item.h1}</h2>
-                <span className="mt-7 inline-flex items-center gap-2 text-xs font-semibold">Read article <ArrowUpRight size={13} className="transition group-hover:rotate-12"/></span>
+                <span className="mt-7 inline-flex text-xs font-semibold underline decoration-black/20 underline-offset-4 group-hover:decoration-black">Read article</span>
               </Link>
             ))}
           </div>
@@ -230,7 +243,7 @@ function SourceLinks({ ids }: { ids: string[] }) {
     <span className="inline-flex flex-wrap gap-2">
       {linkedSources.map(source => source && (
         <a key={source.id} href={source.url} target={source.url.startsWith('http') ? '_blank' : undefined} rel={source.url.startsWith('http') ? 'noreferrer' : undefined} className="inline-flex items-center gap-1 font-medium text-[#46433e] underline decoration-black/20 underline-offset-4 hover:decoration-black">
-          {source.name.replace(' official pricing', '').replace(' official plans', '').replace(' pricing and product overview', '')}<ExternalLink size={10}/>
+          {source.name.replace(' official pricing', '').replace(' official plans', '').replace(' pricing and product overview', '')}
         </a>
       ))}
     </span>

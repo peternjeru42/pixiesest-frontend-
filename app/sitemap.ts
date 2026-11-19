@@ -8,7 +8,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${baseUrl}/blog`, lastModified: modifiedDate, changeFrequency: 'weekly', priority: 0.9 },
     ...articles.map(article => ({
       url: `${baseUrl}/blog/${article.slug}`,
-      lastModified: modifiedDate,
+      lastModified: article.modifiedDate ?? modifiedDate,
       changeFrequency: 'monthly' as const,
       priority: 0.8,
     })),
